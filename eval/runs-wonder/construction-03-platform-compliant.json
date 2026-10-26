@@ -1,0 +1,45 @@
+{
+ "scene_id": "construction-03-platform-compliant",
+ "labels": [
+  "dangling_cable_in_the_work_walkway",
+  "edge_protection_and_work_at_height_controls_cann",
+  "green_netting_not_fully_secured",
+  "unsecured_tools_and_materials_on_scaffold_platfo",
+  "weight_of_the_metal_fittings_load_cannot_be_veri"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Unsecured tools and materials on scaffold platforms",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Dangling cable in the work walkway",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Green netting not fully secured",
+   "severity": "low",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Edge protection and work-at-height controls cannot be verified",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Weight of the metal fittings load cannot be verified",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 2
+  }
+ ],
+ "summary_en": "Five findings were recorded: zero high severity, two medium severity, and three low severity, including two uncertain findings. The most urgent confirmed item is the unsecured tools and materials on the scaffold platforms in the foreground of frame 0. A site-wide work stoppage is not required, but the platforms must be secured and the cable removed from the walkway before they are used again.",
+ "segmentation_source": "vision"
+}

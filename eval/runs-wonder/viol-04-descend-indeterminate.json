@@ -1,0 +1,31 @@
+{
+ "scene_id": "viol-04-descend-indeterminate",
+ "labels": [
+  "work_inside_a_confined_space_without_visible_att",
+  "worker_face_and_respiratory_protection_cannot_be",
+  "worker_harness_anchorage_inside_the_space_cannot"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Work inside a confined space without visible attendant, rescue, or ventilation controls",
+   "severity": "medium",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Worker harness anchorage inside the space cannot be verified",
+   "severity": "medium",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Worker face and respiratory protection cannot be verified",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 1
+  }
+ ],
+ "summary_en": "There are three findings in total: zero high, two medium, and one low. The most urgent item is the unverified entry, rescue, and ventilation controls for the confined space in frame 0. Work inside the space should stop temporarily until the supervisor completes and records the required on-site checks.",
+ "segmentation_source": "vision"
+}

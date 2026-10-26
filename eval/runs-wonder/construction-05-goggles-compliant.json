@@ -1,0 +1,17 @@
+{
+ "scene_id": "construction-05-goggles-compliant",
+ "labels": [
+  "hearing_protectors_around_the_neck_not_worn_over"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Hearing protectors around the neck, not worn over the ears",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "The total is one low-severity, uncertain finding, with no high or medium findings. The highest priority item to verify is the hearing protectors remaining around the neck and not worn over the ears in frame 0, with no active noise source visible. No work stoppage is required on the current evidence, and the on-site check should be completed before any noisy task begins.",
+ "segmentation_source": "vision"
+}

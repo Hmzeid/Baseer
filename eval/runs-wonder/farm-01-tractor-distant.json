@@ -1,0 +1,17 @@
+{
+ "scene_id": "farm-01-tractor-distant",
+ "labels": [
+  "unable_to_determine_spray_operator_s_ppe"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Unable to determine spray operator's PPE",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There is one low-severity uncertain finding in total, with no confirmed high- or medium-severity findings. The most urgent item is the on-site verification of the spray operator's PPE and cab protection. The frames show no confirmed reason to stop work, but compliance cannot be confirmed until this check is performed.",
+ "segmentation_source": "vision"
+}

@@ -1,0 +1,17 @@
+{
+ "scene_id": "factory-02-helmet-in-hand",
+ "labels": [
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Unconfirmed helmet use near a forklift",
+   "severity": "medium",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There is one medium-severity finding and no high- or low-severity findings. The most urgent item is the unconfirmed helmet use near the forklift due to the conflict between the frames and the inspector's note. The evidence alone does not justify stopping general work, but the on-site check must be completed and the forklift area must not be entered without a helmet.",
+ "segmentation_source": "vision"
+}

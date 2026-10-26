@@ -1,0 +1,30 @@
+{
+ "scene_id": "construction-04-ladder-facade",
+ "labels": [
+  "unsafe_ladder_work",
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Worker on a high ladder without a safety helmet",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Worker leaning outside the sides of the ladder while working",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to verify ladder base stability",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Three findings were recorded: two high severity, no medium severity, and one low-severity uncertain finding. The most urgent item is the worker working on a high ladder without a helmet while leaning outside the ladder sides. Ladder work in this area must stop immediately until a helmet is provided, the ladder position is corrected, and its base is verified.",
+ "segmentation_source": "vision"
+}

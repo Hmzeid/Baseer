@@ -1,0 +1,24 @@
+{
+ "scene_id": "farm-02-greenhouse",
+ "labels": [
+  "no_drinking_water_or_shaded_rest_area_visible_in",
+  "unclear_glove_use_by_harvest_worker"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Unclear glove use by harvest worker",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "No drinking water or shaded rest area visible in the greenhouse",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are two low-severity findings in total, with no high- or medium-severity findings. The most urgent item is to verify on site the harvest worker's glove requirements and the availability of drinking water and shaded rest. The frames do not indicate that work should stop in any area.",
+ "segmentation_source": "vision"
+}

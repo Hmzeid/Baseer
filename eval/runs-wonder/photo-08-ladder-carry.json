@@ -1,0 +1,43 @@
+{
+ "scene_id": "photo-08-ladder-carry",
+ "labels": [
+  "protection_for_worker_at_elevated_edge_is_uncert",
+  "unsafe_ladder_work",
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Worker without a hard hat below elevated work",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Ladder top below the access level edge",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Protection for worker at elevated edge is uncertain",
+   "severity": "medium",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Carrying a large roll while holding the ladder with one hand",
+   "severity": "medium",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Rust-like marks and soiling on the access ladder",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Five findings were recorded: two high severity, two medium severity, and one low severity. The most urgent item is a worker without a hard hat below elevated work, combined with a ladder that does not extend above the access level. Ladder and elevated-edge work in this area should stop until the high-severity items are corrected and fall protection is verified.",
+ "segmentation_source": "vision"
+}

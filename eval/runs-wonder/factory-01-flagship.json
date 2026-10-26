@@ -1,0 +1,31 @@
+{
+ "scene_id": "factory-01-flagship",
+ "labels": [
+  "forklift_path_unmarked",
+  "loose_material_scattered_on_the_floor_of_the_tra",
+  "worker_without_helmet"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Worker without a hard hat in an operating forklift area",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "No marked separate walkways for pedestrians and forklifts",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Loose material scattered on the floor of the travel area",
+   "severity": "low",
+   "determination": "confirmed",
+   "frame_index": 1
+  }
+ ],
+ "summary_en": "The report contains three findings: one high severity, one medium, and one low. The most urgent item is a worker without a hard hat in an active forklift operating area. Forklift movement in the shared work area must stop immediately until the worker wears a helmet and pedestrian routes are separated from forklift routes.",
+ "segmentation_source": "vision"
+}

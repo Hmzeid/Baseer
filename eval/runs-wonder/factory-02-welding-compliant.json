@@ -1,0 +1,38 @@
+{
+ "scene_id": "factory-02-welding-compliant",
+ "labels": [
+  "bent_trunk_posture_during_welding",
+  "body_and_respiratory_protection_cannot_be_fully_",
+  "flying_welding_sparks_with_no_visible_screen",
+  "visible_welding_fumes_with_no_visible_ventilatio"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Bent trunk posture during welding",
+   "severity": "low",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Flying welding sparks with no visible screen",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 1
+  },
+  {
+   "title_en": "Body and respiratory protection cannot be fully confirmed",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 1
+  },
+  {
+   "title_en": "Visible welding fumes with no visible ventilation",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 2
+  }
+ ],
+ "summary_en": "There are four low-severity findings in total, with no high- or medium-severity findings. The most urgent item is to verify on site the adequacy of welding-fume ventilation and fire-prevention measures. Nothing in the frames requires work to stop, provided the specified on-site checks are completed before the next welding operations.",
+ "segmentation_source": "vision"
+}

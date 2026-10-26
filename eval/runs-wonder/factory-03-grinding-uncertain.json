@@ -1,0 +1,38 @@
+{
+ "scene_id": "factory-03-grinding-uncertain",
+ "labels": [
+  "missing_eye_protection",
+  "operating_an_angle_grinder_with_one_hand",
+  "sparks_flying_toward_the_worker_with_no_visible_",
+  "unable_to_fully_verify_the_grinder_disc_guard"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Operating an angle grinder with one hand",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Sparks flying toward the worker with no visible barrier",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to determine eye, face, and head protection",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to fully verify the grinder disc guard",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are 4 findings: one high severity, one medium, and two low-severity uncertain items. The most urgent item is operating the angle grinder with one hand on the right side of frame 0. The grinding task in this area should stop until the grip is corrected and worker protection and the disc guard are verified on site.",
+ "segmentation_source": "vision"
+}

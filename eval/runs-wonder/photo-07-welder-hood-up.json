@@ -1,0 +1,31 @@
+{
+ "scene_id": "photo-07-welder-hood-up",
+ "labels": [
+  "apparently_unsuitable_protective_equipment_for_w",
+  "unable_to_verify_fire_extinguisher_and_welding_s",
+  "unable_to_verify_respiratory_protection_during_w"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Apparently unsuitable protective equipment for welding",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to verify fire extinguisher and welding screen",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to verify respiratory protection during welding",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are three findings in total: one medium and two low, with no high-severity findings. The most urgent item is the apparently unsuitable protective equipment for welding. Only this welding task should stop until the protective equipment is corrected and the fire and respiratory controls are verified; a general factory shutdown is not required.",
+ "segmentation_source": "vision"
+}
