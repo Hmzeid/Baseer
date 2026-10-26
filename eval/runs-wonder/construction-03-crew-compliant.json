@@ -1,0 +1,31 @@
+{
+ "scene_id": "construction-03-crew-compliant",
+ "labels": [
+  "hanging_strap_with_unconfirmed_securing_below_th",
+  "protruding_reinforcing_bars_without_protective_c",
+  "simultaneous_work_above_a_worker_on_the_lower_le"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Protruding reinforcing bars without protective caps",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Simultaneous work above a worker on the lower level",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Hanging strap with unconfirmed securing below the lower platform",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are three findings: one high, one medium, and one low severity. The most urgent item is the protruding reinforcing bars without protective caps on the upper level. Work must stop in the reinforcing-bar area until all protruding ends are protected and verified.",
+ "segmentation_source": "vision"
+}

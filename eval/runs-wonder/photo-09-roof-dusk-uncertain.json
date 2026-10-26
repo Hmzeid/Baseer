@@ -1,0 +1,31 @@
+{
+ "scene_id": "photo-09-roof-dusk-uncertain",
+ "labels": [
+  "lighting_adequacy_at_twilight_uncertain",
+  "unsafe_ladder_work",
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Standing on top of ladder while working on roof",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "No protective helmet while working at height",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Lighting adequacy at twilight uncertain",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Three findings were recorded: two high severity and one low severity. The most urgent item is the worker standing on top of the ladder while working on the shed roof with no visible fall protection. This work must stop immediately in the shed area until access is corrected and the required protection is provided.",
+ "segmentation_source": "vision"
+}

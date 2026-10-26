@@ -1,0 +1,31 @@
+{
+ "scene_id": "construction-01-scaffold",
+ "labels": [
+  "fall_protection_on_the_scaffold_cannot_be_confir",
+  "inclined_wooden_plank_on_scaffold_requires_verif",
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Worker on scaffold without a hard hat",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Inclined wooden plank on scaffold requires verification",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Fall protection on the scaffold cannot be confirmed",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 1
+  }
+ ],
+ "summary_en": "There are three findings in total: one high severity and two low severity, with no medium-severity findings. The most urgent item is the worker on the scaffold without a hard hat. Work on the scaffold in the visible area should stop until the hard hat is worn and the field checks of the inclined plank and fall protection are completed.",
+ "segmentation_source": "vision"
+}

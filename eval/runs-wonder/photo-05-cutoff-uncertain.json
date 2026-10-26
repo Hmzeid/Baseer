@@ -1,0 +1,38 @@
+{
+ "scene_id": "photo-05-cutoff-uncertain",
+ "labels": [
+  "cloth_within_the_spark_zone",
+  "electrical_cable_on_the_ground_in_the_spark_zone",
+  "missing_eye_protection",
+  "spark_spread_with_no_visible_containment_barrier"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Cloth within the spark zone",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Spark spread with no visible containment barrier",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Electrical cable on the ground in the spark zone",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to verify operator head, eye, and face protection",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are 4 findings in total: no confirmed high-severity findings, 3 medium, and 1 low. The most urgent confirmed item is the cloth on the ground within the spark zone at the bottom center of frame 0. Cutting in this area should stop temporarily until the cloth is removed, the cable is moved, and operator protection is verified; there is no evidence requiring work to stop in the rest of the site.",
+ "segmentation_source": "vision"
+}

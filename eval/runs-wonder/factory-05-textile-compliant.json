@@ -1,0 +1,31 @@
+{
+ "scene_id": "factory-05-textile-compliant",
+ "labels": [
+  "face_mask_not_covering_the_nose_and_mouth",
+  "unable_to_determine_machine_guarding_at_the_work",
+  "worker_s_hand_close_to_moving_machine_parts"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Worker's hand close to moving machine parts",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Face mask not covering the nose and mouth",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to determine machine guarding at the work area",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are three findings: one high severity, one medium, and one low uncertain finding. The most urgent item is the worker's hand close to the moving machine parts and roller. Work at this machine should stop until the handling method is corrected and the guard is verified; the evidence does not require stopping the entire factory.",
+ "segmentation_source": "vision"
+}

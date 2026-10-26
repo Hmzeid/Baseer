@@ -1,0 +1,24 @@
+{
+ "scene_id": "factory-06-machinery-watch",
+ "labels": [
+  "exposed_rotating_lathe_chuck_during_operation",
+  "missing_eye_protection"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Exposed rotating lathe chuck during operation",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Eye protection could not be verified during lathe operation",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are two findings in total: one high severity and one low severity. The most urgent item is the exposed rotating lathe chuck in the center of frame 0. Work on this lathe must stop until the guard is secured, but the evidence does not require stopping work in the rest of the factory.",
+ "segmentation_source": "vision"
+}

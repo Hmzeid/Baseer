@@ -1,0 +1,123 @@
+{
+ "factory-03-grinding-uncertain": [
+  "missing_eye_protection",
+  "operating_an_angle_grinder_with_one_hand",
+  "sparks_flying_toward_the_worker_with_no_visible_",
+  "unable_to_fully_verify_the_grinder_disc_guard"
+ ],
+ "factory-04-grinder-uncertain": [
+  "grinder_wheel_guard_cannot_be_confirmed",
+  "missing_eye_protection",
+  "sparks_travelling_toward_the_storage_area_with_n"
+ ],
+ "viol-02-sparks-uncertain": [
+  "bare_hands_and_forearms_exposed_during_grinding",
+  "missing_eye_protection",
+  "unable_to_verify_the_grinder_disc_guard"
+ ],
+ "photo-04-grinder-close-uncertain": [
+  "metal_parts_accumulated_beside_the_grinding_area",
+  "missing_angle_grinder_disc_guard",
+  "missing_eye_protection",
+  "worker_s_hands_without_gloves_during_grinding"
+ ],
+ "photo-05-cutoff-uncertain": [
+  "cloth_within_the_spark_zone",
+  "electrical_cable_on_the_ground_in_the_spark_zone",
+  "missing_eye_protection",
+  "spark_spread_with_no_visible_containment_barrier"
+ ],
+ "photo-09-roof-dusk-uncertain": [
+  "lighting_adequacy_at_twilight_uncertain",
+  "unsafe_ladder_work",
+  "worker_without_helmet"
+ ],
+ "factory-01-flagship": [
+  "forklift_path_unmarked",
+  "loose_material_scattered_on_the_floor_of_the_tra",
+  "worker_without_helmet"
+ ],
+ "photo-07-welder-hood-up": [
+  "apparently_unsuitable_protective_equipment_for_w",
+  "unable_to_verify_fire_extinguisher_and_welding_s",
+  "unable_to_verify_respiratory_protection_during_w"
+ ],
+ "photo-08-ladder-carry": [
+  "protection_for_worker_at_elevated_edge_is_uncert",
+  "unsafe_ladder_work",
+  "worker_without_helmet"
+ ],
+ "construction-04-ladder-facade": [
+  "unsafe_ladder_work",
+  "worker_without_helmet"
+ ],
+ "construction-01-scaffold": [
+  "fall_protection_on_the_scaffold_cannot_be_confir",
+  "inclined_wooden_plank_on_scaffold_requires_verif",
+  "worker_without_helmet"
+ ],
+ "factory-02-helmet-in-hand": [
+  "worker_without_helmet"
+ ],
+ "construction-02-crew-compliant": [
+  "missing_eye_protection",
+  "safety_footwear_of_foreground_worker_cannot_be_v",
+  "vertical_steel_rod_in_front_of_worker_end_could_",
+  "worker_without_helmet"
+ ],
+ "construction-03-platform-compliant": [
+  "dangling_cable_in_the_work_walkway",
+  "edge_protection_and_work_at_height_controls_cann",
+  "green_netting_not_fully_secured",
+  "unsecured_tools_and_materials_on_scaffold_platfo",
+  "weight_of_the_metal_fittings_load_cannot_be_veri"
+ ],
+ "construction-05-goggles-compliant": [
+  "hearing_protectors_around_the_neck_not_worn_over"
+ ],
+ "factory-05-textile-compliant": [
+  "face_mask_not_covering_the_nose_and_mouth",
+  "unable_to_determine_machine_guarding_at_the_work",
+  "worker_s_hand_close_to_moving_machine_parts"
+ ],
+ "factory-06-machinery-watch": [
+  "exposed_rotating_lathe_chuck_during_operation",
+  "missing_eye_protection"
+ ],
+ "farm-01-tractor-distant": [
+  "unable_to_determine_spray_operator_s_ppe"
+ ],
+ "farm-02-greenhouse": [
+  "no_drinking_water_or_shaded_rest_area_visible_in",
+  "unclear_glove_use_by_harvest_worker"
+ ],
+ "factory-02-welding-compliant": [
+  "bent_trunk_posture_during_welding",
+  "body_and_respiratory_protection_cannot_be_fully_",
+  "flying_welding_sparks_with_no_visible_screen",
+  "visible_welding_fumes_with_no_visible_ventilatio"
+ ],
+ "viol-04-descend-indeterminate": [
+  "missing_eye_protection",
+  "unable_to_confirm_harness_connection_to_a_retrie",
+  "unable_to_verify_adequate_lighting_inside_the_sp",
+  "unable_to_verify_atmosphere_testing_and_ventilat",
+  "unable_to_verify_entry_attendant_and_rescue_arra"
+ ],
+ "construction-03-crew-compliant": [
+  "guard_rail_missing",
+  "missing_eye_protection",
+  "protruding_reinforcement_bars_without_visible_pr",
+  "unsecured_strap_hanging_at_the_lower_platform_ed"
+ ],
+ "photo-10-glove-mask-compliant": [
+  "unable_to_verify_fire_prevention_measures_near_w",
+  "unable_to_verify_remaining_body_and_foot_protect",
+  "unable_to_verify_respiratory_protection_during_w"
+ ],
+ "photo-06-rebar-compliant": [
+  "protruding_reinforcing_bars_without_caps_or_guar",
+  "unable_to_verify_safety_footwear",
+  "uneven_ground_around_the_rebar_work_area"
+ ]
+}

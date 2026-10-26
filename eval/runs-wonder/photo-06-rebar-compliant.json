@@ -1,0 +1,31 @@
+{
+ "scene_id": "photo-06-rebar-compliant",
+ "labels": [
+  "protruding_reinforcing_bars_without_caps_or_guar",
+  "unable_to_verify_safety_footwear",
+  "uneven_ground_around_the_rebar_work_area"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Protruding reinforcing bars without caps or guarding",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Uneven ground around the rebar work area",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to verify safety footwear",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are three findings: one high, one medium, and one low severity. The most urgent item is the unguarded protruding reinforcing bars in frame 0. Work in the foundation rebar area should stop until guarding is installed and verified.",
+ "segmentation_source": "vision"
+}

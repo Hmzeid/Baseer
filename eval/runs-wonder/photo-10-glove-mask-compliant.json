@@ -1,0 +1,31 @@
+{
+ "scene_id": "photo-10-glove-mask-compliant",
+ "labels": [
+  "unable_to_verify_fire_prevention_measures_near_w",
+  "unable_to_verify_remaining_body_and_foot_protect",
+  "unable_to_verify_respiratory_protection_during_w"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Unable to verify respiratory protection during welding",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to verify fire prevention measures near welding",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to verify remaining body and foot protection",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are 3 low-severity findings in total, with no visually confirmed high or medium findings. The most urgent item is the on-site verification of respiratory protection and welding fume ventilation. Work stoppage is not recommended based on this frame alone, provided the specified on-site checks are completed.",
+ "segmentation_source": "vision"
+}

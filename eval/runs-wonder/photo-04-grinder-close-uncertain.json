@@ -1,0 +1,38 @@
+{
+ "scene_id": "photo-04-grinder-close-uncertain",
+ "labels": [
+  "metal_parts_accumulated_beside_the_grinding_area",
+  "missing_angle_grinder_disc_guard",
+  "missing_eye_protection",
+  "worker_s_hands_without_gloves_during_grinding"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Missing angle grinder disc guard",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Worker's hands without gloves during grinding",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to verify eye and face protection during grinding",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Metal parts accumulated beside the grinding area",
+   "severity": "low",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are 4 findings: one high severity, one medium, and two low. The most urgent item is the missing angle grinder disc guard. Grinding work in this area must stop until the guard is fitted and verified.",
+ "segmentation_source": "vision"
+}

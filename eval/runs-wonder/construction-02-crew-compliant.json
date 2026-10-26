@@ -1,0 +1,38 @@
+{
+ "scene_id": "construction-02-crew-compliant",
+ "labels": [
+  "missing_eye_protection",
+  "safety_footwear_of_foreground_worker_cannot_be_v",
+  "vertical_steel_rod_in_front_of_worker_end_could_",
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Vertical steel rod in front of worker - end could not be verified",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Helmet of worker on left side of frame cannot be verified",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Safety footwear of foreground worker cannot be verified",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Eye protection during mortar placement cannot be verified",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 1
+  }
+ ],
+ "summary_en": "There are four low-severity findings in total, all uncertain due to cropping or occlusion in the frames, with no confirmed high or medium findings. The most urgent item is the on-site check of the top end of the vertical steel rod in front of the worker in frame 0. No area needs to stop work based on the current visual evidence, provided the specified on-site checks are completed and documented.",
+ "segmentation_source": "vision"
+}

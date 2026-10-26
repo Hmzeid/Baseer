@@ -1,0 +1,31 @@
+{
+ "scene_id": "factory-04-grinder-uncertain",
+ "labels": [
+  "grinder_wheel_guard_cannot_be_confirmed",
+  "missing_eye_protection",
+  "sparks_travelling_toward_the_storage_area_with_n"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Eye and face protection during grinding cannot be confirmed",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Sparks travelling toward the storage area with no visible barrier",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Grinder wheel guard cannot be confirmed",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 2
+  }
+ ],
+ "summary_en": "There are three low-severity, uncertain findings and no confirmed high- or medium-severity findings. The first verification priority is the grinder wheel guard, followed by confirming eye and face protection and a clear spark path. The evidence does not require stopping work throughout the area, but grinding should pause until the specified on-site checks are completed.",
+ "segmentation_source": "vision"
+}

@@ -78,39 +78,47 @@ roadmap item — see BUILD_PLAN.md.
 - `BUILD_PLAN.md` — day-by-day build plan and submission checklist
 - `demo/` — demo footage plan (staged/public material only)
 
-## Evaluation benchmark (run Oct 26, 2026 — live vision path, muse-spark-1.3)
+## Evaluation benchmark (fixed 24-scene set, live vision path)
 24 labeled scenes from the same staged/public Pexels footage as the demo
 (`demo/SOURCES.md`; binaries re-fetched via `eval/fetch_media.py`, never
-committed). The set was fixed in `eval/scenes.json` before the run and
+committed). The set was fixed in `eval/scenes.json` before any run and
 covers positives, compliant negatives, and uncertain-by-design scenes
 (poor light, face out of frame, a note contradicting the image).
 Method: up to 3 evenly spaced frames per scene through the live vision
 pipeline (`eval/run_live.py`), finding titles mapped to hazard labels by a
 fixed keyword map; unmapped titles count as their own label so surprises
-are scored, never dropped. Scored with `eval/score.py`.
+are scored, never dropped. Scored with `eval/score.py`. Both runs below
+used the identical set, harness, and map; per-model evidence lives in
+`eval/runs-spark/` and `eval/runs-wonder/`.
 
-Result: precision 0.128, recall 0.75, F1 0.218 (TP 6, FP 41, FN 2;
-36 false alarms on 18 negative scenes). Exact scene matches: 3/24
-(flagship factory, scaffold helmet, one compliant crew photo).
+Spark 1.3 (dev default, Oct 26): precision 0.128, recall 0.75, F1 0.218
+(TP 6, FP 41, FN 2; 36 false alarms on 18 negative scenes). Exact scene
+matches: 3/24 (flagship factory, scaffold helmet, one compliant crew
+photo). Core hazards found — helmet 3/4 (F1 0.75), ladder 2/2 (F1 0.8),
+unmarked forklift path 1/1. Uncertainty honesty: 5 of 6
+uncertain-by-design scenes carry an "uncertain" determination.
 
-What works: core hazards are found — worker without helmet 3/4
-(F1 0.75), ladder violations 2/2 (F1 0.8), unmarked forklift path 1/1.
-Uncertainty honesty holds: 5 of 6 uncertain-by-design scenes carry an
-"uncertain" determination.
+Wonder 1.0 (final-report model, Oct 26): precision 0.096, recall 0.875,
+F1 0.173 (TP 7, FP 66, FN 1; 58 false alarms on 18 negative scenes).
+Exact scene matches: 1/24. Recall is better — helmets 4/4, ladders 2/2,
+path 1/1, contradiction scene nailed with the exact `worker_without_helmet`
+label — but verbosity nearly doubles the false alarms (66 vs 41):
+Wonder narrates far more "unable to verify" observations as findings, and
+still missed the raised-hood welder (true `missing_eye_protection`) while
+firing that label 9 times elsewhere. Uncertainty honesty holds 6/6, but
+the model hedges on 23/24 scenes while emitting findings anyway.
 
-Failures (published, not tuned away):
-- Over-eager observations: 11 of 12 clean negatives drew flags — mostly
-  cautious "unable to verify X" wordings, but also genuine hallucinations
-  (bare hands on gloved hands, a hanging mask on a masked textile worker).
-- The welder with a raised hood (true `missing_eye_protection`) was missed
-  while that same label fired 5 times elsewhere.
-- The contradiction scene (note claims full compliance, frame shows a
-  helmet in hand) produced an "unconfirmed" slug instead of the exact
-  `worker_without_helmet` label.
-- Compliant scenes rarely come back exactly empty (1/12); the model hedges
-  with `uncertain=True` on ~22/24 scenes while still emitting findings.
+Shared failures (published, not tuned away):
+- Over-eager observations: clean negatives almost always draw flags —
+  mostly cautious "unable to verify X" wordings, but also genuine
+  hallucinations (bare hands on gloved hands, a hanging mask on a masked
+  textile worker, an uncapped-rebar call on a compliant crew photo).
+- Compliant scenes rarely come back exactly empty; hedging plus findings
+  at once inflates precision damage.
 
 Takeaway for production: recall first is the right bias for safety, but
 the prompt must stop minting "unable to verify" findings and the label
-space needs constraining before precision is acceptable. Re-run with
-`muse-wonder-1.0` (locked for final reports) is open.
+space needs constraining before precision is acceptable on either model.
+Verdict stands: Spark for cheap dev loops (higher F1, ~7x cheaper per
+the Day-0 A/B), Wonder for final reports (higher recall, richer actions)
+with the same prompt fix outstanding on both.

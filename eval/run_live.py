@@ -75,7 +75,23 @@ def main() -> int:
     os.makedirs(os.path.join(HERE, "runs"), exist_ok=True)
     predictions: dict[str, list[str]] = {}
     determinations: dict[str, bool] = {}
-    for n, scene in enumerate(scenes, 1):
+    pending: list[dict] = []
+    for scene in scenes:
+        sid = scene["scene_id"]
+        rp = os.path.join(HERE, "runs", f"{sid}.json")
+        if os.path.exists(rp):
+            try:
+                prev = json.load(open(rp, encoding="utf-8"))
+                if "labels" in prev:
+                    predictions[sid] = prev["labels"]
+                    determinations[sid] = bool(prev.get("uncertain", False))
+                    print(f"[skip] {sid}: already ran "
+                          f"({len(prev['labels'])} labels)", flush=True)
+                    continue
+            except Exception:
+                pass
+        pending.append(scene)
+    for n, scene in enumerate(pending, 1):
         sid = scene["scene_id"]
         media = os.path.join(HERE, "..", scene["media"])
         blob = open(media, "rb").read()
@@ -106,7 +122,7 @@ def main() -> int:
             continue
         predictions[sid] = labels
         determinations[sid] = uncertain
-        print(f"[{n}/{len(scenes)}] {sid}: {labels} uncertain={uncertain}", flush=True)
+        print(f"[{n}/{len(pending)}] {sid}: {labels} uncertain={uncertain}", flush=True)
     json.dump(predictions, open(os.path.join(HERE, "predictions.json"), "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
     json.dump(determinations, open(os.path.join(HERE, "determinations.json"), "w", encoding="utf-8"),

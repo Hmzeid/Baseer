@@ -1,0 +1,31 @@
+{
+ "scene_id": "viol-02-sparks-uncertain",
+ "labels": [
+  "bare_hands_and_forearms_exposed_during_grinding",
+  "missing_eye_protection",
+  "unable_to_verify_the_grinder_disc_guard"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Bare hands and forearms exposed during grinding",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 1
+  },
+  {
+   "title_en": "Unable to verify the grinder disc guard",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 1
+  },
+  {
+   "title_en": "Unable to verify eye and face protection",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 2
+  }
+ ],
+ "summary_en": "The report contains three findings: one high severity and two low severity due to inability to verify them. The most urgent item is the exposure of bare hands and forearms during grinding. Grinding work in this area must stop immediately until protection is provided and eye and face protection and the disc guard are verified on site.",
+ "segmentation_source": "vision"
+}
