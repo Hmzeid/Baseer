@@ -1,6 +1,12 @@
 """
-Baseer pipeline: ingest -> frame extraction -> SAM 3.1 segmentation ->
-Muse Spark reasoning -> bilingual inspection report.
+Baseer pipeline: ingest -> frame extraction -> segmentation -> Muse
+reasoning -> bilingual inspection report.
+
+Segmentation source (BASEER_SEGMENTATION, default "auto"): SAM 3.1 where
+enabled; Muse's own multimodal vision as fallback (Day-0 verdict Oct 26:
+this team is SAM-gated, 404). The report records segmentation_source so
+no reader mistakes a vision report for a segmented one — vision reports
+carry no bounding-box overlays, only frame indices + regions in words.
 """
 from __future__ import annotations
 
@@ -26,6 +32,7 @@ class InspectionReport:
     findings: list[dict] = field(default_factory=list)
     summary_ar: str = ""
     summary_en: str = ""
+    segmentation_source: str = "sam"  # sam | vision (see meta_client.SEGMENTATION)
 
 
 def extract_frames(files: list[tuple[str, bytes]]) -> list[bytes]:
@@ -97,9 +104,34 @@ def run_inspection(files: list[tuple[str, bytes]], inspector_notes: str,
     if not frames:
         # Mock mode with no uploads still demonstrates the full flow.
         frames = [b""] if meta_client.MODE != "live" else []
-    segments = meta_client.segment_frames(frames)
-    findings, summary_ar, summary_en = meta_client.reason_findings(
-        segments, inspector_notes, site_context)
+    segmentation_source = "sam"
+    segments: list = []
+    if meta_client.SEGMENTATION == "vision":
+        segmentation_source = "vision"
+        if frames:
+            findings, summary_ar, summary_en = meta_client.reason_from_frames(
+                frames, inspector_notes, site_context)
+        else:
+            # No media: notes-only reasoning, same as the SAM path.
+            findings, summary_ar, summary_en = meta_client.reason_findings(
+                [], inspector_notes, site_context)
+    else:
+        try:
+            segments = meta_client.segment_frames(frames)
+            findings, summary_ar, summary_en = meta_client.reason_findings(
+                segments, inspector_notes, site_context)
+        except RuntimeError as exc:
+            # SAM gated (404) + auto mode: fall back to vision, loudly.
+            if meta_client.SEGMENTATION == "auto" and "404" in str(exc):
+                segmentation_source = "vision"
+                if frames:
+                    findings, summary_ar, summary_en = meta_client.reason_from_frames(
+                        frames, inspector_notes, site_context)
+                else:
+                    findings, summary_ar, summary_en = meta_client.reason_findings(
+                        [], inspector_notes, site_context)
+            else:
+                raise
     finding_dicts = with_cases([asdict(f) for f in findings])
     return InspectionReport(
         inspection_id=uuid.uuid4().hex[:12],
@@ -110,4 +142,5 @@ def run_inspection(files: list[tuple[str, bytes]], inspector_notes: str,
         findings=finding_dicts,
         summary_ar=summary_ar,
         summary_en=summary_en,
+        segmentation_source=segmentation_source,
     )

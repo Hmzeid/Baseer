@@ -127,6 +127,16 @@ numbers: the set is fixed before the runs start.
 ## Build days
 - **Oct 26–27 — Live pipeline:** SAM 3.1 live segmentation on stills; Muse Spark
   live findings in Arabic; evidence frame rendering with bbox overlays.
+  DAY-0 REVISION (Oct 26): SAM is gated for this team (404), so the live
+  pipeline is built on the **Muse-vision fallback first** (`reason_from_frames`
+  in `meta_client.py`, `VISION_SYSTEM_PROMPT` in `prompts.py`,
+  `BASEER_SEGMENTATION=auto|sam|vision`, report carries
+  `segmentation_source`). Bbox overlays arrive only if/when SAM is enabled;
+  vision reports show frame indices + regions in words. Live validation on
+  Hussein's Mac: pull, run a live inspection on a real site photo, confirm
+  `segmentation_source="vision"` + a grounded Arabic report, paste the
+  output back. If SAM is enabled mid-week, the swap is inside
+  `meta_client.py` only.
 - **Oct 28 — Video path + live camera wiring:** frame sampling tuned
   (scene-change + interval), segment tracking across frames, dedupe findings
   across frames. Wire the live-session core (built Oct 21) to a real camera:
