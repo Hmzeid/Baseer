@@ -6,7 +6,12 @@ Baseer turns a short phone video or photo set from a worksite into a finished
 inspection report — then opens a corrective-action case for what it found,
 and verifies the fix on re-inspection, with a human approving every closure. **SAM 3.1** segments the scene — equipment, workers, PPE,
 vehicles, visible hazards — and **Muse Spark** reasons over those segments
-together with the inspector's Arabic voice or text notes. The output is a
+together with the inspector's Arabic voice or text notes. **Live note
+(Oct 26): SAM 3.1 is per-team gated and this team is gated (404), so the
+live path currently uses Muse's own multimodal vision on the frames
+instead — same report schema, but no bounding-box overlays, only frame
+indices and regions described in words. The report records
+`segmentation_source` so the difference is always visible.** The output is a
 structured report in Arabic (with an English summary): every finding carries a
 severity, the exact frame as evidence, and a recommended corrective action.
 

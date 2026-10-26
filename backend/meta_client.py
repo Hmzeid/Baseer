@@ -20,6 +20,11 @@ https://developer.meta.com/docs/model-api in a normal browser at kickoff):
     special-token text records: boxes + base85-encoded masks + stable object
     IDs tracked across video frames (see parse below). Per-team gated: a team
     without SAM enabled gets 404 model_not_found — verify before kickoff.
+    DAY-0 VERDICT (Oct 26): this team IS gated (404). Fallback: Muse reads
+    the frames directly (reason_from_frames, prompts.VISION_SYSTEM_PROMPT).
+    Pipeline selects via env BASEER_SEGMENTATION: "auto" (default — try SAM,
+    fall back to vision on the 404), "sam" (never fall back), "vision"
+    (skip SAM entirely). The report records which source was used.
 
 Modes via env BASEER_MODE: "mock" (default, deterministic samples) / "live".
 ALL Meta-specific shaping stays in this file.
@@ -38,6 +43,7 @@ BASE_URL = os.getenv("META_API_BASE_URL", "https://api.meta.ai/v1")
 API_KEY = os.getenv("MODEL_API_KEY", "") or os.getenv("META_API_KEY", "")
 MUSE_MODEL = os.getenv("MUSE_MODEL", "muse-spark-1.3")
 SAM_MODEL = os.getenv("SAM_MODEL", "sam-3.1")
+SEGMENTATION = os.getenv("BASEER_SEGMENTATION", "auto").lower()  # auto | sam | vision
 
 # English concept phrases for SAM 3.1 (one API call per phrase).
 SAM_CONCEPTS = [
@@ -65,8 +71,9 @@ class Finding:
     action_ar: str = ""  # recommended corrective action (Arabic)
     action_en: str = ""
     frame_index: int = 0
-    source: str = "segments"        # segments | inspector | both
+    source: str = "segments"        # segments | inspector | both | vision
     visually_confirmed: bool = True
+    determination: str = "confirmed"  # confirmed | uncertain (prompt rule 9)
 
 
 def _headers() -> dict:
@@ -178,6 +185,55 @@ def reason_findings(segments: list[Segment], inspector_notes: str,
     content = data["choices"][0]["message"]["content"]
     import json
     parsed = json.loads(content)
+    known = {f.name for f in Finding.__dataclass_fields__.values()}
+    findings = [Finding(**{k: v for k, v in f.items() if k in known})
+                for f in parsed["findings"]]
+    return findings, parsed["summary_ar"], parsed["summary_en"]
+
+
+def reason_from_frames(frames: list[bytes], inspector_notes: str,
+                       site_context: str = "") -> tuple[list[Finding], str, str]:
+    """Vision fallback: Muse reads the frames directly (no SAM segments).
+
+    Same Finding contract as reason_findings, except findings carry
+    source "vision" and describe their region in words (no boxes exist).
+    Used when SAM 3.1 is gated (Day-0 verdict: 404 for this team) and when
+    BASEER_SEGMENTATION=vision. The caller labels each image with its
+    frame index so findings can cite frame_index correctly.
+    """
+    if MODE != "live":
+        return _mock_findings([])
+    if not frames:
+        raise RuntimeError("vision reasoning needs at least one frame")
+    if not API_KEY:
+        raise RuntimeError("live mode requires MODEL_API_KEY (create one at dev.meta.ai)")
+    if MUSE_MODEL.endswith("-contributor"):
+        raise RuntimeError(
+            "Refusing Contributor-tier model: Meta may train on its prompts. "
+            "Use the Standard muse-spark-1.3.")
+    import prompts
+    content: list[dict] = []
+    for idx, frame in enumerate(frames):
+        image_url = "data:image/jpeg;base64," + base64.b64encode(frame).decode()
+        content.append({"type": "text", "text": f"Frame {idx}:"})
+        content.append({"type": "image_url", "image_url": {"url": image_url}})
+    content.append({"type": "text", "text": prompts.build_vision_prompt(
+        inspector_notes, site_context)})
+    payload = {
+        "model": MUSE_MODEL,
+        "messages": [
+            {"role": "system", "content": prompts.VISION_SYSTEM_PROMPT},
+            {"role": "user", "content": content},
+        ],
+        "response_format": {"type": "json_object"},
+    }
+    with httpx.Client(timeout=180) as client:
+        resp = client.post(f"{BASE_URL}/chat/completions", json=payload, headers=_headers())
+        resp.raise_for_status()
+        data = resp.json()
+    content_text = data["choices"][0]["message"]["content"]
+    import json
+    parsed = json.loads(content_text)
     known = {f.name for f in Finding.__dataclass_fields__.values()}
     findings = [Finding(**{k: v for k, v in f.items() if k in known})
                 for f in parsed["findings"]]
