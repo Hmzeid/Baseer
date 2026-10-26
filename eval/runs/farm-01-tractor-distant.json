@@ -1,0 +1,17 @@
+{
+ "scene_id": "farm-01-tractor-distant",
+ "labels": [
+  "unable_to_verify_pesticide_sprayer_operator_prot"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Unable to verify pesticide sprayer operator protection during application",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One low-severity observation was recorded regarding inability to verify operator protection during the spraying operation seen in frame 0. The most urgent item is on-site verification of cab status and required PPE. No stop of work is required.",
+ "segmentation_source": "vision"
+}

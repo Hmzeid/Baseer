@@ -1,0 +1,24 @@
+{
+ "scene_id": "factory-01-flagship",
+ "labels": [
+  "forklift_path_unmarked",
+  "worker_without_helmet"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Pedestrian without hard hat in forklift operating area",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "No marked pedestrian walkway in forklift operating area",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 1
+  }
+ ],
+ "summary_en": "Two findings were recorded: one high severity and one medium severity. The most urgent is a worker without a hard hat in the path of an operating forklift. Forklift movement in the area must stop immediately until all wear helmets and pedestrian routes are separated from forklift routes.",
+ "segmentation_source": "vision"
+}

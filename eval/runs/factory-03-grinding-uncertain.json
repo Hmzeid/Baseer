@@ -1,0 +1,31 @@
+{
+ "scene_id": "factory-03-grinding-uncertain",
+ "labels": [
+  "grinding_sparks_projected_without_visible_spark_",
+  "missing_eye_protection",
+  "operating_angle_grinder_one_handed_with_other_ha"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Operating angle grinder one-handed with other hand in pocket",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Grinding sparks projected without visible spark screen or exclusion zone",
+   "severity": "low",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to verify eye and face protection during grinding",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Three findings were recorded: one high severity and two low severity. The most urgent is one-handed angle grinder operation with the other hand in the pocket, risking loss of control. Stop grinding work in this area until the worker uses both hands and full protection is verified.",
+ "segmentation_source": "vision"
+}

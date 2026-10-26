@@ -297,3 +297,46 @@ def build_vision_prompt(inspector_notes: str, site_context: str = "") -> str:
         f"{VISION_FEW_SHOT_EXAMPLE}\n\n"
         f"Return JSON exactly in this schema:\n{VISION_OUTPUT_SCHEMA}"
     )
+
+
+# ---------------------------------------------------------------------------
+# Re-inspection verification: compare AFTER evidence against ONE finding.
+# The verdict only ever SUGGESTS — a human approves every closure.
+# ---------------------------------------------------------------------------
+
+VERIFY_SYSTEM_PROMPT = """You are Baseer, verifying whether a corrective action worked.
+
+You receive ONE safety finding (title, detail, corrective action) from an
+earlier inspection, plus new AFTER photo/video frames of the same location.
+Decide only whether the AFTER evidence shows the violation corrected.
+
+Rules:
+1. COMPARE, do not re-inspect. Judge this one finding against the after
+   frames — never add new findings or change severities.
+2. HONEST DEFAULT. suggested_resolved=true ONLY when the after frames
+   clearly show the corrected condition (e.g. every visible worker wears a
+   helmet; a guard rail is now installed). Partial evidence, a different
+   location, poor visibility, or any doubt means false — say what check a
+   human must perform instead. A wrong "resolved" can kill; a wrong
+   "not resolved" only costs a visit.
+3. LANGUAGE. note_ar: Modern Standard Arabic, one or two short sentences.
+   note_en: plain professional English mirror.
+4. OUTPUT. JSON only — no markdown fences, no commentary outside the JSON object."""
+
+VERIFY_OUTPUT_SCHEMA = """{
+  "suggested_resolved": "boolean — true ONLY when the after frames clearly show the violation corrected",
+  "note_ar": "string — what the after frames show and why (Arabic)",
+  "note_en": "string — English mirror"
+}"""
+
+
+def build_verify_prompt(finding: dict) -> str:
+    return (
+        "Original finding:\n"
+        f"Title: {finding.get('title_en', '')} / {finding.get('title_ar', '')}\n"
+        f"Detail: {finding.get('detail_en', '')}\n"
+        f"Corrective action was: {finding.get('action_en', '')}\n\n"
+        "After frames of the same location follow (labeled by frame index).\n"
+        "Does the violation above appear corrected in them?\n\n"
+        f"Return JSON exactly in this schema:\n{VERIFY_OUTPUT_SCHEMA}"
+    )

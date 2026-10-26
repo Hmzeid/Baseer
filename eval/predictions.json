@@ -1,0 +1,96 @@
+{
+ "factory-03-grinding-uncertain": [
+  "grinding_sparks_projected_without_visible_spark_",
+  "missing_eye_protection",
+  "operating_angle_grinder_one_handed_with_other_ha"
+ ],
+ "factory-04-grinder-uncertain": [
+  "uncertain_respiratory_protection_during_grinding",
+  "uncontrolled_angle_grinder_sparks_without_protec"
+ ],
+ "viol-02-sparks-uncertain": [
+  "grinding_sparks_ejected_without_visible_protecti",
+  "missing_eye_protection",
+  "worker_operating_angle_grinder_with_bare_hands_w"
+ ],
+ "photo-04-grinder-close-uncertain": [
+  "angle_grinder_operating_with_no_visible_disc_gua",
+  "missing_eye_protection",
+  "operating_angle_grinder_with_bare_hands_without_"
+ ],
+ "photo-05-cutoff-uncertain": [
+  "combustible_material_in_spark_projection_zone",
+  "missing_eye_protection"
+ ],
+ "photo-09-roof-dusk-uncertain": [
+  "unsafe_ladder_work"
+ ],
+ "factory-01-flagship": [
+  "forklift_path_unmarked",
+  "worker_without_helmet"
+ ],
+ "photo-07-welder-hood-up": [
+  "flammable_vest_placed_adjacent_to_active_welding",
+  "respiratory_protection_for_welding_fume_cannot_b"
+ ],
+ "photo-08-ladder-carry": [
+  "unsafe_ladder_work",
+  "worker_at_elevated_roof_edge_with_no_visible_edg",
+  "worker_without_helmet"
+ ],
+ "construction-04-ladder-facade": [
+  "unsafe_ladder_work",
+  "worker_without_helmet"
+ ],
+ "construction-01-scaffold": [
+  "worker_without_helmet"
+ ],
+ "factory-02-helmet-in-hand": [
+  "unconfirmed_hard_hat_use_in_forklift_area"
+ ],
+ "construction-02-crew-compliant": [
+  "exposed_uncapped_steel_rod_next_to_worker",
+  "head_protection_for_standing_worker_could_not_be"
+ ],
+ "construction-03-platform-compliant": [
+  "hanging_lifting_ropes_and_hook_above_work_platfo",
+  "opening_in_side_safety_netting_at_material_platf",
+  "unsecured_stacked_metal_parts_on_elevated_platfo"
+ ],
+ "construction-05-goggles-compliant": [
+  "hearing_protection_around_neck_not_on_ears"
+ ],
+ "factory-05-textile-compliant": [
+  "face_mask_hanging_and_not_covering_nose_and_mout",
+  "hands_and_loose_sleeve_near_moving_machine_parts",
+  "machine_guarding_completeness_cannot_be_determin"
+ ],
+ "factory-06-machinery-watch": [
+  "lathe_rotating_chuck_exposed_without_guard",
+  "missing_eye_protection",
+  "tools_and_items_stored_on_lathe_body"
+ ],
+ "farm-01-tractor-distant": [
+  "unable_to_verify_pesticide_sprayer_operator_prot"
+ ],
+ "farm-02-greenhouse": [
+  "unable_to_verify_glove_use_for_harvest_worker"
+ ],
+ "factory-02-welding-compliant": [
+  "welding_fumes_without_visible_local_extraction",
+  "welding_sparks_without_visible_screen_or_extingu"
+ ],
+ "viol-04-descend-indeterminate": [
+  "respiratory_protection_inside_the_tank_cannot_be",
+  "safety_harness_retrieval_connection_cannot_be_ve",
+  "work_inside_a_confined_space_without_verifiable_"
+ ],
+ "construction-03-crew-compliant": [],
+ "photo-10-glove-mask-compliant": [
+  "unable_to_verify_respiratory_protection_and_fire",
+  "visible_welding_fume_without_apparent_local_extr"
+ ],
+ "photo-06-rebar-compliant": [
+  "exposed_rebar_ends_without_visible_protective_ca"
+ ]
+}

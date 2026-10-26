@@ -1,0 +1,24 @@
+{
+ "scene_id": "factory-04-grinder-uncertain",
+ "labels": [
+  "uncertain_respiratory_protection_during_grinding",
+  "uncontrolled_angle_grinder_sparks_without_protec"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Uncontrolled angle grinder sparks without protective screening near storage",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Uncertain respiratory protection during grinding",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 2
+  }
+ ],
+ "summary_en": "Two findings were recorded: one medium and one low uncertain. The most urgent is uncontrolled grinding sparks without screening near storage racks and equipment. Full site shutdown is not required, but grinding work should pause until spark containment and area clearance are in place.",
+ "segmentation_source": "vision"
+}

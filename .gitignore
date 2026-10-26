@@ -3,3 +3,6 @@
 __pycache__/
 *.pyc
 .DS_Store
+# Eval/demo binaries are re-fetched via eval/fetch_media.py, never committed.
+demo/footage/
+demo/photos/

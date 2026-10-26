@@ -1,0 +1,31 @@
+{
+ "scene_id": "factory-05-textile-compliant",
+ "labels": [
+  "face_mask_hanging_and_not_covering_nose_and_mout",
+  "hands_and_loose_sleeve_near_moving_machine_parts",
+  "machine_guarding_completeness_cannot_be_determin"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Hands and loose sleeve near moving machine parts",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Face mask hanging and not covering nose and mouth",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Machine guarding completeness cannot be determined",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Three findings were recorded: one high severity, one medium, and one low uncertain. The most urgent is the hands and loose sleeve close to the moving parts of the fabric machine, which could cause entanglement or crushing. Work on this machine should stop until clothing is secured and hands are kept clear of the danger zone; full plant shutdown is not required.",
+ "segmentation_source": "vision"
+}

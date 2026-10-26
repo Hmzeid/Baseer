@@ -1,0 +1,17 @@
+{
+ "scene_id": "farm-02-greenhouse",
+ "labels": [
+  "unable_to_verify_glove_use_for_harvest_worker"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Unable to verify glove use for harvest worker",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 2
+  }
+ ],
+ "summary_en": "One low-severity uncertain observation was recorded, with no high or medium-severity findings. The most urgent item is the inability to verify glove use for the harvest worker in frame 2. No stop of work in the greenhouse is required.",
+ "segmentation_source": "vision"
+}

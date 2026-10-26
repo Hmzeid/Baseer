@@ -1,0 +1,31 @@
+{
+ "scene_id": "factory-06-machinery-watch",
+ "labels": [
+  "lathe_rotating_chuck_exposed_without_guard",
+  "missing_eye_protection",
+  "tools_and_items_stored_on_lathe_body"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Lathe rotating chuck exposed without guard",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to verify worker eye protection",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Tools and items stored on lathe body",
+   "severity": "low",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Three findings were recorded: one high-severity and two low-severity. The most urgent is the exposed rotating lathe chuck during operation due to entanglement and serious injury risk. Work on this lathe should be stopped until a chuck guard is installed, with eye protection verified and tools removed from the machine body.",
+ "segmentation_source": "vision"
+}

@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-03-crew-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No violations were recorded in frame 0 (zero high, zero medium, zero low). All visible workers wear safety helmets and high-visibility vests and work behind scaffold guardrails. There is no urgent item and no need to stop work in any area.",
+ "segmentation_source": "vision"
+}

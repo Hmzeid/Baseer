@@ -1,0 +1,24 @@
+{
+ "scene_id": "photo-10-glove-mask-compliant",
+ "labels": [
+  "unable_to_verify_respiratory_protection_and_fire",
+  "visible_welding_fume_without_apparent_local_extr"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Visible welding fume without apparent local extraction",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to verify respiratory protection and fire precautions due to darkness",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Two findings were recorded: one medium and one low. The most urgent is the dense visible welding fume in frame 0 without apparent local extraction. Work need not stop, but ventilation must be improved and respiratory protection and fire precautions verified on site.",
+ "segmentation_source": "vision"
+}

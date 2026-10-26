@@ -1,0 +1,31 @@
+{
+ "scene_id": "viol-02-sparks-uncertain",
+ "labels": [
+  "grinding_sparks_ejected_without_visible_protecti",
+  "missing_eye_protection",
+  "worker_operating_angle_grinder_with_bare_hands_w"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Worker operating angle grinder with bare hands without gloves",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 1
+  },
+  {
+   "title_en": "Unconfirmed adequacy of eye and face protection during grinding",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 1
+  },
+  {
+   "title_en": "Grinding sparks ejected without visible protective screen",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 2
+  }
+ ],
+ "summary_en": "Three findings were recorded: one medium and two low severity. The most urgent is grinding with bare hands without gloves in frame 1. No plant-wide stop is required, but grinding work should not resume until gloves are provided and eye-face protection and spark containment are verified.",
+ "segmentation_source": "vision"
+}

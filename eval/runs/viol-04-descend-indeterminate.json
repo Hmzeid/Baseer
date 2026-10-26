@@ -1,0 +1,31 @@
+{
+ "scene_id": "viol-04-descend-indeterminate",
+ "labels": [
+  "respiratory_protection_inside_the_tank_cannot_be",
+  "safety_harness_retrieval_connection_cannot_be_ve",
+  "work_inside_a_confined_space_without_verifiable_"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Work inside a confined space without verifiable entry controls",
+   "severity": "medium",
+   "determination": "uncertain",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Respiratory protection inside the tank cannot be verified",
+   "severity": "medium",
+   "determination": "uncertain",
+   "frame_index": 1
+  },
+  {
+   "title_en": "Safety harness retrieval connection cannot be verified",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 2
+  }
+ ],
+ "summary_en": "Three findings were recorded: 2 medium and 1 low, with no confirmed high finding from the frames. The most urgent is work inside the closed metallic tank without verifiable permit, ventilation, attendant and rescue controls. Entry to the tank should remain suspended until on-site verification of all controls, respiratory protection and the retrieval system.",
+ "segmentation_source": "vision"
+}

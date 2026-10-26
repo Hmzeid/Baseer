@@ -1,0 +1,17 @@
+{
+ "scene_id": "construction-01-scaffold",
+ "labels": [
+  "worker_without_helmet"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Worker on elevated scaffold without hard hat",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 1
+  }
+ ],
+ "summary_en": "One high-severity finding was recorded. The most urgent item is a worker on an elevated scaffold without a hard hat in frame 1. Work on the scaffold in that area should stop until head protection is worn.",
+ "segmentation_source": "vision"
+}

@@ -1,0 +1,24 @@
+{
+ "scene_id": "factory-02-welding-compliant",
+ "labels": [
+  "welding_fumes_without_visible_local_extraction",
+  "welding_sparks_without_visible_screen_or_extingu"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Welding fumes without visible local extraction",
+   "severity": "medium",
+   "determination": "uncertain",
+   "frame_index": 2
+  },
+  {
+   "title_en": "Welding sparks without visible screen or extinguisher",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Two findings were recorded: one medium severity and one low severity. The most urgent is potential exposure to welding fumes inside the metal structure without visible ventilation. No work stoppage is required, provided ventilation, respiratory protection, and spark-area precautions are verified as welding continues.",
+ "segmentation_source": "vision"
+}

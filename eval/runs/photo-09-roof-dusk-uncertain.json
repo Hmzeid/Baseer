@@ -1,0 +1,17 @@
+{
+ "scene_id": "photo-09-roof-dusk-uncertain",
+ "labels": [
+  "unsafe_ladder_work"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Worker standing on top of unsecured stepladder at shed",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One high-severity finding was recorded. The most urgent item is the worker standing on top of an unsecured stepladder at the shed, which could cause a serious fall. Work in this area should stop immediately until the ladder setup is corrected and secured.",
+ "segmentation_source": "vision"
+}

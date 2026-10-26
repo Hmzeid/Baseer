@@ -1,0 +1,30 @@
+{
+ "scene_id": "construction-04-ladder-facade",
+ "labels": [
+  "unsafe_ladder_work",
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Side overreach and loss of balance on a ladder at height",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Work at height without safety helmet",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 1
+  },
+  {
+   "title_en": "Ladder base securing unable to be verified",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 2
+  }
+ ],
+ "summary_en": "Three findings were recorded: two high-severity and one low-severity. The most urgent is the worker's side overreach on the tall ladder with fall risk. Work at height on this facade should stop until a safe platform and helmet are provided and the climbing means is verified.",
+ "segmentation_source": "vision"
+}
