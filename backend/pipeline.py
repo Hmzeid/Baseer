@@ -32,7 +32,7 @@ class InspectionReport:
     findings: list[dict] = field(default_factory=list)
     summary_ar: str = ""
     summary_en: str = ""
-    segmentation_source: str = "sam"  # sam | vision (see meta_client.SEGMENTATION)
+    segmentation_source: str = "sam"  # sam | vision | mock (mock mode never claims SAM)
 
 
 def extract_frames(files: list[tuple[str, bytes]]) -> list[bytes]:
@@ -104,7 +104,9 @@ def run_inspection(files: list[tuple[str, bytes]], inspector_notes: str,
     if not frames:
         # Mock mode with no uploads still demonstrates the full flow.
         frames = [b""] if meta_client.MODE != "live" else []
-    segmentation_source = "sam"
+    # Mock mode segments are synthetic fixtures, never SAM output — the
+    # report must not claim "sam" for them (QA flag 2026-10-26).
+    segmentation_source = "mock" if meta_client.MODE != "live" else "sam"
     segments: list = []
     if meta_client.SEGMENTATION == "vision":
         segmentation_source = "vision"
@@ -132,6 +134,10 @@ def run_inspection(files: list[tuple[str, bytes]], inspector_notes: str,
                         [], inspector_notes, site_context)
             else:
                 raise
+    if meta_client.MODE != "live":
+        # Mock mode: every branch above produced synthetic fixtures, so the
+        # final word is "mock" regardless of the SEGMENTATION setting.
+        segmentation_source = "mock"
     finding_dicts = with_cases([asdict(f) for f in findings])
     return InspectionReport(
         inspection_id=uuid.uuid4().hex[:12],
