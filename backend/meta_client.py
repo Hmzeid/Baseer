@@ -38,6 +38,30 @@ from dataclasses import dataclass, field
 
 import httpx
 
+# Load .env (backend/ then repo root) BEFORE reading any env vars, so the
+# app picks up MODEL_API_KEY from the checkout's .env without the caller
+# having to export it. Real environment variables always win; values are
+# never printed. .env is git-ignored, so the key stays local.
+def _load_dotenv() -> None:
+    here = os.path.dirname(os.path.abspath(__file__))
+    for candidate in (os.path.join(here, ".env"),
+                      os.path.join(os.path.dirname(here), ".env")):
+        if not os.path.exists(candidate):
+            continue
+        with open(candidate, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                key, value = key.strip(), value.strip().strip("\"'")
+                if key and key not in os.environ:
+                    os.environ[key] = value
+        return
+
+
+_load_dotenv()
+
 MODE = os.getenv("BASEER_MODE", "mock").lower()
 BASE_URL = os.getenv("META_API_BASE_URL", "https://api.meta.ai/v1")
 API_KEY = os.getenv("MODEL_API_KEY", "") or os.getenv("META_API_KEY", "")
