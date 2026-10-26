@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baseer — UI Design v4 · بصير</title>
+<style>
+  :root{
+    --ink:#1d1d1f; --ink2:#3a3a3e; --muted:#6e6e73; --paper:#f5f3ee; --card:#ffffff;
+    --line:#e6e1d3; --line2:#eee9db; --navy:#0b3b8f; --navyTint:#e9effc; --gold:#a5812f;
+    --high:#b3261e; --highTint:#fdecea; --med:#8a5a00; --medTint:#fbf0da; --low:#2f5d3a; --lowTint:#e7f2e9;
+    --shadow:0 1px 2px rgba(29,29,31,.04),0 12px 32px rgba(29,29,31,.07);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,"SF Pro Text","Segoe UI",Tahoma,Arial,sans-serif;line-height:1.55;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:40px 22px 80px}
+  /* document header */
+  .dochead{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:6px}
+  .kicker{text-transform:uppercase;letter-spacing:.16em;font-size:11.5px;color:var(--gold);font-weight:700;margin:0 0 10px}
+  h1{font-size:38px;line-height:1.12;margin:0;font-weight:800;letter-spacing:-.01em}
+  .lede{color:var(--ink2);font-size:16.5px;max-width:64ch;margin:10px 0 0}
+  .langtoggle{display:flex;border:1px solid var(--line);border-radius:99px;background:#fff;padding:3px;box-shadow:var(--shadow);flex:none}
+  .langtoggle button{border:0;background:transparent;padding:7px 18px;font:inherit;font-weight:700;cursor:pointer;color:var(--muted);border-radius:99px}
+  .langtoggle button.active{background:var(--ink);color:#fff}
+  .caption{display:flex;align-items:baseline;gap:12px;margin:44px 0 12px}
+  .caption .n{background:var(--ink);color:#fff;font-weight:700;border-radius:8px;padding:2px 10px;font-size:13px}
+  .caption h2{font-size:20px;margin:0;font-weight:750}
+  .caption p{color:var(--muted);margin:0;font-size:14px}
+  /* app chrome */
+  .screen{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
+  .appbar{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--line2)}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:18px}
+  .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0b3b8f,#1256c9);display:flex;align-items:center;justify-content:center;flex:none}
+  .brand small{display:block;font-weight:600;font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+  .nav{display:flex;gap:22px;font-size:14px;color:var(--muted)}
+  .nav b{color:var(--ink)}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--navyTint);color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+  .body{padding:24px}
+  .greet{font-size:22px;font-weight:750;margin:0 0 2px}
+  .greetSub{color:var(--muted);margin:0 0 20px;font-size:14.5px}
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+  .stat{border:1px solid var(--line2);border-radius:16px;padding:16px 18px;background:#fff}
+  .stat .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-inline-end:7px}
+  .stat .k{color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;font-weight:650}
+  .stat .v{font-size:31px;font-weight:800;letter-spacing:-.01em;margin-top:4px}
+  .stat .d{font-size:13px;color:var(--muted)}
+  /* list rows */
+  .rowitem{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line2);border-radius:16px;padding:15px 18px;margin-bottom:11px;background:#fff;transition:box-shadow .15s}
+  .rowitem:hover{box-shadow:var(--shadow)}
+  .rowitem .t{font-weight:700;font-size:15.5px}
+  .rowitem .m{color:var(--muted);font-size:13px;margin-top:1px}
+  .chev{color:#c9c2ae;font-size:18px;flex:none}
+  .chip{display:inline-block;padding:3px 11px;border-radius:99px;font-size:12px;font-weight:700;white-space:nowrap}
+  .chip.high{background:var(--highTint);color:var(--high)} .chip.med{background:var(--medTint);color:var(--med)} .chip.low{background:var(--lowTint);color:var(--low)}
+  .chip.open{background:var(--highTint);color:var(--high)} .chip.done{background:var(--lowTint);color:var(--low)}
+  .chip.sev-high{background:var(--high);color:#fff}.chip.sev-med{background:#c07f10;color:#fff}.chip.sev-low{background:var(--low);color:#fff}
+  .btn{display:inline-block;background:var(--ink);color:#fff;border:0;border-radius:12px;padding:12px 24px;font:inherit;font-weight:700;cursor:pointer;font-size:15px}
+  .btn.blue{background:var(--navy)}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  /* capture screen */
+  .drop{border:1.5px dashed #d5cdb4;border-radius:18px;padding:34px 24px;text-align:center;background:#fbfaf6}
+  .drop .ic{width:52px;height:52px;border-radius:16px;background:var(--navyTint);color:var(--navy);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+  .drop b{display:block;font-size:17px;margin-bottom:3px}
+  .drop span{color:var(--muted);font-size:14px}
+  .voice{display:flex;align-items:center;gap:14px;border:1px solid var(--line2);border-radius:16px;padding:14px 18px;margin-top:14px;background:#fff}
+  .mic{width:44px;height:44px;border-radius:50%;background:var(--high);color:#fff;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 4px 14px rgba(179,38,30,.3)}
+  .wave{display:flex;gap:3px;align-items:center;height:28px}
+  .wave i{display:block;width:4px;background:var(--navy);border-radius:2px;opacity:.75}
+  label{display:block;font-weight:650;margin:18px 0 7px;font-size:14px}
+  textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font:inherit;background:#fff;resize:vertical}
+  .chips{display:flex;gap:9px;flex-wrap:wrap}
+  .pick{padding:8px 16px;border-radius:99px;border:1px solid var(--line);font-size:14px;font-weight:650;background:#fff;cursor:pointer}
+  .pick.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  /* analysis */
+  .steps{display:flex;margin:4px 0 20px}
+  .step{flex:1;text-align:center;font-size:13px;color:var(--muted);position:relative;padding-top:24px}
+  .step:before{content:"";position:absolute;top:5px;inset-inline-start:50%;width:14px;height:14px;border-radius:50%;background:#ddd5bf;transform:translateX(-50%)}
+  html[dir=ltr] .step:before{transform:translateX(-50%)}
+  .step.done{color:var(--ink);font-weight:700}.step.done:before{background:var(--low)}
+  .step.now{color:var(--navy);font-weight:700}.step.now:before{background:var(--navy);box-shadow:0 0 0 6px var(--navyTint)}
+  .sceneBox{border-radius:18px;overflow:hidden;border:1px solid var(--line)}
+  .segMeta{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:13.5px;margin-top:12px}
+  .segMeta b{color:var(--ink)}
+  /* report */
+  .repHead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  .repHead h3{margin:0;font-size:21px;font-weight:780}
+  .repMeta{color:var(--muted);font-size:13.5px}
+  .summary{border-inline-start:3px solid var(--gold);background:#fbf9f3;border-radius:0 14px 14px 0;padding:14px 18px;margin:16px 0 6px;font-size:15.5px}
+  html[dir=ltr] .summary{border-radius:14px 0 0 14px}
+  .finding{border:1px solid var(--line2);border-radius:18px;padding:18px;margin:14px 0;display:flex;gap:18px;background:#fff;box-shadow:0 1px 2px rgba(29,29,31,.03)}
+  .rail{flex:none;width:4px;border-radius:4px}
+  .rail.high{background:var(--high)} .rail.med{background:#c07f10} .rail.low{background:var(--low)}
+  .thumb{flex:none;width:150px;height:104px;border-radius:12px;overflow:hidden;border:1px solid var(--line);position:relative;background:#e9eef4}
+  .finding h4{margin:0;font-size:16.5px;font-weight:750;display:inline}
+  .finding p{margin:6px 0}
+  .finding .detail{color:var(--ink2)}
+  .actionBox{background:#fbfaf6;border:1px solid var(--line2);border-radius:12px;padding:10px 14px;margin-top:10px;font-size:14.5px}
+  .actionBox b{color:var(--navy)}
+  .fmeta{display:flex;gap:14px;color:var(--muted);font-size:12.5px;margin-top:9px;flex-wrap:wrap}
+  .actions{display:flex;gap:11px;margin-top:18px;flex-wrap:wrap}
+  .signoff{display:flex;justify-content:space-between;align-items:center;border-top:1px dashed var(--line);margin-top:20px;padding-top:16px;color:var(--muted);font-size:14px}
+  .sig{font-weight:700;color:var(--ink)}
+  /* design notes */
+  .notes{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 26px;margin-top:36px;box-shadow:var(--shadow)}
+  .notes h3{margin:0 0 6px;font-size:17px}
+  .notes li{margin:6px 0}
+  footer{color:var(--muted);font-size:13px;text-align:center;margin-top:34px}
+  .hazardRow{display:flex;justify-content:space-between;align-items:center;padding:9px 2px;border-bottom:1px dashed var(--line2);font-size:14.5px}
+  .hazardRow:last-of-type{border-bottom:0}
+  .hazardRow .n{font-weight:800;color:var(--ink)}
+  .mixbar{display:flex;height:10px;border-radius:99px;overflow:hidden;margin:12px 0 6px}
+  .mixbar i{display:block;height:100%}
+  .mixLegend{display:flex;gap:16px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+  .subhead{font-size:15px;font-weight:750;margin:20px 0 6px}
+  .chatPanel{border:1px solid var(--line2);border-radius:18px;padding:18px;margin-top:20px;background:#fbfaf6}
+  .chatPanel h4{margin:0 0 4px;font-size:16px}
+  .chatPanel .hint{color:var(--muted);font-size:13px;margin:0 0 14px}
+  .bubble{max-width:86%;padding:11px 15px;border-radius:16px;font-size:14.5px;margin:9px 0;white-space:pre-wrap}
+  .bubble.u{background:var(--navy);color:#fff;margin-inline-start:auto;border-end-end-radius:5px}
+  .bubble.b{background:#fff;border:1px solid var(--line2);border-end-start-radius:5px}
+  .chatRow{display:flex;gap:10px;margin-top:12px}
+  .chatRow .fakeinput{flex:1;border:1px solid var(--line);border-radius:12px;background:#fff;padding:11px 14px;color:var(--muted);font-size:14.5px}
+  @media(max-width:660px){.stats{grid-template-columns:1fr}.finding{flex-direction:column}.thumb{width:100%;height:130px}.nav{display:none}h1{font-size:29px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="dochead">
+    <div>
+      <p class="kicker" data-i="kicker">UI Design v2 · Meta Hackathon Build</p>
+      <h1 data-i="h1">Baseer — بصير, designed properly</h1>
+      <p class="lede" data-i="lede">The visual design the product will actually be built to: keynote-light, large type, generous space, one idea per screen. The language switch flips the entire product, Arabic and English as equals.</p>
+      <p style="margin:14px 0 0;font-size:19px;font-weight:800;letter-spacing:-.01em"><span data-i="tagline">The AI that sees, understands, and acts — in Arabic.</span></p>
+    </div>
+    <div class="langtoggle"><button id="btnAr" class="active" type="button">عربي</button><button id="btnEn" type="button">EN</button></div>
+  </div>
+
+  <!-- SCREEN 1 · HOME -->
+  <div class="caption"><span class="n">1</span><h2 data-i="c1t">Inspections home</h2><p data-i="c1s">Calm at a glance: open risks first, everything else quiet.</p></div>
+  <div class="screen">
+    <div class="appbar">
+      <div class="brand"><div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="#fff"/></svg></div>
+        <div>Baseer<small data-i="tag">Field Inspection Copilot</small></div></div>
+      <div class="nav"><b data-i="n1">Inspections</b><span data-i="n2">Reports</span><span data-i="n3">Sites</span><span data-i="n4">Settings</span></div>
+      <div class="avatar">HA</div>
+    </div>
+    <div class="body">
+      <p class="greet" data-i="greet">Good morning, Hussein</p>
+      <p class="greetSub" data-i="greetSub">Tuesday, Oct 27 · 3 inspections scheduled today</p>
+      <div class="stats">
+        <div class="stat"><div class="k"><span class="dot" style="background:var(--navy)"></span><span data-i="s1">Inspections this week</span></div><div class="v">12</div><div class="d" data-i="s1d">4 more than last week</div></div>
+        <div class="stat"><div class="k"><span class="dot" style="background:var(--high)"></span><span data-i="s2">Open high-severity</span></div><div class="v" style="color:var(--high)">3</div><div class="d" data-i="s2d">Oldest open for 2 days</div></div>
+        <div class="stat"><div class="k"><span class="dot" style="background:var(--gold)"></span><span data-i="s3">Average report time</span></div><div class="v">41s</div><div class="d" data-i="s3d">From upload to signed report</div></div>
+      </div>
+      <div class="rowitem"><div><div class="t" data-i="r1t">Al-Noor Workshop — weekly safety check</div><div class="m" data-i="r1m">Today · 09:40 · 6 findings</div></div><span style="display:flex;align-items:center;gap:10px"><span class="chip open" data-i="r1c">2 high open</span><span class="chev">›</span></span></div>
+      <div class="rowitem"><div><div class="t" data-i="r2t">Riverside Tower — floor 14 edge protection</div><div class="m" data-i="r2m">Yesterday · 15:12 · 4 findings</div></div><span style="display:flex;align-items:center;gap:10px"><span class="chip done" data-i="r2c">Closed</span><span class="chev">›</span></span></div>
+      <div class="rowitem"><div><div class="t" data-i="r3t">Green Valley Farm — irrigation pump house</div><div class="m" data-i="r3m">Monday · 08:05 · 2 findings</div></div><span style="display:flex;align-items:center;gap:10px"><span class="chip done" data-i="r3c">Closed</span><span class="chev">›</span></span></div>
+      <button class="btn blue" data-i="newBtn">+ New inspection</button>
+      <div class="subhead" data-i="anT">Safety analytics — this month</div>
+      <div class="mixbar"><i style="width:44%;background:var(--high)"></i><i style="width:36%;background:#c07f10"></i><i style="width:20%;background:var(--low)"></i></div>
+      <div class="mixLegend"><span data-i="mx1">High · 44%</span><span data-i="mx2">Medium · 36%</span><span data-i="mx3">Low · 20%</span></div>
+      <div style="margin-top:10px">
+        <div class="hazardRow"><span data-i="hz1">Worker without a safety helmet</span><span class="n">× 3</span></div>
+        <div class="hazardRow"><span data-i="hz2">Unmarked forklift path</span><span class="n">× 2</span></div>
+        <div class="hazardRow"><span data-i="hz3">Missing guard rail at the edge</span><span class="n">× 2</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2 · CAPTURE -->
+  <div class="caption"><span class="n">2</span><h2 data-i="c2t">New inspection</h2><p data-i="c2s">Capture first, type later. Thirty seconds of video and one spoken note are enough.</p></div>
+  <div class="screen"><div class="body">
+    <div class="drop">
+      <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V5m0 0 4 4m-4-4L8 9"/><path d="M4 16v3a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-3"/></svg></div>
+      <b data-i="d1">Drop site video or photos</b><span data-i="d2">or tap to record — 10 to 30 seconds is enough</span>
+    </div>
+    <div class="voice"><div class="mic"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="#fff" stroke-width="1.8" fill="none"/></svg></div>
+      <div class="wave"><i style="height:10px"></i><i style="height:18px"></i><i style="height:25px"></i><i style="height:12px"></i><i style="height:21px"></i><i style="height:27px"></i><i style="height:15px"></i><i style="height:9px"></i><i style="height:18px"></i><i style="height:23px"></i><i style="height:12px"></i></div>
+      <div><b data-i="v1">Voice note</b> · <span style="color:var(--muted)" data-i="v2">0:12 — “الرافعة تمر بجانب العمال، وفيه عامل عند الحافة بدون خوذة”</span></div></div>
+    <label data-i="l1">Notes — optional, voice is enough</label>
+    <textarea rows="2" data-i-ph="notesPh" placeholder="Add any extra note..."></textarea>
+    <label data-i="l2">Site type</label>
+    <div class="chips"><span class="pick on" data-i="ch1">Workshop</span><span class="pick" data-i="ch2">Construction</span><span class="pick" data-i="ch3">Farm</span><span class="pick" data-i="ch4">Warehouse</span></div>
+    <div style="margin-top:20px"><button class="btn blue" data-i="analyze">Analyze with Baseer</button></div>
+  </div></div>
+
+  <!-- SCREEN 3 · ANALYSIS -->
+  <div class="caption"><span class="n">3</span><h2 data-i="c3t">Analysis</h2><p data-i="c3s">The models, made visible — SAM 3.1 draws what it sees; Muse Spark then reasons over it.</p></div>
+  <div class="screen"><div class="body">
+    <div class="steps">
+      <div class="step done" data-i="st1">Upload</div>
+      <div class="step now" data-i="st2">SAM 3.1 · Seeing</div>
+      <div class="step" data-i="st3">Muse Spark · Reasoning</div>
+      <div class="step" data-i="st4">Report</div>
+    </div>
+    <div class="sceneBox">
+      <svg viewBox="0 0 800 300" width="100%" style="display:block" role="img" aria-label="Segmented worksite scene">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#d7e5f5"/><stop offset="1" stop-color="#f2ecdc"/>
+          </linearGradient>
+        </defs>
+        <rect width="800" height="300" fill="url(#sky)"/>
+        <circle cx="690" cy="52" r="24" fill="#f3d98b" opacity=".8"/>
+        <rect x="40" y="120" width="150" height="80" rx="4" fill="#b7c4d2"/>
+        <rect x="58" y="136" width="22" height="18" fill="#e8eef4"/><rect x="92" y="136" width="22" height="18" fill="#e8eef4"/><rect x="126" y="136" width="22" height="18" fill="#e8eef4"/>
+        <rect x="596" y="70" width="7" height="130" fill="#8b93a1"/>
+        <rect x="470" y="70" width="240" height="7" fill="#8b93a1"/>
+        <line x1="640" y1="77" x2="640" y2="112" stroke="#8b93a1" stroke-width="3"/>
+        <rect x="622" y="112" width="36" height="20" fill="#a7b0bc"/>
+        <rect y="200" width="800" height="100" fill="#e3dcc6"/>
+        <rect y="200" width="800" height="5" fill="#d5cdb2"/>
+        <!-- forklift -->
+        <g>
+          <rect x="404" y="196" width="86" height="42" rx="6" fill="#d9a13b"/>
+          <rect x="470" y="168" width="10" height="70" fill="#5b6068"/>
+          <rect x="486" y="168" width="6" height="70" fill="#5b6068"/>
+          <rect x="412" y="176" width="44" height="24" rx="4" fill="#8fa9c4"/>
+          <circle cx="424" cy="242" r="13" fill="#3c4046"/><circle cx="472" cy="242" r="10" fill="#3c4046"/>
+        </g>
+        <!-- worker with helmet -->
+        <g>
+          <circle cx="150" cy="196" r="9" fill="#caa27a"/>
+          <path d="M141 194a9 9 0 0 1 18 0z" fill="#e8b93c"/>
+          <rect x="142" y="205" width="16" height="30" rx="5" fill="#35618e"/>
+          <rect x="142" y="235" width="6" height="20" fill="#3a3f45"/><rect x="152" y="235" width="6" height="20" fill="#3a3f45"/>
+        </g>
+        <!-- worker without helmet -->
+        <g>
+          <circle cx="252" cy="196" r="9" fill="#caa27a"/>
+          <rect x="244" y="205" width="16" height="30" rx="5" fill="#7a8894"/>
+          <rect x="244" y="235" width="6" height="20" fill="#3a3f45"/><rect x="254" y="235" width="6" height="20" fill="#3a3f45"/>
+        </g>
+        <!-- segmentation boxes + labels -->
+        <g font-family="inherit" font-size="12.5" font-weight="700">
+          <rect x="132" y="182" width="36" height="76" fill="none" stroke="#0b3b8f" stroke-width="2" rx="3"/>
+          <rect x="132" y="160" width="86" height="19" rx="5" fill="#0b3b8f"/><text x="139" y="174" fill="#fff" data-i="b1">person · 97%</text>
+          <rect x="234" y="182" width="36" height="76" fill="none" stroke="#b3261e" stroke-width="2" rx="3"/>
+          <rect x="234" y="160" width="158" height="19" rx="5" fill="#b3261e"/><text x="241" y="174" fill="#fff" data-i="b2">person — no helmet · 91%</text>
+          <rect x="398" y="162" width="100" height="96" fill="none" stroke="#0b3b8f" stroke-width="2" rx="3"/>
+          <rect x="398" y="140" width="96" height="19" rx="5" fill="#0b3b8f"/><text x="405" y="154" fill="#fff" data-i="b3">forklift · 95%</text>
+          <rect x="600" y="106" width="120" height="30" fill="none" stroke="#b3261e" stroke-width="2" rx="3"/>
+          <rect x="600" y="84" width="172" height="19" rx="5" fill="#b3261e"/><text x="607" y="98" fill="#fff" data-i="b4">edge — no guard rail · 88%</text>
+        </g>
+      </svg>
+    </div>
+    <div class="segMeta">
+      <span><b>14</b> <span data-i="seg1">objects segmented</span></span>
+      <span><b>6</b> <span data-i="seg2">frames analyzed</span></span>
+      <span data-i="seg3">Tracking IDs stable across the clip</span>
+    </div>
+  </div></div>
+
+  <!-- SCREEN 4 · REPORT -->
+  <div class="caption"><span class="n">4</span><h2 data-i="c4t">The report</h2><p data-i="c4s">What the inspector signs: severity first, evidence attached, one action per finding.</p></div>
+  <div class="screen"><div class="body">
+    <div class="repHead">
+      <h3 data-i="repT">Inspection report — Al-Noor Workshop</h3>
+      <span class="repMeta" data-i="repM">Ref BSR-1042 · Today 09:41 · 6 frames · Model: Muse Wonder</span>
+    </div>
+    <div class="summary" data-i="repS">Two high-severity findings — a worker without a helmet and a missing guard rail — and one medium finding on the forklift route. Resolve the high-severity items before work resumes in the area.</div>
+    <div id="findings"></div>
+    <div class="actions">
+      <button class="btn blue" data-i="a1">Export PDF</button>
+      <button class="btn ghost" data-i="a2">Share</button>
+      <button class="btn ghost" data-i="a3">Re-inspect</button>
+    </div>
+    <div class="signoff"><span><span data-i="sg1">Inspector sign-off</span> · <span class="sig">H. Abdelwahab</span></span><span data-i="sg2">Signed electronically · Baseer report v1</span></div>
+    <div class="chatPanel">
+      <h4 data-i="chatT">Ask Baseer about this inspection</h4>
+      <p class="hint" data-i="chatHint">Answers come only from this report's evidence — findings, frames, and the inspector's notes.</p>
+      <div class="bubble u" data-i="cq1">Why is the helmet finding high severity?</div>
+      <div class="bubble b" data-i="ca1">Finding 1 (evidence frame 1): the worker has no helmet while a forklift moves through the same area — any collision or falling object could be fatal. That is why the action is an immediate stop until protective equipment is issued.</div>
+      <div class="bubble u" data-i="cq2">Draft a notice to the contractor</div>
+      <div class="bubble b" data-i="ca2">Draft ready: “Subject: Required corrective actions — inspection BSR-1042. (1) Helmet violation: stop work in the area until compliant. (2) Guard rail: temporary today, permanent before end of week. (3) Forklift path: paint separated routes. Evidence frames attached. A re-inspection will verify closure.”</div>
+      <div class="chatRow"><div class="fakeinput" data-i="chatPh">Ask in Arabic or English…</div><button class="btn" data-i="chatSend">Send</button></div>
+    </div>
+  </div></div>
+
+  <!-- SCREEN 5 · CASE & VERIFICATION -->
+  <div class="caption"><span class="n">5</span><h2 data-i="c5t">Act &amp; verify — the case</h2><p data-i="c5s">A finding is not finished when it is reported. It is finished when the fix is verified — and a human closes it.</p></div>
+  <div class="screen"><div class="body">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <h3 style="margin:0;font-size:18px" data-i="caseT">Case CASE-1042-1 · Worker without a safety helmet</h3>
+      <span class="chip done" data-i="caseClosed">Closed</span>
+    </div>
+    <p style="color:var(--muted);font-size:14px;margin:8px 0 4px"><span data-i="caseAsg">Assigned to</span> · <b style="color:var(--ink)" data-i="caseRole">Safety Supervisor</b></p>
+    <div class="steps" style="margin-top:18px">
+      <div class="step done" data-i="cs1">Opened · 09:41</div>
+      <div class="step done" data-i="cs2">Assigned · 09:43</div>
+      <div class="step done" data-i="cs3">Fix verified · 11:20</div>
+      <div class="step done" data-i="cs4">Closed by inspector · 11:21</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div>
+        <div class="thumb" style="width:100%;height:150px">
+          <svg viewBox="0 0 150 104" width="100%" height="100%" preserveAspectRatio="none" style="display:block"><rect width="150" height="62" fill="#d7e5f5"/><rect y="62" width="150" height="42" fill="#e3dcc6"/><rect x="10" y="34" width="30" height="28" fill="#b7c4d2"/><rect x="96" y="26" width="16" height="44" fill="none" stroke="#b3261e" stroke-width="2.5" rx="2"/></svg>
+        </div>
+        <p style="font-size:13.5px;color:var(--muted);margin:8px 0 0"><b style="color:var(--high)" data-i="before">Before · 09:41</b> — <span data-i="beforeT">no helmet, forklift active in the same area</span></p>
+      </div>
+      <div>
+        <div class="thumb" style="width:100%;height:150px">
+          <svg viewBox="0 0 150 104" width="100%" height="100%" preserveAspectRatio="none" style="display:block"><rect width="150" height="62" fill="#d7e5f5"/><rect y="62" width="150" height="42" fill="#e3dcc6"/><rect x="10" y="34" width="30" height="28" fill="#b7c4d2"/><rect x="96" y="26" width="16" height="44" fill="none" stroke="#2f5d3a" stroke-width="2.5" rx="2"/><path d="M99 22a7 7 0 0 1 10 0z" fill="#e8b93c"/></svg>
+        </div>
+        <p style="font-size:13.5px;color:var(--muted);margin:8px 0 0"><b style="color:var(--low)" data-i="after">After · 11:20</b> — <span data-i="afterT">helmet worn; Baseer suggested resolution, the inspector approved the closure</span></p>
+      </div>
+    </div>
+    <div class="actionBox" style="margin-top:16px"><b data-i="vnoteT">Verification note:</b> <span data-i="vnote">Re-inspection frames show the same worker wearing a helmet in the same area. Confidence 93%. Closure approved by the inspector — Baseer never closes a case by itself.</span></div>
+  </div></div>
+
+  <div class="notes">
+    <h3 data-i="dnT">Design principles behind this look</h3>
+    <ul>
+      <li data-i="dn1">Keynote-light: warm white surfaces, one ink color, navy and gold used sparingly — nothing glows, nothing gradients for decoration.</li>
+      <li data-i="dn2">Type does the work: large, confident numerals and headings; small quiet labels. The hierarchy is the design.</li>
+      <li data-i="dn3">Severity is a system, not a sticker: tinted chips in lists, solid chips on findings, a colored rail on every card — readable from across a room.</li>
+      <li data-i="dn4">Arabic and English are equals: full RTL mirroring, Arabic type set with the same care as Latin, one toggle everywhere.</li>
+      <li data-i="dn5">Evidence is visual: the segmentation scene and the evidence thumbnails carry the product's story before a word is read.</li>
+    </ul>
+  </div>
+
+  <footer data-i="foot">Baseer UI design v4 · Concept for the Meta Global AI Developer Hackathon build · Oct 21, 2026</footer>
+</div>
+
+<script>
+const FINDINGS = [
+ { sev:"high", conf:"91%",
+   t:{ar:"عامل بدون خوذة حماية", en:"Worker without a safety helmet"},
+   d:{ar:"ظهر عامل في منطقة العمل دون خوذة حماية، بينما تتحرك رافعة شوكية في نفس المنطقة.", en:"A worker appears in the work area without a safety helmet while a forklift moves through the same area."},
+   a:{ar:"إيقاف العمل فورًا في المنطقة وتزويد العامل بمعدات الحماية الشخصية قبل استئناف العمل.", en:"Stop work in the area immediately and issue the worker personal protective equipment before work resumes."},
+   box:{x:96,y:26,w:16,h:44,c:"#b3261e"}, src:{ar:"النموذج + ملاحظة المفتش", en:"Model + inspector note"} },
+ { sev:"high", conf:"88%",
+   t:{ar:"غياب حاجز الحماية عند الحافة", en:"Missing guard rail at the edge"},
+   d:{ar:"الحافة العلوية في الإطار بدون حاجز حماية، ما يشكل خطر سقوط من ارتفاع.", en:"The upper edge in the frame has no guard rail, creating a fall-from-height risk."},
+   a:{ar:"تركيب حاجز حماية مؤقت اليوم، وحاجز دائم قبل نهاية الأسبوع.", en:"Install a temporary guard rail today and a permanent one before the end of the week."},
+   box:{x:88,y:8,w:52,h:14,c:"#b3261e"}, src:{ar:"النموذج", en:"Model"} },
+ { sev:"medium", conf:"95%",
+   t:{ar:"مسار الرافعة غير محدد بعلامات", en:"Forklift path not marked"},
+   d:{ar:"مسار حركة الرافعة الشوكية غير محدد بعلامات أرضية، ويتقاطع مع مسار مشاة العمال.", en:"The forklift route has no floor markings and crosses the pedestrian walkway."},
+   a:{ar:"رسم مسارات منفصلة للمشاة والرافعات بعلامات أرضية واضحة.", en:"Paint clearly separated pedestrian and forklift routes with floor markings."},
+   box:{x:52,y:34,w:44,h:26,c:"#0b3b8f"}, src:{ar:"النموذج", en:"Model"} }
+];
+const S = {
+ ar:{ kicker:"تصميم الواجهة v4 · بناء الهاكاثون", h1:"بصير — Baseer، بمستوى تصميم يليق به",
+   lede:"التصميم البصري الذي سيُبنى عليه المنتج فعليًا: إضاءة هادئة بمعايير العروض الكبرى، وخطوط كبيرة، ومساحات سخية، وفكرة واحدة في كل شاشة. زر اللغة يقلب المنتج بالكامل — العربية والإنجليزية على قدم المساواة.",
+   tag:"مساعد الفحص الميداني",
+   c1t:"الرئيسية — عمليات الفحص", c1s:"هدوء من أول نظرة: المخاطر المفتوحة أولًا، وكل شيء آخر صامت.",
+   n1:"عمليات الفحص", n2:"التقارير", n3:"المواقع", n4:"الإعدادات",
+   greet:"صباح الخير، حسين", greetSub:"الثلاثاء 27 أكتوبر · 3 عمليات فحص مجدولة اليوم",
+   s1:"عمليات فحص هذا الأسبوع", s1d:"أكثر بـ4 من الأسبوع الماضي", s2:"عالية الخطورة مفتوحة", s2d:"الأقدم مفتوحة منذ يومين", s3:"متوسط زمن التقرير", s3d:"من الرفع حتى التقرير الموقّع",
+   r1t:"ورشة النور — فحص سلامة أسبوعي", r1m:"اليوم · 09:40 · 6 ملاحظات", r1c:"ملاحظتان عاليتان مفتوحتان",
+   r2t:"برج ريفرسايد — حماية الحواف، الطابق 14", r2m:"أمس · 15:12 · 4 ملاحظات", r2c:"مغلقة",
+   r3t:"مزرعة الوادي الأخضر — محطة ضخ الري", r3m:"الاثنين · 08:05 · ملاحظتان", r3c:"مغلقة", newBtn:"+ فحص جديد",
+   anT:"تحليلات السلامة — هذا الشهر", mx1:"عالية · 44%", mx2:"متوسطة · 36%", mx3:"منخفضة · 20%",
+   hz1:"عامل بدون خوذة حماية", hz2:"مسار رافعة غير محدد بعلامات", hz3:"غياب حاجز الحماية عند الحافة",
+   chatT:"اسأل بصير عن هذا الفحص", chatHint:"الإجابات من أدلة هذا التقرير فقط — الملاحظات والإطارات وملاحظات المفتش.",
+   cq1:"لماذا ملاحظة الخوذة عالية الخطورة؟",
+   ca1:"الملاحظة ١ (إطار الدليل ١): العامل بلا خوذة بينما تتحرك رافعة شوكية في نفس المنطقة — أي اصطدام أو سقوط جسم قد يكون قاتلًا. لذلك الإجراء هو إيقاف فوري حتى تُسلَّم معدات الحماية.",
+   cq2:"صِغ إشعارًا للمقاول",
+   ca2:"المسودة جاهزة: «الموضوع: إجراءات تصحيحية مطلوبة — فحص BSR-1042. (١) مخالفة الخوذة: إيقاف العمل في المنطقة حتى الامتثال. (٢) حاجز الحماية: مؤقت اليوم ودائم قبل نهاية الأسبوع. (٣) مسار الرافعة: رسم مسارات منفصلة. إطارات الأدلة مرفقة، وسيُعاد الفحص للتحقق من الإغلاق.»",
+   chatPh:"اسأل بالعربية أو الإنجليزية…", chatSend:"إرسال",
+   tagline:"الذكاء الذي يرى ويفهم ويتصرف — بالعربية.",
+   c5t:"التصرف والتحقق — الحالة", c5s:"الملاحظة لا تنتهي عند الإبلاغ عنها. تنتهي عندما يُتحقق من الإصلاح — ويغلقها إنسان.",
+   caseT:"حالة CASE-1042-1 · عامل بدون خوذة حماية", caseClosed:"مغلقة", caseAsg:"مُسندة إلى", caseRole:"مشرف السلامة",
+   cs1:"فُتحت · 09:41", cs2:"أُسندت · 09:43", cs3:"تُحقق من الإصلاح · 11:20", cs4:"أغلقها المفتش · 11:21",
+   before:"قبل · 09:41", beforeT:"بدون خوذة، والرافعة تعمل في نفس المنطقة",
+   after:"بعد · 11:20", afterT:"الخوذة مُرتداة؛ اقترح بصير الإغلاق، واعتمده المفتش",
+   vnoteT:"ملاحظة التحقق:", vnote:"تُظهر إطارات إعادة الفحص العامل نفسه مرتديًا الخوذة في نفس المنطقة. الثقة 93%. اعتمد المفتش الإغلاق — بصير لا يغلق أي حالة بنفسه أبدًا.",
+   c2t:"فحص جديد", c2s:"الالتقاط أولًا والكتابة لاحقًا. ثلاثون ثانية من الفيديو وملاحظة صوتية واحدة تكفي.",
+   d1:"أسقط فيديو أو صورًا من الموقع", d2:"أو اضغط للتصوير — من 10 إلى 30 ثانية تكفي",
+   v1:"ملاحظة صوتية", v2:"0:12 — «الرافعة تمر بجانب العمال، وفيه عامل عند الحافة بدون خوذة»",
+   l1:"ملاحظات — اختياري، فالصوت يكفي", notesPh:"اكتب أي ملاحظة إضافية...", l2:"نوع الموقع",
+   ch1:"ورشة", ch2:"إنشاءات", ch3:"مزرعة", ch4:"مستودع", analyze:"حلّل باستخدام بصير",
+   c3t:"التحليل", c3s:"النموذجان أمامك: ‏SAM 3.1 يرسم ما يراه، ثم يستدل Muse Spark عليه.",
+   st1:"الرفع", st2:"SAM 3.1 · الرؤية", st3:"Muse Spark · الاستدلال", st4:"التقرير",
+   b1:"شخص · 97%", b2:"شخص — بدون خوذة · 91%", b3:"رافعة شوكية · 95%", b4:"حافة — بدون حاجز · 88%",
+   seg1:"عنصرًا تمت تجزئتها", seg2:"إطارات حُلّلت", seg3:"معرّفات التتبع ثابتة عبر المقطع",
+   c4t:"التقرير", c4s:"ما يوقّعه المفتش: الخطورة أولًا، والدليل مرفق، وإجراء واحد لكل ملاحظة.",
+   repT:"تقرير فحص — ورشة النور", repM:"مرجع BSR-1042 · اليوم 09:41 · 6 إطارات · النموذج: Muse Wonder",
+   repS:"ملاحظتان عاليتا الخطورة — عامل بدون خوذة وغياب حاجز حماية — وملاحظة متوسطة تتعلق بمسار الرافعة. تُعالج الملاحظات العالية قبل استئناف العمل في المنطقة.",
+   action:"الإجراء المطلوب:", evidence:"الدليل · الإطار", conf:"ثقة النموذج", source:"المصدر",
+   sev:{high:"عالية",medium:"متوسطة",low:"منخفضة"},
+   a1:"تصدير PDF", a2:"مشاركة", a3:"إعادة الفحص", sg1:"توقيع المفتش", sg2:"وُقّع إلكترونيًا · تقرير بصير v1",
+   dnT:"مبادئ التصميم وراء هذا الشكل",
+   dn1:"إضاءة هادئة بمعايير العروض الكبرى: أسطح بيضاء دافئة، ولون حبر واحد، والكحلي والذهبي باعتدال — لا توهج ولا تدرجات للزينة.",
+   dn2:"الخط يقوم بالعمل: أرقام وعناوين كبيرة واثقة، وتسميات صغيرة هادئة. التدرج الهرمي هو التصميم نفسه.",
+   dn3:"الخطورة نظام وليست ملصقًا: شرائح ملوّنة في القوائم، وشرائح صلبة على الملاحظات، وخط ملوّن على كل بطاقة — تُقرأ من آخر الغرفة.",
+   dn4:"العربية والإنجليزية على قدم المساواة: انعكاس كامل للاتجاه، وخط عربي مضبوط بعناية الخط اللاتيني نفسها، وزر واحد في كل مكان.",
+   dn5:"الدليل بصري: مشهد التجزئة وصور الأدلة تحمل قصة المنتج قبل قراءة أي كلمة.",
+   foot:"تصميم واجهة بصير v4 · مفهوم لبناء هاكاثون Meta العالمي لمطوري الذكاء الاصطناعي · 21 أكتوبر 2026" },
+ en:{ kicker:"UI Design v4 · Meta Hackathon Build", h1:"Baseer — بصير, designed properly",
+   lede:"The visual design the product will actually be built to: keynote-light, large type, generous space, one idea per screen. The language switch flips the entire product, Arabic and English as equals.",
+   tag:"Field Inspection Copilot",
+   c1t:"Inspections home", c1s:"Calm at a glance: open risks first, everything else quiet.",
+   n1:"Inspections", n2:"Reports", n3:"Sites", n4:"Settings",
+   greet:"Good morning, Hussein", greetSub:"Tuesday, Oct 27 · 3 inspections scheduled today",
+   s1:"Inspections this week", s1d:"4 more than last week", s2:"Open high-severity", s2d:"Oldest open for 2 days", s3:"Average report time", s3d:"From upload to signed report",
+   r1t:"Al-Noor Workshop — weekly safety check", r1m:"Today · 09:40 · 6 findings", r1c:"2 high open",
+   r2t:"Riverside Tower — floor 14 edge protection", r2m:"Yesterday · 15:12 · 4 findings", r2c:"Closed",
+   r3t:"Green Valley Farm — irrigation pump house", r3m:"Monday · 08:05 · 2 findings", r3c:"Closed", newBtn:"+ New inspection",
+   anT:"Safety analytics — this month", mx1:"High · 44%", mx2:"Medium · 36%", mx3:"Low · 20%",
+   hz1:"Worker without a safety helmet", hz2:"Unmarked forklift path", hz3:"Missing guard rail at the edge",
+   chatT:"Ask Baseer about this inspection", chatHint:"Answers come only from this report's evidence — findings, frames, and the inspector's notes.",
+   cq1:"Why is the helmet finding high severity?",
+   ca1:"Finding 1 (evidence frame 1): the worker has no helmet while a forklift moves through the same area — any collision or falling object could be fatal. That is why the action is an immediate stop until protective equipment is issued.",
+   cq2:"Draft a notice to the contractor",
+   ca2:"Draft ready: “Subject: Required corrective actions — inspection BSR-1042. (1) Helmet violation: stop work in the area until compliant. (2) Guard rail: temporary today, permanent before end of week. (3) Forklift path: paint separated routes. Evidence frames attached. A re-inspection will verify closure.”",
+   chatPh:"Ask in Arabic or English…", chatSend:"Send",
+   tagline:"The AI that sees, understands, and acts — in Arabic.",
+   c5t:"Act & verify — the case", c5s:"A finding is not finished when it is reported. It is finished when the fix is verified — and a human closes it.",
+   caseT:"Case CASE-1042-1 · Worker without a safety helmet", caseClosed:"Closed", caseAsg:"Assigned to", caseRole:"Safety Supervisor",
+   cs1:"Opened · 09:41", cs2:"Assigned · 09:43", cs3:"Fix verified · 11:20", cs4:"Closed by inspector · 11:21",
+   before:"Before · 09:41", beforeT:"no helmet, forklift active in the same area",
+   after:"After · 11:20", afterT:"helmet worn; Baseer suggested resolution, the inspector approved the closure",
+   vnoteT:"Verification note:", vnote:"Re-inspection frames show the same worker wearing a helmet in the same area. Confidence 93%. Closure approved by the inspector — Baseer never closes a case by itself.",
+   c2t:"New inspection", c2s:"Capture first, type later. Thirty seconds of video and one spoken note are enough.",
+   d1:"Drop site video or photos", d2:"or tap to record — 10 to 30 seconds is enough",
+   v1:"Voice note", v2:"0:12 — “The forklift passes next to the workers, and there's a worker at the edge without a helmet”",
+   l1:"Notes — optional, voice is enough", notesPh:"Add any extra note...", l2:"Site type",
+   ch1:"Workshop", ch2:"Construction", ch3:"Farm", ch4:"Warehouse", analyze:"Analyze with Baseer",
+   c3t:"Analysis", c3s:"The models, made visible — SAM 3.1 draws what it sees; Muse Spark then reasons over it.",
+   st1:"Upload", st2:"SAM 3.1 · Seeing", st3:"Muse Spark · Reasoning", st4:"Report",
+   b1:"person · 97%", b2:"person — no helmet · 91%", b3:"forklift · 95%", b4:"edge — no guard rail · 88%",
+   seg1:"objects segmented", seg2:"frames analyzed", seg3:"Tracking IDs stable across the clip",
+   c4t:"The report", c4s:"What the inspector signs: severity first, evidence attached, one action per finding.",
+   repT:"Inspection report — Al-Noor Workshop", repM:"Ref BSR-1042 · Today 09:41 · 6 frames · Model: Muse Wonder",
+   repS:"Two high-severity findings — a worker without a helmet and a missing guard rail — and one medium finding on the forklift route. Resolve the high-severity items before work resumes in the area.",
+   action:"Corrective action:", evidence:"Evidence · Frame", conf:"Model confidence", source:"Source",
+   sev:{high:"High",medium:"Medium",low:"Low"},
+   a1:"Export PDF", a2:"Share", a3:"Re-inspect", sg1:"Inspector sign-off", sg2:"Signed electronically · Baseer report v1",
+   dnT:"Design principles behind this look",
+   dn1:"Keynote-light: warm white surfaces, one ink color, navy and gold used sparingly — nothing glows, nothing gradients for decoration.",
+   dn2:"Type does the work: large, confident numerals and headings; small quiet labels. The hierarchy is the design.",
+   dn3:"Severity is a system, not a sticker: tinted chips in lists, solid chips on findings, a colored rail on every card — readable from across a room.",
+   dn4:"Arabic and English are equals: full RTL mirroring, Arabic type set with the same care as Latin, one toggle everywhere.",
+   dn5:"Evidence is visual: the segmentation scene and the evidence thumbnails carry the product's story before a word is read.",
+   foot:"Baseer UI design v4 · Concept for the Meta Global AI Developer Hackathon build · Oct 21, 2026" }
+};
+let lang = "ar";
+function thumbSVG(f){
+  const b = f.box;
+  return `<svg viewBox="0 0 150 104" width="100%" height="100%" preserveAspectRatio="none" style="display:block">
+    <rect width="150" height="62" fill="#d7e5f5"/><rect y="62" width="150" height="42" fill="#e3dcc6"/>
+    <rect x="10" y="34" width="30" height="28" fill="#b7c4d2"/><rect x="112" y="22" width="4" height="40" fill="#8b93a1"/>
+    <rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" stroke="${b.c}" stroke-width="2.5" rx="2"/></svg>`;
+}
+function renderFindings(){
+  const s = S[lang];
+  document.getElementById("findings").innerHTML = FINDINGS.map((f,i)=>`
+   <div class="finding">
+     <div class="rail ${f.sev}"></div>
+     <div class="thumb">${thumbSVG(f)}</div>
+     <div style="flex:1;min-width:0">
+       <span class="chip sev-${f.sev}">${s.sev[f.sev]}</span>
+       <h4> ${f.t[lang]}</h4>
+       <p class="detail">${f.d[lang]}</p>
+       <div class="actionBox"><b>${s.action}</b> ${f.a[lang]}</div>
+       <div class="fmeta"><span>${s.evidence} ${i+1}</span><span>${s.conf} ${f.conf}</span><span>${s.source}: ${f.src[lang]}</span></div>
+     </div>
+   </div>`).join("");
+}
+function apply(){
+  const s = S[lang];
+  document.documentElement.lang = lang; document.documentElement.dir = lang==="ar" ? "rtl" : "ltr";
+  document.getElementById("btnAr").classList.toggle("active", lang==="ar");
+  document.getElementById("btnEn").classList.toggle("active", lang==="en");
+  document.querySelectorAll("[data-i]").forEach(el=>{ const k = el.getAttribute("data-i"); if (s[k]) el.textContent = s[k]; });
+  document.querySelectorAll("[data-i-ph]").forEach(el=>{ const k = el.getAttribute("data-i-ph"); if (s[k]) el.placeholder = s[k]; });
+  renderFindings();
+}
+document.getElementById("btnAr").addEventListener("click", ()=>{ lang="ar"; apply(); });
+document.getElementById("btnEn").addEventListener("click", ()=>{ lang="en"; apply(); });
+apply();
+</script>
+</body>
+</html>
