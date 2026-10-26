@@ -180,6 +180,15 @@
   .sevbar div { height:100%; }
   .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--muted); }
   .legend i { display:inline-block; width:9px; height:9px; border-radius:50%; margin-inline-end:5px; vertical-align:middle; }
+  #camPreview { width:100%; max-height:260px; border-radius:10px; background:#0A2540; margin-top:12px; }
+  @media print {
+    .sidebar, .toprow, .headaction, .btnrow, .chatrow { display:none !important; }
+    .caserow button, .caserow select, .caserow input { display:none !important; }
+    #micBtn, #liveCam, #camPreview, #camNote { display:none !important; }
+    body { background:#fff; }
+    .main { padding:0; max-width:none; }
+    .card { box-shadow:none; }
+  }
   @media (max-width: 1100px) {
     .grid2 { grid-template-columns:1fr; }
     .stats { grid-template-columns:repeat(2,1fr); }
@@ -291,6 +300,10 @@
             <div id="fileNames" class="meta" style="margin-top:8px"></div>
             <label for="notes" id="tNotes">ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)</label>
             <textarea id="notes"></textarea>
+            <div class="btnrow" style="margin-top:10px">
+              <button id="micBtn" class="btn ghost small" type="button">تسجيل ملاحظة صوتية</button>
+              <span id="micStatus" class="meta" style="align-self:center"></span>
+            </div>
             <label for="ctx" id="tCtx">سياق الموقع (اختياري)</label>
             <input id="ctx" type="text">
             <div class="btnrow">
@@ -333,9 +346,13 @@
             <p class="hint" id="tLiveHint">كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها.</p>
             <div class="btnrow" style="margin-top:0">
               <button id="liveStart" class="btn" type="button">بدء جلسة مباشرة</button>
+              <button id="liveCam" class="btn ghost" type="button">استخدام الكاميرا</button>
             </div>
+            <video id="camPreview" class="hidden" muted playsinline></video>
+            <p class="meta hidden" id="camNote" style="margin-top:8px"></p>
             <div id="liveBody" class="hidden" style="margin-top:18px">
               <label for="liveFiles" id="tLiveFrame">إطار من الكاميرا</label>
+              <p class="meta" id="tLiveAlt" style="margin:0 0 6px">أو أرسل إطارًا من ملف.</p>
               <input id="liveFiles" type="file" accept="image/*,video/*">
               <div class="btnrow">
                 <button id="liveSend" class="btn" type="button">إرسال الإطار</button>
@@ -365,7 +382,11 @@
                 <h2 id="tReport">تقرير الفحص</h2>
                 <p class="meta" id="rMeta" style="margin:4px 0 0"></p>
               </div>
-              <span id="pipeBadge" class="badge vision"></span>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <span id="pipeBadge" class="badge vision"></span>
+                <button id="printBtn" class="btn ghost small" type="button">طباعة التقرير</button>
+                <button id="waBtn" class="btn ghost small" type="button">مشاركة واتساب</button>
+              </div>
             </div>
             <h3 id="tSummary" style="margin:16px 0 0">الملخص</h3>
             <div class="summary" id="rSummary"></div>
@@ -401,6 +422,8 @@ const S = {
         report:"تقرير مبني على الأدلة — كل ملاحظة مرتبطة بإطارها، ولا تُغلق إلا باعتماد بشري."},
     files:"صور / فيديو من الموقع", notes:"ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)",
     notesPh:"مثال: لاحظت عاملًا عند الحافة العلوية، والرافعة تعمل قرب منطقة المشاة...",
+    micRec:"تسجيل ملاحظة صوتية", micStop:"إيقاف التسجيل", micListening:"يستمع… تحدث الآن.",
+    micDone:"أُضيفت النسخة إلى الملاحظات.", micErr:"تعذّر النسخ الصوتي — اكتب الملاحظة بدلًا من ذلك.",
     ctx:"سياق الموقع (اختياري)", ctxPh:"مثال: ورشة تصنيع — فحص سلامة أسبوعي",
     run:"إنشاء التقرير", running:"جارٍ التحليل...", done:"تم إنشاء التقرير.", error:"حدث خطأ أثناء إنشاء التقرير.",
     report:"تقرير الفحص", summary:"الملخص", findings:"الملاحظات",
@@ -422,11 +445,14 @@ const S = {
     liveHint:"كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة. التحليل قريب من الزمن الحقيقي — إطار كل بضع ثوانٍ، لا إطارًا إطارًا.",
     liveStart:"بدء جلسة مباشرة", liveFrame:"إطار من الكاميرا", liveSend:"إرسال الإطار",
     liveFinish:"إنهاء الجلسة وإنتاج التقرير", liveOn:"الجلسة مباشرة الآن", liveIdle:"خاملة",
+    liveCamT:"استخدام الكاميرا", camOn:"الكاميرا تعمل — لقطة كل ٣ ثوانٍ.",
+    camDenied:"تعذّرت الكاميرا — أرسل إطارًا من ملف بدلًا من ذلك.", camAlt:"أو أرسل إطارًا من ملف.",
     liveFrames:"إطارات مستلمة", liveAlertsT:"تنبيهات",
     dLiveState:"بانتظار بدء الجلسة", dLiveFrames:"إطارات محللة", dLiveAlerts:"مخالفات مرصودة",
     alertsT:"التنبيهات المباشرة", alertsN:(n)=>`${n} تنبيهات`, noAlerts:"لا تنبيهات بعد — ابدأ جلسة وأرسل إطارًا.",
     caseT:"حالة إجراء تصحيحي", caseOpen:"مفتوحة", caseAssigned:"مُسندة", caseClosed:"مغلقة",
     assign:"إسناد", verify:"تحقق", approve:"اعتماد الإغلاق", assignTo:"إسناد إلى...",
+    verPhoto:"إرفاق صورة إعادة الفحص",
     roles:["مشرف السلامة","مدير الموقع","المقاول"], to:"إلى",
     newInspect:"فحص جديد", newHint:"النتيجة تقرير كامل في نحو 30 ثانية.",
     dropTitle:"اسحب الملفات هنا أو اضغط للاختيار", dropSub:"صور أو فيديو — MP4 / MOV / JPG / PNG",
@@ -436,6 +462,7 @@ const S = {
     noReport:"لا يوجد تقرير بعد", noReportHint:"شغّل فحصًا جديدًا أو أنهِ جلسة كاميرا مباشرة، وسيظهر التقرير هنا.",
     modeLive:"مباشر", modeMock:"تجريبي",
     pipeBadgeMock:"بيانات تجريبية", pipeBadgeLiveCam:"كاميرا مباشرة", pipeBadgeVision:"رؤية Muse", pipeBadgeSam:"SAM 3.1",
+    printRep:"طباعة التقرير", shareWa:"مشاركة واتساب",
     detUncertain:"تعذّر التحديد",
     pick:(f,k)=>f[k+"_ar"]||f[k+"_en"], sum:(r)=>r.summary_ar },
   en: { dir:"ltr", lang:"en",
@@ -452,6 +479,8 @@ const S = {
         report:"An evidence-grounded report — every finding tied to its frame, never closed without human approval."},
     files:"Site photos / video", notes:"Inspector notes (transcribed voice or written)",
     notesPh:"Example: I noticed a worker near the upper edge, and the forklift operates close to the pedestrian area...",
+    micRec:"Record voice note", micStop:"Stop recording", micListening:"Listening… speak now.",
+    micDone:"Transcript added to notes.", micErr:"Voice transcription unavailable — type the note instead.",
     ctx:"Site context (optional)", ctxPh:"Example: Manufacturing workshop — weekly safety inspection",
     run:"Generate report", running:"Analyzing...", done:"Report generated.", error:"Something went wrong while generating the report.",
     report:"Inspection Report", summary:"Summary", findings:"Findings",
@@ -464,7 +493,6 @@ const S = {
     dTotal:"Recorded inspections", dFindings:"Across all inspections", dHigh:"Need immediate action", dMed:"Under review",
     sevMix:"Severity mix", sevTotal:(n)=>`Total: ${n}`, topHazards:"Most frequent hazards", recent:"Recent inspections",
     colHazard:"Hazard", colCount:"Count", colId:"Inspection ID", colDate:"Date", colFindings:"Findings", colHigh:"High severity",
-    colSev:"Severity", colFinding:"Finding", colEvidence:"Evidence", colAction:"Corrective action",
     times:"times", seedNote:"These figures include demo seed data; real inspections replace it automatically as they accumulate.",
     pipeT:"From walkthrough to verified closure", pipeHint:"Every inspection runs the same loop — and a finding is never closed without human approval.",
     pipe:["Observe","Understand","Explain","Act","Verify","Learn"],
@@ -474,11 +502,14 @@ const S = {
     liveHint:"A camera connected to the system: frames arrive, Baseer flags violations the moment they appear, and finishing the session produces the full report. Analysis is sampled near-real-time — a frame every few seconds, not frame-by-frame.",
     liveStart:"Start live session", liveFrame:"Camera frame", liveSend:"Send frame",
     liveFinish:"Finish session & generate report", liveOn:"Session is live", liveIdle:"Idle",
+    liveCamT:"Use camera", camOn:"Camera on — a snapshot every 3 seconds.",
+    camDenied:"Camera unavailable — send a frame from a file instead.", camAlt:"Or send a frame from a file.",
     liveFrames:"Frames received", liveAlertsT:"Alerts",
     dLiveState:"Waiting for a session", dLiveFrames:"Frames analyzed", dLiveAlerts:"Violations flagged",
     alertsT:"Live alerts", alertsN:(n)=>`${n} alerts`, noAlerts:"No alerts yet — start a session and send a frame.",
     caseT:"Corrective-action case", caseOpen:"Open", caseAssigned:"Assigned", caseClosed:"Closed",
     assign:"Assign", verify:"Verify", approve:"Approve closure", assignTo:"Assign to...",
+    verPhoto:"Attach re-inspection photo",
     roles:["Safety Supervisor","Site Manager","Contractor"], to:"to",
     newInspect:"New inspection", newHint:"A full report in about 30 seconds.",
     dropTitle:"Drop files here or click to choose", dropSub:"Photos or video — MP4 / MOV / JPG / PNG",
@@ -488,6 +519,7 @@ const S = {
     noReport:"No report yet", noReportHint:"Run a new inspection or finish a live camera session, and the report will appear here.",
     modeLive:"LIVE", modeMock:"MOCK",
     pipeBadgeMock:"Demo data", pipeBadgeLiveCam:"Live camera", pipeBadgeVision:"Muse vision", pipeBadgeSam:"SAM 3.1",
+    printRep:"Print report", shareWa:"Share via WhatsApp",
     detUncertain:"Unable to determine",
     pick:(f,k)=>f[k+"_en"]||f[k+"_ar"], sum:(r)=>r.summary_en }
 };
@@ -534,6 +566,7 @@ function applyLang() {
   $("tNotes").textContent = s.notes; $("notes").placeholder = s.notesPh;
   $("tCtx").textContent = s.ctx; $("ctx").placeholder = s.ctxPh;
   $("runBtn").textContent = s.run;
+  $("micBtn").textContent = micRecActive() ? s.micStop : s.micRec;
   $("tGuide").textContent = s.guideT;
   $("tGuideList").innerHTML = s.guideList.map(g => `<li>${g}</li>`).join("");
   $("tGuideNote").textContent = s.guideNote;
@@ -542,12 +575,15 @@ function applyLang() {
   $("tLive").textContent = s.liveT; $("tLiveHint").textContent = s.liveHint;
   $("liveStart").textContent = s.liveStart; $("tLiveFrame").textContent = s.liveFrame;
   $("liveSend").textContent = s.liveSend; $("liveFinish").textContent = s.liveFinish;
+  $("liveCam").textContent = s.liveCamT; $("tLiveAlt").textContent = s.camAlt;
   paintLiveStats();
   $("tAlerts").textContent = s.alertsT;
   if (!$("liveAlerts").querySelector(".alert")) $("noAlerts") && ($("liveAlerts").innerHTML = `<p class="meta" id="noAlerts">${s.noAlerts}</p>`);
   $("tNoReport").textContent = s.noReport; $("tNoReportHint").textContent = s.noReportHint; $("goInspect").textContent = s.newInspect;
   $("tReport").textContent = s.report; $("tSummary").textContent = s.summary; $("tFindings").textContent = s.findings;
   $("tChat").textContent = s.chat; $("chatInput").placeholder = s.chatPh; $("chatSend").textContent = s.send;
+  $("printBtn").textContent = s.printRep;
+  $("waBtn").textContent = s.shareWa;
   loadAnalytics();
   if (lastReport) renderReport(lastReport);
 }
@@ -565,9 +601,11 @@ function paintLiveStats() {
   $("alertsCount").textContent = s.alertsN(liveState.alerts);
 }
 function pipeBadge(r) {
+  // Honest pipeline badges: mock output is always "Demo data" (never SAM
+  // or live); live output names its segmenter. The live-camera origin of
+  // a report stays visible in the report meta line beside the badge.
   const s = S[lang];
   if (r.mode !== "live") return {cls:"demo", text:s.pipeBadgeMock};
-  if (r.source === "live-camera") return {cls:"vision", text:s.pipeBadgeLiveCam};
   if (r.segmentation_source === "sam") return {cls:"sam", text:s.pipeBadgeSam};
   return {cls:"vision", text:s.pipeBadgeVision};
 }
@@ -585,7 +623,8 @@ function caseRowHTML(f, i) {
   const dis = c.status === "closed" ? "disabled" : "";
   const canApprove = c.verification && c.verification.suggested_resolved && c.status !== "closed";
   const roles = s.roles.map(r => `<option ${c.assignee===r?"selected":""}>${r}</option>`).join("");
-  const vnote = c.verification ? `<div class="vnote">${c.verification.note}</div>` : "";
+  const vtxt = c.verification ? ((lang === "ar" ? c.verification.note_ar : c.verification.note_en) || c.verification.note || "") : "";
+  const vnote = vtxt ? `<div class="vnote">${vtxt}</div>` : "";
   const asg = c.assignee ? `<span class="meta">${s.to} ${c.assignee}</span>` : "";
   return `<div class="caserow">
     <span class="ct">${s.caseT}</span>
@@ -593,6 +632,8 @@ function caseRowHTML(f, i) {
     <select id="asg-${i}" ${dis}><option value="">${s.assignTo}</option>${roles}</select>
     <button type="button" onclick="caseAction(${i},'assign')" ${dis}>${s.assign}</button>
     <button type="button" onclick="caseAction(${i},'verify')" ${dis}>${s.verify}</button>
+    <button type="button" onclick="document.getElementById('ver-${i}').click()" ${dis}>${s.verPhoto}</button>
+    <input type="file" id="ver-${i}" accept="image/*,video/*" class="hidden" onchange="verifyWithEvidence(${i})">
     <button type="button" onclick="caseAction(${i},'approve')" ${canApprove ? "" : "disabled"}>${s.approve}</button>
     ${vnote}</div>`;
 }
@@ -711,7 +752,8 @@ function paintAlertsList(alerts) {
   }
 }
 let liveAlerts = [];
-$("liveStart").addEventListener("click", async () => {
+async function ensureLiveSession() {
+  if (liveSessionId) return liveSessionId;
   const res = await fetch("/live/sessions", { method: "POST", headers: {"Content-Type": "application/json"},
     body: JSON.stringify({site_context: $("ctx").value}) });
   const data = await res.json();
@@ -723,13 +765,10 @@ $("liveStart").addEventListener("click", async () => {
   $("liveBody").classList.remove("hidden");
   $("liveStart").disabled = true;
   $("liveStatus").textContent = S[lang].liveOn + " · " + liveSessionId;
-});
-$("liveSend").addEventListener("click", async () => {
-  if (!liveSessionId) return;
-  const fd = new FormData();
-  for (const f of $("liveFiles").files) fd.append("files", f);
-  const res = await fetch(`/live/sessions/${liveSessionId}/frames`, { method: "POST", body: fd });
-  const data = await res.json();
+  return liveSessionId;
+}
+$("liveStart").addEventListener("click", ensureLiveSession);
+async function updateLiveResult(data) {
   liveState.frames = data.frames_received;
   liveState.alerts = data.alerts_total;
   for (const a of data.new_alerts) liveAlerts.push(a);
@@ -737,9 +776,58 @@ $("liveSend").addEventListener("click", async () => {
   paintAlertsList(liveAlerts);
   $("liveStatus").textContent =
     `${S[lang].liveOn} · ${data.frames_received} ${S[lang].liveFrames} · ${data.segments_total} segments`;
+}
+$("liveSend").addEventListener("click", async () => {
+  if (!liveSessionId) return;
+  const fd = new FormData();
+  for (const f of $("liveFiles").files) fd.append("files", f);
+  const res = await fetch(`/live/sessions/${liveSessionId}/frames`, { method: "POST", body: fd });
+  updateLiveResult(await res.json());
+});
+let camStream = null, camTimer = null;
+function stopCamera() {
+  if (camTimer) { clearInterval(camTimer); camTimer = null; }
+  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  $("camPreview").classList.add("hidden");
+  $("camNote").classList.add("hidden");
+  $("liveCam").disabled = false;
+}
+function captureSnapshot() {
+  const v = $("camPreview");
+  if (!v.videoWidth || !liveSessionId) return;
+  const c = document.createElement("canvas");
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  c.getContext("2d").drawImage(v, 0, 0);
+  c.toBlob(async (blob) => {
+    if (!blob || !liveSessionId) return;
+    const fd = new FormData();
+    fd.append("files", blob, "camera-frame.jpg");
+    const res = await fetch(`/live/sessions/${liveSessionId}/frames`, { method: "POST", body: fd });
+    updateLiveResult(await res.json());
+  }, "image/jpeg", 0.85);
+}
+$("liveCam").addEventListener("click", async () => {
+  const s = S[lang];
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    $("camNote").textContent = s.camDenied; $("camNote").classList.remove("hidden"); return;
+  }
+  try {
+    await ensureLiveSession();
+    camStream = await navigator.mediaDevices.getUserMedia({video:true});
+    const v = $("camPreview");
+    v.srcObject = camStream;
+    await v.play();
+    v.classList.remove("hidden");
+    $("camNote").textContent = s.camOn; $("camNote").classList.remove("hidden");
+    $("liveCam").disabled = true;
+    camTimer = setInterval(captureSnapshot, 3000);
+  } catch (e) {
+    $("camNote").textContent = s.camDenied; $("camNote").classList.remove("hidden");
+  }
 });
 $("liveFinish").addEventListener("click", async () => {
   if (!liveSessionId) return;
+  stopCamera();
   const res = await fetch(`/live/sessions/${liveSessionId}/finish`, { method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({notes: $("notes").value}) });
@@ -754,6 +842,73 @@ $("liveFinish").addEventListener("click", async () => {
   loadAnalytics();
   showView("report");
 });
+async function verifyWithEvidence(i) {
+  if (!lastReport) return;
+  const input = $("ver-" + i);
+  if (!input || !input.files.length) return;
+  const fd = new FormData();
+  for (const f of input.files) fd.append("files", f);
+  try {
+    const res = await fetch(`/inspections/${lastReport.inspection_id}/findings/${i}/verify-evidence`, {
+      method: "POST", body: fd });
+    if (!res.ok) { const e = await res.json(); alert(e.detail || "error"); return; }
+    lastReport.findings[i] = await res.json();
+    renderReport(lastReport);
+  } catch (e) { /* layer only — never break the report */ }
+}
+let micRec = null, micWS = null;
+function micRecActive() { return micRec !== null; }
+$("micBtn").addEventListener("click", async () => {
+  const s = S[lang];
+  if (micRec) { micRec.stop(); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    $("micStatus").textContent = s.micErr; return;
+  }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({audio:true});
+  } catch (e) {
+    $("micStatus").textContent = s.micErr; return;
+  }
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  micWS = new WebSocket(proto + "//" + location.host + "/voice/transcribe");
+  micWS.onmessage = (ev) => {
+    try {
+      const m = JSON.parse(ev.data);
+      if (m.type === "final" && m.text) {
+        const box = $("notes");
+        box.value = (box.value ? box.value + " " : "") + m.text;
+        $("micStatus").textContent = s.micDone;
+      } else if (m.type === "partial" && m.text) {
+        $("micStatus").textContent = m.text;
+      } else if (m.type === "error") {
+        $("micStatus").textContent = s.micErr;
+      }
+    } catch (e) { /* ignore non-JSON frames */ }
+  };
+  const micFail = () => {
+    $("micStatus").textContent = s.micErr;
+    $("micBtn").textContent = s.micRec;
+    micRec = null;
+  };
+  micWS.onclose = () => { $("micBtn").textContent = s.micRec; micRec = null; };
+  micWS.onerror = micFail;
+  micWS.onopen = () => {
+    micRec = new MediaRecorder(stream);
+    micRec.ondataavailable = (e) => {
+      if (e.data.size && micWS.readyState === 1) micWS.send(e.data);
+    };
+    micRec.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      try { micWS.close(); } catch (e) {}
+      micRec = null;
+      $("micBtn").textContent = s.micRec;
+    };
+    micRec.start(500);
+    $("micBtn").textContent = s.micStop;
+    $("micStatus").textContent = s.micListening;
+  };
+});
 $("chatSend").addEventListener("click", sendChat);
 $("chatInput").addEventListener("keydown", (e)=>{ if (e.key === "Enter") { e.preventDefault(); sendChat(); } });
 $("btnAr").addEventListener("click", ()=>{ lang="ar"; applyLang(); });
@@ -764,6 +919,17 @@ $("navLive").addEventListener("click", ()=>showView("live"));
 $("navReport").addEventListener("click", ()=>showView("report"));
 $("ctaInspect").addEventListener("click", ()=>showView("inspect"));
 $("goInspect").addEventListener("click", ()=>showView("inspect"));
+$("printBtn").addEventListener("click", ()=>window.print());
+$("waBtn").addEventListener("click", ()=>{
+  if (!lastReport) return;
+  const s = S[lang];
+  const lines = [s.sum(lastReport), ""];
+  lastReport.findings.forEach((f, i) => {
+    lines.push(`${i+1}. [${s.sev[f.severity] || f.severity}] ${s.pick(f,"title")}`);
+    lines.push(`${s.action} ${s.pick(f,"action")}`);
+  });
+  window.open("https://wa.me/?text=" + encodeURIComponent(lines.join("\n")), "_blank");
+});
 $("files").addEventListener("change", () => {
   const names = [...$("files").files].map(f => f.name).join(" · ");
   $("fileNames").textContent = names;

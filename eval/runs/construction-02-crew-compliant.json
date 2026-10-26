@@ -1,0 +1,24 @@
+{
+ "scene_id": "construction-02-crew-compliant",
+ "labels": [
+  "exposed_uncapped_steel_rod_next_to_worker",
+  "head_protection_for_standing_worker_could_not_be"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Exposed uncapped steel rod next to worker",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 1
+  },
+  {
+   "title_en": "Head protection for standing worker could not be verified",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Two findings were recorded: one medium and one low. The most urgent is the exposed vertical steel rod in front of the worker in frame 1 due to eye or puncture injury risk. No work stoppage is required, provided the rod is capped or removed promptly and helmet use by all workers is verified.",
+ "segmentation_source": "vision"
+}

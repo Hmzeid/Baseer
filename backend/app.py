@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -19,6 +19,7 @@ import analytics
 import live
 import meta_client
 import pipeline
+import voice
 
 app = FastAPI(title="Baseer — Arabic Field Inspection Copilot", version="0.2.0")
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
@@ -93,6 +94,28 @@ def update_case(inspection_id: str, index: int, req: CaseRequest):
     return finding
 
 
+@app.post("/inspections/{inspection_id}/findings/{index}/verify-evidence")
+async def verify_with_evidence(
+    inspection_id: str, index: int, files: list[UploadFile] = File(default=[]),
+):
+    """Verify against AFTER photo/video of the same location (vision
+    comparison). Additive to the plain verify action, which stays
+    conservative without evidence. Approval is still required to close."""
+    report = REPORTS.get(inspection_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="inspection not found")
+    if index < 0 or index >= len(report["findings"]):
+        raise HTTPException(status_code=404, detail="finding not found")
+    finding = report["findings"][index]
+    case = finding.setdefault("case", {"status": "open", "assignee": "", "verification": None})
+    if case["status"] == "closed":
+        raise HTTPException(status_code=400, detail="case already closed")
+    payload = [(f.filename or "after", await f.read()) for f in files]
+    frames = pipeline.extract_frames(payload)
+    case["verification"] = meta_client.compare_for_verification(finding, frames)
+    return finding
+
+
 class LiveStartRequest(BaseModel):
     site_context: str = ""
 
@@ -129,6 +152,13 @@ def live_finish(session_id: str, req: LiveFinishRequest):
 @app.get("/analytics")
 def get_analytics():
     return analytics.compute(list(REPORTS.values()))
+
+
+@app.websocket("/voice/transcribe")
+async def voice_transcribe(ws: WebSocket):
+    # Mic audio in, transcript text out. The Meta key is attached
+    # server-side inside voice.proxy — it never reaches the browser.
+    await voice.proxy(ws)
 
 
 @app.get("/")

@@ -1,0 +1,17 @@
+{
+ "scene_id": "factory-02-helmet-in-hand",
+ "labels": [
+  "unconfirmed_hard_hat_use_in_forklift_area"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Unconfirmed hard-hat use in forklift area",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 1
+  }
+ ],
+ "summary_en": "One low-severity finding was recorded regarding unconfirmed hard-hat use in the forklift area. The most urgent item is on-site verification that the worker correctly wears the orange helmet seen in his hands in frame 1, since the inspector's note of full compliance conflicts with the frames. No work stoppage is required, pending verification of correct wearing.",
+ "segmentation_source": "vision"
+}

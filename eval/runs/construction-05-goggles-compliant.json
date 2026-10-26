@@ -1,0 +1,17 @@
+{
+ "scene_id": "construction-05-goggles-compliant",
+ "labels": [
+  "hearing_protection_around_neck_not_on_ears"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Hearing protection around neck, not on ears",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One low-severity observation was recorded regarding hearing protection not worn on the ears. The most urgent item is to verify earmuff use when noise is present. No work stoppage is required, and hard hat and safety glasses are correctly worn in frames 1 and 2.",
+ "segmentation_source": "vision"
+}

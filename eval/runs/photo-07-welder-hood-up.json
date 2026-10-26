@@ -1,0 +1,24 @@
+{
+ "scene_id": "photo-07-welder-hood-up",
+ "labels": [
+  "flammable_vest_placed_adjacent_to_active_welding",
+  "respiratory_protection_for_welding_fume_cannot_b"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Flammable vest placed adjacent to active welding point",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Respiratory protection for welding fume cannot be verified",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Two findings were recorded: one medium and one low-uncertain. The most urgent is the textile vest placed directly next to the active welding point, creating a fire risk. No full work stoppage is required, provided combustibles are removed immediately and welding fume controls are verified.",
+ "segmentation_source": "vision"
+}

@@ -1,0 +1,31 @@
+{
+ "scene_id": "photo-08-ladder-carry",
+ "labels": [
+  "unsafe_ladder_work",
+  "worker_at_elevated_roof_edge_with_no_visible_edg",
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Use of unsecured ladder while carrying bulky load to roof level",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Worker without safety helmet below overhead work",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Worker at elevated roof edge with no visible edge protection",
+   "severity": "medium",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Three findings were recorded: 2 high severity and 1 medium severity. The most urgent is ascent on an unsecured ladder while carrying a bulky roll. Work in the ladder and roof area should stop until access is secured and helmets and edge protection are provided.",
+ "segmentation_source": "vision"
+}

@@ -77,3 +77,40 @@ roadmap item — see BUILD_PLAN.md.
   evidence chat, analytics strip
 - `BUILD_PLAN.md` — day-by-day build plan and submission checklist
 - `demo/` — demo footage plan (staged/public material only)
+
+## Evaluation benchmark (run Oct 26, 2026 — live vision path, muse-spark-1.3)
+24 labeled scenes from the same staged/public Pexels footage as the demo
+(`demo/SOURCES.md`; binaries re-fetched via `eval/fetch_media.py`, never
+committed). The set was fixed in `eval/scenes.json` before the run and
+covers positives, compliant negatives, and uncertain-by-design scenes
+(poor light, face out of frame, a note contradicting the image).
+Method: up to 3 evenly spaced frames per scene through the live vision
+pipeline (`eval/run_live.py`), finding titles mapped to hazard labels by a
+fixed keyword map; unmapped titles count as their own label so surprises
+are scored, never dropped. Scored with `eval/score.py`.
+
+Result: precision 0.128, recall 0.75, F1 0.218 (TP 6, FP 41, FN 2;
+36 false alarms on 18 negative scenes). Exact scene matches: 3/24
+(flagship factory, scaffold helmet, one compliant crew photo).
+
+What works: core hazards are found — worker without helmet 3/4
+(F1 0.75), ladder violations 2/2 (F1 0.8), unmarked forklift path 1/1.
+Uncertainty honesty holds: 5 of 6 uncertain-by-design scenes carry an
+"uncertain" determination.
+
+Failures (published, not tuned away):
+- Over-eager observations: 11 of 12 clean negatives drew flags — mostly
+  cautious "unable to verify X" wordings, but also genuine hallucinations
+  (bare hands on gloved hands, a hanging mask on a masked textile worker).
+- The welder with a raised hood (true `missing_eye_protection`) was missed
+  while that same label fired 5 times elsewhere.
+- The contradiction scene (note claims full compliance, frame shows a
+  helmet in hand) produced an "unconfirmed" slug instead of the exact
+  `worker_without_helmet` label.
+- Compliant scenes rarely come back exactly empty (1/12); the model hedges
+  with `uncertain=True` on ~22/24 scenes while still emitting findings.
+
+Takeaway for production: recall first is the right bias for safety, but
+the prompt must stop minting "unable to verify" findings and the label
+space needs constraining before precision is acceptable. Re-run with
+`muse-wonder-1.0` (locked for final reports) is open.

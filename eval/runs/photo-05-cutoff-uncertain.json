@@ -1,0 +1,24 @@
+{
+ "scene_id": "photo-05-cutoff-uncertain",
+ "labels": [
+  "combustible_material_in_spark_projection_zone",
+  "missing_eye_protection"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Combustible material in spark projection zone",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Eye and face protection unable to be determined during cutting",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are two findings: one medium and one low uncertain finding. The most urgent is the cloth at the saw base in the spark projection path. Full work stoppage is not required, but combustible materials must be removed, spark spread controlled, and eye and face protection verified before continuing.",
+ "segmentation_source": "vision"
+}

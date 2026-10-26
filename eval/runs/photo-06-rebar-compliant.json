@@ -1,0 +1,17 @@
+{
+ "scene_id": "photo-06-rebar-compliant",
+ "labels": [
+  "exposed_rebar_ends_without_visible_protective_ca"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Exposed rebar ends without visible protective caps",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One low-severity item was noted, with no high or medium findings. The most urgent item is to verify protective caps on the rebar ends in frame 0. No work stoppage is required, and the visible workers wear helmets and hi-vis vests.",
+ "segmentation_source": "vision"
+}

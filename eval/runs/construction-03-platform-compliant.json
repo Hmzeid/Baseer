@@ -1,0 +1,31 @@
+{
+ "scene_id": "construction-03-platform-compliant",
+ "labels": [
+  "hanging_lifting_ropes_and_hook_above_work_platfo",
+  "opening_in_side_safety_netting_at_material_platf",
+  "unsecured_stacked_metal_parts_on_elevated_platfo"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Opening in side safety netting at material platform entrance",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unsecured stacked metal parts on elevated platform",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 2
+  },
+  {
+   "title_en": "Hanging lifting ropes and hook above work platform",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 2
+  }
+ ],
+ "summary_en": "Three findings were recorded: two medium and one low. The most urgent is the unsecured metal load and the open side netting on the elevated unloading platform due to falling-object risk. Full work stoppage is not required, but close the netting, secure the load, and keep the area below the platform clear until fixed.",
+ "segmentation_source": "vision"
+}

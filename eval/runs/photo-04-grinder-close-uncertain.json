@@ -1,0 +1,31 @@
+{
+ "scene_id": "photo-04-grinder-close-uncertain",
+ "labels": [
+  "angle_grinder_operating_with_no_visible_disc_gua",
+  "missing_eye_protection",
+  "operating_angle_grinder_with_bare_hands_without_"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Angle grinder operating with no visible disc guard",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Operating angle grinder with bare hands without gloves",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Unable to determine eye and face protection during grinding",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Three findings were recorded: one high, one medium, and one low severity. The most urgent is the angle grinder operating with no visible disc guard. Grinding work in this area should stop until the guard is fitted and protective equipment is verified.",
+ "segmentation_source": "vision"
+}

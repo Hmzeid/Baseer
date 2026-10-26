@@ -1,0 +1,112 @@
+[
+ {
+  "scene_id": "factory-03-grinding-uncertain",
+  "expected": []
+ },
+ {
+  "scene_id": "factory-04-grinder-uncertain",
+  "expected": []
+ },
+ {
+  "scene_id": "viol-02-sparks-uncertain",
+  "expected": []
+ },
+ {
+  "scene_id": "photo-04-grinder-close-uncertain",
+  "expected": []
+ },
+ {
+  "scene_id": "photo-05-cutoff-uncertain",
+  "expected": []
+ },
+ {
+  "scene_id": "photo-09-roof-dusk-uncertain",
+  "expected": []
+ },
+ {
+  "scene_id": "factory-01-flagship",
+  "expected": [
+   "forklift_path_unmarked",
+   "worker_without_helmet"
+  ]
+ },
+ {
+  "scene_id": "photo-07-welder-hood-up",
+  "expected": [
+   "missing_eye_protection"
+  ]
+ },
+ {
+  "scene_id": "photo-08-ladder-carry",
+  "expected": [
+   "unsafe_ladder_work",
+   "worker_without_helmet"
+  ]
+ },
+ {
+  "scene_id": "construction-04-ladder-facade",
+  "expected": [
+   "unsafe_ladder_work"
+  ]
+ },
+ {
+  "scene_id": "construction-01-scaffold",
+  "expected": [
+   "worker_without_helmet"
+  ]
+ },
+ {
+  "scene_id": "factory-02-helmet-in-hand",
+  "expected": [
+   "worker_without_helmet"
+  ]
+ },
+ {
+  "scene_id": "construction-02-crew-compliant",
+  "expected": []
+ },
+ {
+  "scene_id": "construction-03-platform-compliant",
+  "expected": []
+ },
+ {
+  "scene_id": "construction-05-goggles-compliant",
+  "expected": []
+ },
+ {
+  "scene_id": "factory-05-textile-compliant",
+  "expected": []
+ },
+ {
+  "scene_id": "factory-06-machinery-watch",
+  "expected": []
+ },
+ {
+  "scene_id": "farm-01-tractor-distant",
+  "expected": []
+ },
+ {
+  "scene_id": "farm-02-greenhouse",
+  "expected": []
+ },
+ {
+  "scene_id": "factory-02-welding-compliant",
+  "expected": []
+ },
+ {
+  "scene_id": "viol-04-descend-indeterminate",
+  "expected": []
+ },
+ {
+  "scene_id": "construction-03-crew-compliant",
+  "expected": []
+ },
+ {
+  "scene_id": "photo-10-glove-mask-compliant",
+  "expected": []
+ },
+ {
+  "scene_id": "photo-06-rebar-compliant",
+  "expected": []
+ }
+]

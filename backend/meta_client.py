@@ -285,6 +285,61 @@ def verify_finding(finding: dict) -> dict:
             "note": "Re-inspection evidence shows the violation corrected (demo simulation)."}
 
 
+def compare_for_verification(finding: dict, after_frames: list[bytes]) -> dict:
+    """Compare AFTER photo/video frames against ONE finding.
+
+    Returns {"suggested_resolved": bool, "note": str, "note_ar": str,
+    "note_en": str}. The verdict only ever suggests — the case endpoint
+    still requires a human approve step before closure. With no after
+    frames, falls back to the conservative no-evidence verdict.
+    """
+    if MODE != "live":
+        title = (finding.get("title_en") or "").lower()
+        if "forklift path" in title or "markings" in title:
+            return {"suggested_resolved": False,
+                    "note": "Re-inspection still shows no floor markings on the forklift route.",
+                    "note_ar": "ما زالت إعادة الفحص تُظهر غياب العلامات الأرضية على مسار الرافعة.",
+                    "note_en": "Re-inspection still shows no floor markings on the forklift route."}
+        return {"suggested_resolved": True,
+                "note": "Re-inspection evidence shows the violation corrected (demo simulation).",
+                "note_ar": "تُظهر أدلة إعادة الفحص تصحيح المخالفة (محاكاة تجريبية).",
+                "note_en": "Re-inspection evidence shows the violation corrected (demo simulation)."}
+    if not after_frames:
+        return verify_finding(finding)
+    if not API_KEY:
+        raise RuntimeError("live mode requires MODEL_API_KEY (create one at dev.meta.ai)")
+    if MUSE_MODEL.endswith("-contributor"):
+        raise RuntimeError("Refusing Contributor-tier model for verification.")
+    import prompts
+    content: list[dict] = []
+    for idx, frame in enumerate(after_frames):
+        image_url = "data:image/jpeg;base64," + base64.b64encode(frame).decode()
+        content.append({"type": "text", "text": f"After frame {idx}:"})
+        content.append({"type": "image_url", "image_url": {"url": image_url}})
+    content.append({"type": "text", "text": prompts.build_verify_prompt(finding)})
+    payload = {
+        "model": MUSE_MODEL,
+        "messages": [
+            {"role": "system", "content": prompts.VERIFY_SYSTEM_PROMPT},
+            {"role": "user", "content": content},
+        ],
+        "response_format": {"type": "json_object"},
+    }
+    with httpx.Client(timeout=180) as client:
+        resp = client.post(f"{BASE_URL}/chat/completions", json=payload, headers=_headers())
+        resp.raise_for_status()
+        data = resp.json()
+    import json
+    parsed = json.loads(data["choices"][0]["message"]["content"])
+    resolved = bool(parsed.get("suggested_resolved", False))
+    note_en = str(parsed.get("note_en", ""))
+    note_ar = str(parsed.get("note_ar", ""))
+    return {"suggested_resolved": resolved,
+            "note": note_en or note_ar,
+            "note_ar": note_ar,
+            "note_en": note_en}
+
+
 def chat_with_inspection(report: dict, history: list[dict], question: str) -> str:
     """Evidence chat: answer questions about one completed inspection.
 
