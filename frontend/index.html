@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>بصير — Baseer · Field Inspection Copilot</title>
+<style>
+  :root { --ink:#131519; --paper:#f7f5f0; --line:#e3ded2; --high:#b3261e; --med:#9a6a00; --low:#3c6e47; --accent:#0b4fd6; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Segoe UI", Tahoma, Arial, sans-serif; background:var(--paper); color:var(--ink); }
+  header { padding:30px 20px 8px; max-width:880px; margin:0 auto; }
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .brandrow { display:flex; align-items:center; gap:13px; }
+  .logomark { width:46px; height:46px; border-radius:13px; background:var(--ink); display:flex; align-items:center; justify-content:center; flex:none; box-shadow:0 6px 16px rgba(19,21,25,.18); }
+  h1 { font-size:34px; margin:0 0 4px; letter-spacing:-.01em; }
+  .sub { color:#5a5648; margin:0 0 6px; }
+  .tagline { font-weight:800; font-size:16.5px; margin:0 0 18px; }
+  .tagline::before { content:""; display:block; width:44px; height:3px; background:#c9a227; border-radius:2px; margin-bottom:9px; }
+  .langtoggle { display:flex; border:1px solid var(--line); border-radius:99px; overflow:hidden; background:#fff; flex:none; }
+  .langtoggle button { border:0; background:transparent; padding:7px 16px; font:inherit; font-weight:700; cursor:pointer; color:#5a5648; margin:0; }
+  .langtoggle button.active { background:var(--accent); color:#fff; }
+  main { max-width:880px; margin:0 auto; padding:0 20px 40px; }
+  form, .report { background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:20px; box-shadow:0 10px 28px rgba(90,80,40,.06); }
+  .finding.sev-high { border-inline-start:4px solid var(--high); }
+  .finding.sev-medium { border-inline-start:4px solid var(--med); }
+  .finding.sev-low { border-inline-start:4px solid var(--low); }
+  label { display:block; font-weight:600; margin:12px 0 6px; }
+  input[type=text], textarea { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font:inherit; background:#fff; }
+  textarea { min-height:76px; }
+  button.run { margin-top:16px; background:var(--accent); color:#fff; border:0; border-radius:10px; padding:11px 22px; font:inherit; font-weight:700; cursor:pointer; }
+  button.run:disabled { opacity:.55; }
+  .finding { border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin:12px 0; }
+  .chip { display:inline-block; padding:2px 10px; border-radius:99px; font-size:12px; font-weight:700; color:#fff; }
+  .high { background:var(--high); } .medium { background:var(--med); } .low { background:var(--low); }
+  .meta { color:#5a5648; font-size:13px; }
+  .hidden { display:none; }
+  .analytics { background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:20px; }
+  .analytics h2 { margin:0 0 10px; font-size:19px; }
+  .astats { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .astat { flex:1 1 130px; border:1px solid var(--line); border-radius:12px; padding:10px 14px; background:#fbfaf7; }
+  .astat .v { font-size:24px; font-weight:800; }
+  .astat .k { color:#5a5648; font-size:12.5px; }
+  .hazard { display:flex; justify-content:space-between; padding:6px 2px; border-bottom:1px dashed var(--line); font-size:14.5px; }
+  .hazard:last-child { border-bottom:0; }
+  .chat { margin-top:22px; border-top:1px solid var(--line); padding-top:16px; }
+  .chatlog { display:flex; flex-direction:column; gap:10px; margin:12px 0; }
+  .msg { max-width:88%; padding:10px 14px; border-radius:14px; font-size:14.5px; white-space:pre-wrap; }
+  .msg.user { background:var(--accent); color:#fff; align-self:flex-end; border-end-end-radius:4px; }
+  .msg.bot { background:#f4f1e8; align-self:flex-start; border-end-start-radius:4px; }
+  .chatrow { display:flex; gap:10px; }
+  .chatrow input { flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font:inherit; }
+  .chatrow button { background:#131519; color:#fff; border:0; border-radius:10px; padding:10px 20px; font:inherit; font-weight:700; cursor:pointer; }
+  .caserow { margin-top:12px; border-top:1px dashed var(--line); padding-top:11px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .caserow .ct { font-weight:700; font-size:13.5px; }
+  .caserow select { padding:7px 9px; border:1px solid var(--line); border-radius:8px; font:inherit; background:#fff; }
+  .caserow button { background:#fff; border:1px solid var(--line); border-radius:8px; padding:7px 13px; font:inherit; font-weight:650; cursor:pointer; font-size:13.5px; }
+  .caserow button:disabled { opacity:.45; cursor:default; }
+  .casechip { background:#fbf0da; color:var(--med); }
+  .casechip.assigned { background:#e9effc; color:var(--accent); }
+  .casechip.closed { background:#e7f2e9; color:var(--low); }
+  .vnote { width:100%; color:#5a5648; font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div>
+      <div class="brandrow">
+        <div class="logomark" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="#f7f5f0" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="#c9a227"/></svg></div>
+        <h1 id="tTitle">بصير — مساعد الفحص الميداني</h1>
+      </div>
+      <p class="sub" id="tSub">ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta: ‏SAM 3.1 للتجزئة وMuse Spark للاستدلال.</p>
+      <p class="tagline" id="tTagline">الذكاء الذي يرى ويفهم ويتصرف — بالعربية.</p>
+    </div>
+    <div class="langtoggle" role="group" aria-label="Language">
+      <button id="btnAr" class="active" type="button">عربي</button>
+      <button id="btnEn" type="button">EN</button>
+    </div>
+  </div>
+</header>
+<main>
+  <section class="analytics" id="analytics">
+    <h2 id="tAnalytics">نظرة السلامة العامة</h2>
+    <div class="astats" id="aStats"></div>
+    <div id="aHazards"></div>
+  </section>
+
+  <form id="inspForm">
+    <label for="files" id="tFiles">صور / فيديو من الموقع</label>
+    <input id="files" type="file" accept="image/*,video/*" multiple>
+    <label for="notes" id="tNotes">ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)</label>
+    <textarea id="notes"></textarea>
+    <label for="ctx" id="tCtx">سياق الموقع (اختياري)</label>
+    <input id="ctx" type="text">
+    <button id="runBtn" class="run" type="submit">إنشاء التقرير</button>
+    <span id="status" class="meta"></span>
+  </form>
+
+  <section class="report" id="livePanel">
+    <h2 style="margin-top:0" id="tLive">وضع الكاميرا المباشرة</h2>
+    <p class="meta" id="tLiveHint">كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة.</p>
+    <button id="liveStart" class="run" type="button">بدء جلسة مباشرة</button>
+    <div id="liveBody" class="hidden" style="margin-top:14px">
+      <label for="liveFiles" id="tLiveFrame">إطار من الكاميرا</label>
+      <input id="liveFiles" type="file" accept="image/*,video/*">
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+        <button id="liveSend" class="run" type="button" style="margin-top:0">إرسال الإطار</button>
+        <button id="liveFinish" class="run" type="button" style="margin-top:0;background:#131519">إنهاء الجلسة وإنتاج التقرير</button>
+      </div>
+      <p class="meta" id="liveStatus"></p>
+      <div id="liveAlerts"></div>
+    </div>
+  </section>
+
+  <section id="report" class="report hidden">
+    <h2 style="margin-top:0" id="tReport">تقرير الفحص</h2>
+    <p class="meta" id="rMeta"></p>
+    <h3 id="tSummary">الملخص</h3>
+    <p id="rSummary"></p>
+    <h3 id="tFindings">الملاحظات</h3>
+    <div id="rFindings"></div>
+    <div class="chat">
+      <h3 id="tChat" style="margin-top:0">اسأل بصير عن هذا الفحص</h3>
+      <div class="chatlog" id="chatLog"></div>
+      <div class="chatrow">
+        <input id="chatInput" type="text">
+        <button id="chatSend" type="button">إرسال</button>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+const S = {
+  ar: { dir:"rtl", lang:"ar",
+    title:"بصير — مساعد الفحص الميداني",
+    sub:"ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta: ‏SAM 3.1 للتجزئة وMuse Spark للاستدلال.",
+    files:"صور / فيديو من الموقع", notes:"ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)",
+    notesPh:"مثال: لاحظت عاملًا عند الحافة العلوية، والرافعة تعمل قرب منطقة المشاة...",
+    ctx:"سياق الموقع (اختياري)", ctxPh:"مثال: ورشة تصنيع — فحص سلامة أسبوعي",
+    run:"إنشاء التقرير", running:"جارٍ التحليل...", done:"تم إنشاء التقرير.", error:"حدث خطأ أثناء إنشاء التقرير.",
+    report:"تقرير الفحص", summary:"الملخص", findings:"الملاحظات",
+    meta:(r)=>`رقم الفحص: ${r.inspection_id} · الإطارات المعالجة: ${r.frames_processed} · الوضع: ${r.mode}`,
+    action:"الإجراء المطلوب:", evidence:(i)=>`الدليل: الإطار رقم ${i+1}`,
+    sev:{high:"عالية", medium:"متوسطة", low:"منخفضة"},
+    analytics:"نظرة السلامة العامة", aTotal:"عمليات الفحص", aFindings:"إجمالي الملاحظات", aHigh:"عالية الخطورة",
+    topHazards:"أكثر المخاطر تكرارًا", times:"مرة",
+    chat:"اسأل بصير عن هذا الفحص", chatPh:"مثال: لماذا الملاحظة الأولى عالية الخطورة؟ أو: صِغ إشعارًا للمقاول",
+    send:"إرسال", chatErr:"تعذّر الإجابة الآن.",
+    tagline:"الذكاء الذي يرى ويفهم ويتصرف — بالعربية.",
+    liveT:"وضع الكاميرا المباشرة",
+    liveHint:"كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة.",
+    liveStart:"بدء جلسة مباشرة", liveFrame:"إطار من الكاميرا", liveSend:"إرسال الإطار",
+    liveFinish:"إنهاء الجلسة وإنتاج التقرير", liveOn:"الجلسة مباشرة الآن", liveFrames:"إطارات مستلمة",
+    caseT:"حالة إجراء تصحيحي", caseOpen:"مفتوحة", caseAssigned:"مُسندة", caseClosed:"مغلقة",
+    assign:"إسناد", verify:"تحقق", approve:"اعتماد الإغلاق", assignTo:"إسناد إلى...",
+    roles:["مشرف السلامة","مدير الموقع","المقاول"], to:"إلى",
+    pick:(f,k)=>f[k+"_ar"]||f[k+"_en"], sum:(r)=>r.summary_ar },
+  en: { dir:"ltr", lang:"en",
+    title:"Baseer — Field Inspection Copilot",
+    sub:"Upload photos or a short video from the worksite and Baseer turns them into a structured inspection report. Powered by Meta models: SAM 3.1 for segmentation, Muse Spark for reasoning.",
+    files:"Site photos / video", notes:"Inspector notes (transcribed voice or written)",
+    notesPh:"Example: I noticed a worker near the upper edge, and the forklift operates close to the pedestrian area...",
+    ctx:"Site context (optional)", ctxPh:"Example: Manufacturing workshop — weekly safety inspection",
+    run:"Generate report", running:"Analyzing...", done:"Report generated.", error:"Something went wrong while generating the report.",
+    report:"Inspection Report", summary:"Summary", findings:"Findings",
+    meta:(r)=>`Inspection ID: ${r.inspection_id} · Frames processed: ${r.frames_processed} · Mode: ${r.mode}`,
+    action:"Corrective action:", evidence:(i)=>`Evidence: frame ${i+1}`,
+    sev:{high:"High", medium:"Medium", low:"Low"},
+    analytics:"Safety overview", aTotal:"Inspections", aFindings:"Total findings", aHigh:"High severity",
+    topHazards:"Most frequent hazards", times:"times",
+    chat:"Ask Baseer about this inspection", chatPh:"Example: Why is finding 1 high severity? Or: draft a notice to the contractor",
+    send:"Send", chatErr:"Couldn't answer just now.",
+    tagline:"The AI that sees, understands, and acts — in Arabic.",
+    liveT:"Live camera mode",
+    liveHint:"A camera connected to the system: frames arrive, Baseer flags violations the moment they appear, and finishing the session produces the full report.",
+    liveStart:"Start live session", liveFrame:"Camera frame", liveSend:"Send frame",
+    liveFinish:"Finish session & generate report", liveOn:"Session is live", liveFrames:"frames received",
+    caseT:"Corrective-action case", caseOpen:"Open", caseAssigned:"Assigned", caseClosed:"Closed",
+    assign:"Assign", verify:"Verify", approve:"Approve closure", assignTo:"Assign to...",
+    roles:["Safety Supervisor","Site Manager","Contractor"], to:"to",
+    pick:(f,k)=>f[k+"_en"]||f[k+"_ar"], sum:(r)=>r.summary_en }
+};
+let lang = "ar", lastReport = null;
+function applyLang() {
+  const s = S[lang];
+  document.documentElement.lang = s.lang; document.documentElement.dir = s.dir;
+  document.getElementById("btnAr").classList.toggle("active", lang==="ar");
+  document.getElementById("btnEn").classList.toggle("active", lang==="en");
+  document.getElementById("tTitle").textContent = s.title;
+  document.getElementById("tSub").textContent = s.sub;
+  document.getElementById("tFiles").textContent = s.files;
+  document.getElementById("tNotes").textContent = s.notes;
+  document.getElementById("notes").placeholder = s.notesPh;
+  document.getElementById("tCtx").textContent = s.ctx;
+  document.getElementById("ctx").placeholder = s.ctxPh;
+  document.getElementById("runBtn").textContent = s.run;
+  document.getElementById("tReport").textContent = s.report;
+  document.getElementById("tSummary").textContent = s.summary;
+  document.getElementById("tFindings").textContent = s.findings;
+  document.getElementById("tChat").textContent = s.chat;
+  document.getElementById("chatInput").placeholder = s.chatPh;
+  document.getElementById("chatSend").textContent = s.send;
+  document.getElementById("tTagline").textContent = s.tagline;
+  document.getElementById("tLive").textContent = s.liveT;
+  document.getElementById("tLiveHint").textContent = s.liveHint;
+  document.getElementById("liveStart").textContent = s.liveStart;
+  document.getElementById("tLiveFrame").textContent = s.liveFrame;
+  document.getElementById("liveSend").textContent = s.liveSend;
+  document.getElementById("liveFinish").textContent = s.liveFinish;
+  loadAnalytics();
+  if (lastReport) renderReport(lastReport);
+}
+function caseHTML(f, i) {
+  const s = S[lang], c = f.case || {status:"open", assignee:"", verification:null};
+  const label = c.status === "closed" ? s.caseClosed : c.status === "assigned" ? s.caseAssigned : s.caseOpen;
+  const dis = c.status === "closed" ? "disabled" : "";
+  const canApprove = c.verification && c.verification.suggested_resolved && c.status !== "closed";
+  const roles = s.roles.map(r => `<option ${c.assignee===r?"selected":""}>${r}</option>`).join("");
+  const vnote = c.verification ? `<div class="vnote">${c.verification.note}</div>` : "";
+  const asg = c.assignee ? `<span class="meta">${s.to} ${c.assignee}</span>` : "";
+  return `<div class="caserow">
+    <span class="ct">${s.caseT}</span>
+    <span class="chip casechip ${c.status}">${label}</span>${asg}
+    <select id="asg-${i}" ${dis}><option value="">${s.assignTo}</option>${roles}</select>
+    <button type="button" onclick="caseAction(${i},'assign')" ${dis}>${s.assign}</button>
+    <button type="button" onclick="caseAction(${i},'verify')" ${dis}>${s.verify}</button>
+    <button type="button" onclick="caseAction(${i},'approve')" ${canApprove ? "" : "disabled"}>${s.approve}</button>
+    ${vnote}</div>`;
+}
+async function caseAction(i, action) {
+  if (!lastReport) return;
+  const body = {action};
+  if (action === "assign") {
+    const sel = document.getElementById("asg-" + i);
+    body.assignee = sel ? sel.value : "";
+    if (!body.assignee) return;
+  }
+  try {
+    const res = await fetch(`/inspections/${lastReport.inspection_id}/findings/${i}/case`, {
+      method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body) });
+    if (!res.ok) { const e = await res.json(); alert(e.detail || "error"); return; }
+    lastReport.findings[i] = await res.json();
+    renderReport(lastReport);
+  } catch (e) { /* layer only — never break the report */ }
+}
+function renderReport(r) {
+  const s = S[lang];
+  document.getElementById("rMeta").textContent = s.meta(r);
+  document.getElementById("rSummary").textContent = s.sum(r);
+  document.getElementById("rFindings").innerHTML = r.findings.map((f, i) => `
+    <div class="finding sev-${f.severity}">
+      <span class="chip ${f.severity}">${s.sev[f.severity] || f.severity}</span>
+      <strong> ${s.pick(f,"title")}</strong>
+      <p>${s.pick(f,"detail")}</p>
+      <p><strong>${s.action}</strong> ${s.pick(f,"action")}</p>
+      <p class="meta">${s.evidence(f.frame_index)}</p>
+      ${caseHTML(f, i)}
+    </div>`).join("");
+  document.getElementById("report").classList.remove("hidden");
+}
+let chatHistory = [];
+async function loadAnalytics() {
+  try {
+    const a = await (await fetch("/analytics")).json();
+    const s = S[lang];
+    document.getElementById("tAnalytics").textContent = s.analytics;
+    document.getElementById("aStats").innerHTML = `
+      <div class="astat"><div class="v">${a.total_inspections}</div><div class="k">${s.aTotal}</div></div>
+      <div class="astat"><div class="v">${a.total_findings}</div><div class="k">${s.aFindings}</div></div>
+      <div class="astat"><div class="v" style="color:var(--high)">${a.by_severity.high}</div><div class="k">${s.aHigh}</div></div>`;
+    document.getElementById("aHazards").innerHTML =
+      `<div class="meta" style="margin-bottom:4px">${s.topHazards}</div>` +
+      a.top_hazards.map(h => `<div class="hazard"><span>${lang==="ar"?h.title_ar:h.title_en}</span><span class="meta">${h.count} ${s.times}</span></div>`).join("");
+  } catch (e) { /* analytics is a layer; never block the core flow */ }
+}
+function addMsg(role, text) {
+  const log = document.getElementById("chatLog");
+  const div = document.createElement("div");
+  div.className = "msg " + (role === "user" ? "user" : "bot");
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+async function sendChat() {
+  const input = document.getElementById("chatInput");
+  const q = input.value.trim();
+  if (!q || !lastReport) return;
+  addMsg("user", q); input.value = "";
+  try {
+    const res = await fetch(`/inspections/${lastReport.inspection_id}/chat`, {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({question: q, history: chatHistory}) });
+    const data = await res.json();
+    addMsg("assistant", data.answer);
+    chatHistory.push({role: "user", content: q}, {role: "assistant", content: data.answer});
+  } catch (e) { addMsg("assistant", S[lang].chatErr); }
+}
+let liveSessionId = null;
+document.getElementById("liveStart").addEventListener("click", async () => {
+  const res = await fetch("/live/sessions", { method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({site_context: document.getElementById("ctx").value}) });
+  const data = await res.json();
+  liveSessionId = data.session_id;
+  document.getElementById("liveBody").classList.remove("hidden");
+  document.getElementById("liveStart").disabled = true;
+  document.getElementById("liveStatus").textContent = S[lang].liveOn + " · " + liveSessionId;
+  document.getElementById("liveAlerts").innerHTML = "";
+});
+document.getElementById("liveSend").addEventListener("click", async () => {
+  if (!liveSessionId) return;
+  const fd = new FormData();
+  for (const f of document.getElementById("liveFiles").files) fd.append("files", f);
+  const res = await fetch(`/live/sessions/${liveSessionId}/frames`, { method: "POST", body: fd });
+  const data = await res.json();
+  document.getElementById("liveStatus").textContent =
+    `${S[lang].liveOn} · ${data.frames_received} ${S[lang].liveFrames} · ${data.segments_total} segments`;
+  const box = document.getElementById("liveAlerts");
+  for (const a of data.new_alerts) {
+    const div = document.createElement("div");
+    div.className = "finding"; div.style.borderColor = "var(--high)";
+    div.textContent = (lang === "ar" ? a.message_ar : a.message_en) + " · " + S[lang].evidence(a.frame_index);
+    box.appendChild(div);
+  }
+});
+document.getElementById("liveFinish").addEventListener("click", async () => {
+  if (!liveSessionId) return;
+  const res = await fetch(`/live/sessions/${liveSessionId}/finish`, { method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({notes: document.getElementById("notes").value}) });
+  lastReport = await res.json();
+  liveSessionId = null;
+  document.getElementById("liveStart").disabled = false;
+  document.getElementById("liveBody").classList.add("hidden");
+  chatHistory = []; document.getElementById("chatLog").innerHTML = "";
+  renderReport(lastReport);
+  loadAnalytics();
+});
+document.getElementById("chatSend").addEventListener("click", sendChat);
+document.getElementById("chatInput").addEventListener("keydown", (e)=>{ if (e.key === "Enter") { e.preventDefault(); sendChat(); } });
+document.getElementById("btnAr").addEventListener("click", ()=>{ lang="ar"; applyLang(); });
+document.getElementById("btnEn").addEventListener("click", ()=>{ lang="en"; applyLang(); });
+document.getElementById("inspForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const s = S[lang], btn = document.getElementById("runBtn"), status = document.getElementById("status");
+  btn.disabled = true; status.textContent = s.running;
+  const fd = new FormData();
+  for (const f of document.getElementById("files").files) fd.append("files", f);
+  fd.append("notes", document.getElementById("notes").value);
+  fd.append("site_context", document.getElementById("ctx").value);
+  try {
+    const res = await fetch("/inspections", { method: "POST", body: fd });
+    lastReport = await res.json();
+    chatHistory = []; document.getElementById("chatLog").innerHTML = "";
+    renderReport(lastReport);
+    loadAnalytics();
+    status.textContent = s.done;
+  } catch (err) { status.textContent = s.error; }
+  finally { btn.disabled = false; }
+});
+applyLang();
+</script>
+</body>
+</html>

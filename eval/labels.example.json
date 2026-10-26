@@ -1,0 +1,1 @@
+[{"expected":["worker_without_helmet","forklift_path_unmarked"],"scene_id":"factory-01-flagship"},{"expected":["worker_without_helmet"],"scene_id":"factory-02-poor-light"},{"expected":["guard_rail_missing"],"scene_id":"construction-01-edge"},{"expected":["worker_without_gloves"],"scene_id":"farm-01-ppe"},{"expected":[],"scene_id":"factory-03-clean-negative"}]
