@@ -38,27 +38,41 @@ recommended corrective action.
   voice notes pivot below (Oct 29).
 
 ## Day 0 — before/at kickoff (Oct 26)
-- [ ] **API key strategy (Hussein's decision, Oct 21): WAIT for the
-      event-provided key + $150 credits as the primary path.** The entire
-      frame is built and runs in mock mode, so waiting costs nothing; if
-      Meta provisions a stronger model or an event tier at kickoff, adopting
-      it is a config change inside `meta_client.py` only — the app is
-      model-agnostic by design. **Fallback trigger:** if no event key has
-      arrived by kickoff (Oct 26, ~12:00 PM CT), create the self-serve key
-      at dev.meta.ai then (Hussein's sign-in, ~2 min, PAYG costs cents) so
-      the build never stalls; switch to the event key when it lands.
-- [ ] **On key arrival (whichever source):** run one live SAM 3.1 call to
+- [x] **API key strategy (Hussein's decision, Oct 21): WAIT for the
+      event-provided key + $150 credits as the primary path.** DONE Oct 26:
+      credits claimed, key in Muse Code on Hussein's Mac, and the same key
+      value in `Ai/Baseer/.env` (git-ignored) for the app. The WAIT decision
+      is closed; no self-serve fallback was needed.
+- [x] **On key arrival (whichever source):** run one live SAM 3.1 call to
       confirm the team isn't 404-gated; run the Arabic A/B test — same
       inspection through Muse Spark 1.3 AND Muse Wonder 1.0 (the API's top
       tier; "Wonder Full" is a Muse Code subscription exclusive, not an API
       model) — pick the reasoning model for final reports empirically.
       Hybrid default: Spark for dev/testing, Wonder for final report
-      generation. Cost is a non-issue: at Wonder prices ($4/M in, $20/M out)
-      the $150 credits buy roughly 2,000–3,900 reports on our workload
-      profile, SAM included in the low estimate; Spark buys ~4.3× more.
+      generation. VERDICTS Oct 26 (run via `backend/day0_check.py`):
+  - **SAM 3.1: GATED — 404 model_not_found, not enabled for this team/key.**
+    The live segmentation path in `meta_client.py` will 404 until SAM is
+    enabled. This is a verdict, not a failure. Decision: (a) build the
+    Muse-multimodal-vision fallback NOW so the Oct 26–27 live pipeline
+    validates regardless of enablement; (b) request SAM enablement in
+    parallel via the event Discord office-hours channel (draft in the
+    Day-0 memo below); if SAM is enabled mid-week, the segmentation
+    source swaps inside `meta_client.py` only.
+  - **Arabic A/B: hybrid CONFIRMED.** Same note in, both models returned
+    3 findings (2 high, 1 medium), right order, grounded, no invented
+    standards. Spark 1.3: 3,036 out tokens, $0.016/report, concise MSA,
+    bare-imperative actions. Wonder 1.0: 5,027 out tokens, $0.109/report,
+    formal wordier MSA, actions name the actor (supervisor, maintenance,
+    safety officer — marginally better). Locked: Spark for dev loops,
+    Wonder for final reports. Both trivially cheap without SAM in the mix
+    (reasoning-only costs; SAM's $2.50/1K images would have dominated).
 - [ ] Accept the Official Rules on the event page when published (participant action)
 - [ ] Claim the $150 credits when the mechanism appears (watch CV portal/email)
 - [ ] Join the event Discord; note office-hours schedule (Oct 27 – Nov 4)
+- [ ] **Rotate the dev.meta.ai key after submission (Nov 4):** the key
+      passed through Warp agent chat history during setup. Rotation is
+      free and does not affect the $150 credits (credits live on the
+      account, not the key).
 
 ## Scope (Hussein's decision, 2026-10-21)
 CORE = the inspection: capture → report in ~30 seconds. Everything else is a
