@@ -3,214 +3,423 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>بصير — Baseer · Field Inspection Copilot</title>
+<title>Baseer — Field Inspection Console</title>
 <style>
-  :root { --ink:#131519; --paper:#f7f5f0; --line:#e3ded2; --high:#b3261e; --med:#9a6a00; --low:#3c6e47; --accent:#0b4fd6; }
+  :root {
+    --navy:#0A2540; --navy2:#10385E; --gold:#C9A94E; --paper:#F7F5EF;
+    --card:#FFFFFF; --line:#E3DED2; --ink:#131519; --muted:#5A5648;
+    --high:#B3261E; --med:#9A6A00; --low:#3C6E47; --soft:#FBFAF7;
+  }
   * { box-sizing: border-box; }
-  body { margin:0; font-family:"Segoe UI", Tahoma, Arial, sans-serif; background:var(--paper); color:var(--ink); }
-  header { padding:30px 20px 8px; max-width:880px; margin:0 auto; }
-  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-  .brandrow { display:flex; align-items:center; gap:13px; }
-  .logomark { width:46px; height:46px; border-radius:13px; background:var(--ink); display:flex; align-items:center; justify-content:center; flex:none; box-shadow:0 6px 16px rgba(19,21,25,.18); }
-  h1 { font-size:34px; margin:0 0 4px; letter-spacing:-.01em; }
-  .sub { color:#5a5648; margin:0 0 6px; }
-  .tagline { font-weight:800; font-size:16.5px; margin:0 0 18px; }
-  .tagline::before { content:""; display:block; width:44px; height:3px; background:#c9a227; border-radius:2px; margin-bottom:9px; }
+  body { margin:0; font-family:"Segoe UI", Tahoma, Arial, sans-serif; background:var(--paper); color:var(--ink); font-size:15px; }
+  .shell { display:flex; min-height:100vh; }
+  /* ---- Sidebar: dark enterprise nav ---- */
+  .sidebar { width:252px; flex:none; background:var(--navy); color:#DCE4EC; padding:22px 16px; display:flex; flex-direction:column; gap:26px; }
+  .brand { display:flex; align-items:center; gap:12px; padding:2px 6px 0; }
+  .logomark { width:42px; height:42px; border-radius:11px; background:#FFFFFF; display:flex; align-items:center; justify-content:center; flex:none; }
+  .brandname { font-size:21px; font-weight:800; color:#FFFFFF; line-height:1.1; }
+  .brandsub { font-size:12.5px; color:#9FB0C3; }
+  .nav { display:flex; flex-direction:column; gap:4px; }
+  .navlabel { font-size:11.5px; letter-spacing:.08em; color:#8FA3B8; padding:0 12px 6px; font-weight:700; }
+  .nav button { display:block; width:100%; text-align:start; background:transparent; border:0; border-inline-start:3px solid transparent; color:#DCE4EC; padding:10px 12px; border-radius:8px; cursor:pointer; font:inherit; font-weight:600; font-size:14.5px; }
+  .nav button:hover { background:rgba(255,255,255,.07); }
+  .nav button.active { background:rgba(255,255,255,.12); border-inline-start-color:var(--gold); color:#FFFFFF; }
+  .sidefoot { margin-top:auto; padding:12px; border-top:1px solid rgba(255,255,255,.14); font-size:12.5px; color:#9FB0C3; line-height:1.6; }
+  /* ---- Main column ---- */
+  .main { flex:1; min-width:0; padding:26px 32px 48px; }
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:22px; }
+  .topbar h1 { font-size:27px; margin:0 0 4px; letter-spacing:-.01em; }
+  .topbar .sub { color:var(--muted); margin:0; max-width:720px; line-height:1.6; }
+  .toprow { display:flex; gap:10px; align-items:center; flex:none; flex-wrap:wrap; }
+  .badge { display:inline-block; padding:4px 11px; border-radius:99px; font-size:12px; font-weight:800; white-space:nowrap; }
+  .badge.live { background:#E7F2E9; color:var(--low); }
+  .badge.mock { background:#FBF0DA; color:var(--med); }
+  .badge.vision { background:#E9EFFC; color:var(--navy); }
+  .badge.sam { background:#E9EFFC; color:var(--navy); }
+  .badge.demo { background:#FBF0DA; color:var(--med); }
+  .badge.uncertain { background:#FBEED3; color:var(--med); }
+  .badge.notvis { background:#F1EFE9; color:var(--muted); }
   .langtoggle { display:flex; border:1px solid var(--line); border-radius:99px; overflow:hidden; background:#fff; flex:none; }
-  .langtoggle button { border:0; background:transparent; padding:7px 16px; font:inherit; font-weight:700; cursor:pointer; color:#5a5648; margin:0; }
-  .langtoggle button.active { background:var(--accent); color:#fff; }
-  main { max-width:880px; margin:0 auto; padding:0 20px 40px; }
-  form, .report { background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:20px; box-shadow:0 10px 28px rgba(90,80,40,.06); }
-  .finding.sev-high { border-inline-start:4px solid var(--high); }
-  .finding.sev-medium { border-inline-start:4px solid var(--med); }
-  .finding.sev-low { border-inline-start:4px solid var(--low); }
-  label { display:block; font-weight:600; margin:12px 0 6px; }
-  input[type=text], textarea { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font:inherit; background:#fff; }
-  textarea { min-height:76px; }
-  button.run { margin-top:16px; background:var(--accent); color:#fff; border:0; border-radius:10px; padding:11px 22px; font:inherit; font-weight:700; cursor:pointer; }
-  button.run:disabled { opacity:.55; }
-  .finding { border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin:12px 0; }
-  .chip { display:inline-block; padding:2px 10px; border-radius:99px; font-size:12px; font-weight:700; color:#fff; }
+  .langtoggle button { border:0; background:transparent; padding:7px 15px; font:inherit; font-weight:700; cursor:pointer; color:var(--muted); margin:0; }
+  .langtoggle button.active { background:var(--navy); color:#fff; }
+  /* ---- Cards, KPIs, tables ---- */
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:0 8px 24px rgba(90,80,40,.05); }
+  .card h2 { margin:0 0 4px; font-size:18px; }
+  .card .hint { color:var(--muted); font-size:13.5px; margin:0 0 16px; line-height:1.6; }
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; }
+  .kpi .v { font-size:32px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1.1; }
+  .kpi .k { color:var(--muted); font-size:13px; margin-top:2px; }
+  .sevbar { display:flex; height:10px; border-radius:99px; overflow:hidden; background:#EEE9DD; margin:12px 0 8px; }
+  .sevbar div { height:100%; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--muted); }
+  .legend i { display:inline-block; width:9px; height:9px; border-radius:50%; margin-inline-end:5px; vertical-align:middle; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { color:var(--muted); font-size:12.5px; text-align:start; padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td { padding:11px 12px; border-bottom:1px solid #EFEBE0; vertical-align:top; }
+  tr:last-child td { border-bottom:0; }
+  .chip { display:inline-block; padding:2px 10px; border-radius:99px; font-size:12px; font-weight:800; color:#fff; white-space:nowrap; }
   .high { background:var(--high); } .medium { background:var(--med); } .low { background:var(--low); }
-  .meta { color:#5a5648; font-size:13px; }
-  .hidden { display:none; }
-  .analytics { background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:20px; }
-  .analytics h2 { margin:0 0 10px; font-size:19px; }
-  .astats { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
-  .astat { flex:1 1 130px; border:1px solid var(--line); border-radius:12px; padding:10px 14px; background:#fbfaf7; }
-  .astat .v { font-size:24px; font-weight:800; }
-  .astat .k { color:#5a5648; font-size:12.5px; }
-  .hazard { display:flex; justify-content:space-between; padding:6px 2px; border-bottom:1px dashed var(--line); font-size:14.5px; }
-  .hazard:last-child { border-bottom:0; }
+  .sevcell { border-inline-start:4px solid var(--line); }
+  .sevcell.sev-high { border-inline-start-color:var(--high); }
+  .sevcell.sev-medium { border-inline-start-color:var(--med); }
+  .sevcell.sev-low { border-inline-start-color:var(--low); }
+  .meta { color:var(--muted); font-size:13px; }
+  .hidden { display:none !important; }
+  /* ---- Forms ---- */
+  label { display:block; font-weight:700; margin:14px 0 6px; font-size:14px; }
+  input[type=text], textarea, select { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font:inherit; background:#fff; }
+  textarea { min-height:84px; }
+  .drop { border:1.5px dashed #CFC8B4; border-radius:12px; padding:22px; text-align:center; cursor:pointer; background:var(--soft); }
+  .drop:hover { border-color:var(--gold); }
+  .drop input { display:none; }
+  .drop .d1 { font-weight:700; }
+  .drop .d2 { color:var(--muted); font-size:13px; margin-top:4px; }
+  .btn { background:var(--navy); color:#fff; border:0; border-radius:10px; padding:11px 22px; font:inherit; font-weight:700; cursor:pointer; }
+  .btn.gold { background:var(--gold); color:var(--navy); }
+  .btn.ghost { background:#fff; border:1px solid var(--line); color:var(--ink); }
+  .btn.dark { background:var(--ink); color:#fff; }
+  .btn:disabled { opacity:.5; cursor:default; }
+  .btnrow { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .twocol { display:grid; grid-template-columns:1.5fr 1fr; gap:18px; align-items:start; }
+  .guide { background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:16px 18px; font-size:14px; line-height:1.7; }
+  .guide h3 { margin:0 0 8px; font-size:15px; }
+  .guide ul { margin:6px 0; padding-inline-start:18px; }
+  /* ---- Pipeline strip ---- */
+  .pipe { display:flex; gap:8px; flex-wrap:wrap; }
+  .step { flex:1 1 120px; background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:11px 13px; }
+  .step b { display:block; color:var(--gold); font-size:12px; letter-spacing:.06em; }
+  .step span { font-size:13.5px; font-weight:700; }
+  /* ---- Report ---- */
+  .rhead { display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; align-items:flex-start; }
+  .rhead h2 { font-size:21px; }
+  .finding-row td:first-child { white-space:nowrap; }
+  .caserow td { background:var(--soft); padding-top:10px; }
+  .caserow .ct { font-weight:700; font-size:13.5px; }
+  .caserow select { width:auto; padding:7px 9px; font-size:13.5px; }
+  .caserow button { background:#fff; border:1px solid var(--line); border-radius:8px; padding:7px 13px; font:inherit; font-weight:650; cursor:pointer; font-size:13.5px; }
+  .caserow button:disabled { opacity:.45; cursor:default; }
+  .casechip { background:#FBF0DA; color:var(--med); }
+  .casechip.assigned { background:#E9EFFC; color:var(--navy); }
+  .casechip.closed { background:#E7F2E9; color:var(--low); }
+  .vnote { color:var(--muted); font-size:13px; margin-top:6px; }
+  /* ---- Chat ---- */
   .chat { margin-top:22px; border-top:1px solid var(--line); padding-top:16px; }
   .chatlog { display:flex; flex-direction:column; gap:10px; margin:12px 0; }
   .msg { max-width:88%; padding:10px 14px; border-radius:14px; font-size:14.5px; white-space:pre-wrap; }
-  .msg.user { background:var(--accent); color:#fff; align-self:flex-end; border-end-end-radius:4px; }
-  .msg.bot { background:#f4f1e8; align-self:flex-start; border-end-start-radius:4px; }
+  .msg.user { background:var(--navy); color:#fff; align-self:flex-end; border-end-end-radius:4px; }
+  .msg.bot { background:#F4F1E8; align-self:flex-start; border-end-start-radius:4px; }
   .chatrow { display:flex; gap:10px; }
   .chatrow input { flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font:inherit; }
-  .chatrow button { background:#131519; color:#fff; border:0; border-radius:10px; padding:10px 20px; font:inherit; font-weight:700; cursor:pointer; }
-  .caserow { margin-top:12px; border-top:1px dashed var(--line); padding-top:11px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .caserow .ct { font-weight:700; font-size:13.5px; }
-  .caserow select { padding:7px 9px; border:1px solid var(--line); border-radius:8px; font:inherit; background:#fff; }
-  .caserow button { background:#fff; border:1px solid var(--line); border-radius:8px; padding:7px 13px; font:inherit; font-weight:650; cursor:pointer; font-size:13.5px; }
-  .caserow button:disabled { opacity:.45; cursor:default; }
-  .casechip { background:#fbf0da; color:var(--med); }
-  .casechip.assigned { background:#e9effc; color:var(--accent); }
-  .casechip.closed { background:#e7f2e9; color:var(--low); }
-  .vnote { width:100%; color:#5a5648; font-size:13px; }
+  .chatrow button { background:var(--ink); color:#fff; border:0; border-radius:10px; padding:10px 20px; font:inherit; font-weight:700; cursor:pointer; }
+  .alert { border:1px solid var(--line); border-inline-start:4px solid var(--high); border-radius:12px; padding:12px 16px; margin:10px 0; background:#fff; }
+  .notice { background:#FBF0DA; border:1px solid #EAD9A8; color:#6B5510; border-radius:10px; padding:10px 14px; font-size:13.5px; margin-bottom:14px; }
+  @media (max-width: 900px) {
+    .shell { flex-direction:column; }
+    .sidebar { width:auto; flex-direction:row; flex-wrap:wrap; align-items:center; }
+    .sidefoot { display:none; }
+    .nav { flex-direction:row; flex-wrap:wrap; }
+    .main { padding:20px 16px 40px; }
+    .kpis { grid-template-columns:repeat(2,1fr); }
+    .twocol { grid-template-columns:1fr; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <div class="topbar">
-    <div>
-      <div class="brandrow">
-        <div class="logomark" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="#f7f5f0" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="#c9a227"/></svg></div>
-        <h1 id="tTitle">بصير — مساعد الفحص الميداني</h1>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logomark" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="#0A2540" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="#C9A94E"/></svg></div>
+      <div>
+        <div class="brandname">Baseer · بصير</div>
+        <div class="brandsub">Field Inspection Console</div>
       </div>
-      <p class="sub" id="tSub">ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta: ‏SAM 3.1 للتجزئة وMuse Spark للاستدلال.</p>
-      <p class="tagline" id="tTagline">الذكاء الذي يرى ويفهم ويتصرف — بالعربية.</p>
     </div>
-    <div class="langtoggle" role="group" aria-label="Language">
-      <button id="btnAr" class="active" type="button">عربي</button>
-      <button id="btnEn" type="button">EN</button>
-    </div>
+    <nav class="nav">
+      <div class="navlabel" id="navLabel">CONSOLE</div>
+      <button type="button" id="navOverview" class="active">نظرة عامة</button>
+      <button type="button" id="navInspect">فحص جديد</button>
+      <button type="button" id="navLive">كاميرا مباشرة</button>
+      <button type="button" id="navReport">تقرير الفحص</button>
+    </nav>
+    <div class="sidefoot" id="sideFoot">Baseer turns a short site video — or a live camera feed — and an Arabic voice note into an evidence-grounded safety inspection, then tracks corrective actions until a human verifies the resolution.<br><br>Built by Veebase.</div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="pageTitle">نظرة السلامة العامة</h1>
+        <p class="sub" id="pageSub">ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta — الرؤية والاستدلال.</p>
+      </div>
+      <div class="toprow">
+        <span id="modeBadge" class="badge mock hidden">تجريبي</span>
+        <div class="langtoggle" role="group" aria-label="Language">
+          <button id="btnAr" class="active" type="button">عربي</button>
+          <button id="btnEn" type="button">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- ============ OVERVIEW ============ -->
+      <section id="view-overview">
+        <div id="seedNotice" class="notice hidden"></div>
+        <div class="kpis" id="kpis"></div>
+        <div class="card">
+          <h2 id="tSevMix">توزيع الخطورة</h2>
+          <div class="sevbar" id="sevBar"></div>
+          <div class="legend" id="sevLegend"></div>
+        </div>
+        <div class="card">
+          <h2 id="tTopHazards">أكثر المخاطر تكرارًا</h2>
+          <table>
+            <thead><tr><th id="thHazard">الخطر</th><th id="thCount">التكرار</th></tr></thead>
+            <tbody id="hazardRows"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h2 id="tRecent">أحدث الفحوصات</h2>
+          <table>
+            <thead><tr><th id="thId">رقم الفحص</th><th id="thDate">التاريخ</th><th id="thFindings">الملاحظات</th><th id="thHigh">عالية الخطورة</th></tr></thead>
+            <tbody id="recentRows"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h2 id="tPipe">من الجولة الميدانية إلى الإغلاق الموثّق</h2>
+          <p class="hint" id="tPipeHint">كل فحص يمر بالحلقة نفسها — والملاحظة لا تُغلق أبدًا إلا باعتماد بشري.</p>
+          <div class="pipe" id="pipeSteps"></div>
+        </div>
+      </section>
+
+      <!-- ============ NEW INSPECTION ============ -->
+      <section id="view-inspect" class="hidden">
+        <div class="twocol">
+          <form id="inspForm" class="card" style="margin-bottom:0">
+            <h2 id="tNewInspect" style="margin-bottom:2px">فحص جديد</h2>
+            <p class="hint" id="tNewHint">النتيجة تقرير كامل في نحو 30 ثانية.</p>
+            <label for="files" id="tFiles">صور / فيديو من الموقع</label>
+            <label class="drop" for="files">
+              <div class="d1" id="dropTitle">اسحب الملفات هنا أو اضغط للاختيار</div>
+              <div class="d2" id="dropSub">صور أو فيديو — MP4 / MOV / JPG / PNG</div>
+              <input id="files" type="file" accept="image/*,video/*" multiple>
+            </label>
+            <div id="fileNames" class="meta" style="margin-top:8px"></div>
+            <label for="notes" id="tNotes">ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)</label>
+            <textarea id="notes"></textarea>
+            <label for="ctx" id="tCtx">سياق الموقع (اختياري)</label>
+            <input id="ctx" type="text">
+            <div class="btnrow">
+              <button id="runBtn" class="btn gold" type="submit">إنشاء التقرير</button>
+              <span id="status" class="meta" style="align-self:center"></span>
+            </div>
+          </form>
+          <div class="guide">
+            <h3 id="tGuide">ماذا يفحص بصير؟</h3>
+            <ul id="tGuideList">
+              <li>معدات الوقاية الشخصية: خوذة، سترة عاكسة، قفازات، نظارات.</li>
+              <li>مخاطر الحركة: مسارات الرافعات، الحواف العلوية، الحواجز.</li>
+              <li>مخاطر الماكينات: واقيات، مخارج طوارئ، علامات أرضية.</li>
+            </ul>
+            <p class="meta" id="tGuideNote">التقرير يستند إلى ما يظهر في الإطار فقط — وما لا يمكن تحديده يُسجَّل كذلك، ولا يُرفع مستوى الخطورة أبدًا عند الشك.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ LIVE CAMERA ============ -->
+      <section id="view-live" class="hidden">
+        <div class="card">
+          <h2 id="tLive">وضع الكاميرا المباشرة</h2>
+          <p class="hint" id="tLiveHint">كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة. التحليل قريب من الزمن الحقيقي — إطار كل بضع ثوانٍ، لا إطارًا إطارًا.</p>
+          <div class="btnrow" style="margin-top:0">
+            <button id="liveStart" class="btn" type="button">بدء جلسة مباشرة</button>
+          </div>
+          <div id="liveBody" class="hidden" style="margin-top:18px">
+            <label for="liveFiles" id="tLiveFrame">إطار من الكاميرا</label>
+            <input id="liveFiles" type="file" accept="image/*,video/*">
+            <div class="btnrow">
+              <button id="liveSend" class="btn" type="button">إرسال الإطار</button>
+              <button id="liveFinish" class="btn dark" type="button">إنهاء الجلسة وإنتاج التقرير</button>
+            </div>
+            <p class="meta" id="liveStatus" style="margin-top:10px"></p>
+            <div id="liveAlerts"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ REPORT ============ -->
+      <section id="view-report" class="hidden">
+        <div id="reportEmpty" class="card">
+          <h2 id="tNoReport">لا يوجد تقرير بعد</h2>
+          <p class="hint" id="tNoReportHint">شغّل فحصًا جديدًا أو أنهِ جلسة كاميرا مباشرة، وسيظهر التقرير هنا.</p>
+          <button id="goInspect" class="btn" type="button">فحص جديد</button>
+        </div>
+        <div id="reportContent" class="hidden">
+          <div class="card">
+            <div class="rhead">
+              <div>
+                <h2 id="tReport" style="margin-bottom:2px">تقرير الفحص</h2>
+                <p class="meta" id="rMeta" style="margin:0"></p>
+              </div>
+              <span id="pipeBadge" class="badge vision"></span>
+            </div>
+            <h3 id="tSummary" style="margin:18px 0 6px">الملخص</h3>
+            <p id="rSummary" style="margin:0 0 18px; line-height:1.7"></p>
+            <h3 id="tFindings" style="margin:0 0 8px">الملاحظات</h3>
+            <table>
+              <thead><tr><th id="thSev">الخطورة</th><th id="thFinding">الملاحظة</th><th id="thEvidence">الدليل</th><th id="thAction">الإجراء المطلوب</th></tr></thead>
+              <tbody id="rFindings"></tbody>
+            </table>
+            <div class="chat">
+              <h3 id="tChat" style="margin-top:0">اسأل بصير عن هذا الفحص</h3>
+              <div class="chatlog" id="chatLog"></div>
+              <div class="chatrow">
+                <input id="chatInput" type="text">
+                <button id="chatSend" type="button">إرسال</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
-</header>
-<main>
-  <section class="analytics" id="analytics">
-    <h2 id="tAnalytics">نظرة السلامة العامة</h2>
-    <div class="astats" id="aStats"></div>
-    <div id="aHazards"></div>
-  </section>
-
-  <form id="inspForm">
-    <label for="files" id="tFiles">صور / فيديو من الموقع</label>
-    <input id="files" type="file" accept="image/*,video/*" multiple>
-    <label for="notes" id="tNotes">ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)</label>
-    <textarea id="notes"></textarea>
-    <label for="ctx" id="tCtx">سياق الموقع (اختياري)</label>
-    <input id="ctx" type="text">
-    <button id="runBtn" class="run" type="submit">إنشاء التقرير</button>
-    <span id="status" class="meta"></span>
-  </form>
-
-  <section class="report" id="livePanel">
-    <h2 style="margin-top:0" id="tLive">وضع الكاميرا المباشرة</h2>
-    <p class="meta" id="tLiveHint">كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة.</p>
-    <button id="liveStart" class="run" type="button">بدء جلسة مباشرة</button>
-    <div id="liveBody" class="hidden" style="margin-top:14px">
-      <label for="liveFiles" id="tLiveFrame">إطار من الكاميرا</label>
-      <input id="liveFiles" type="file" accept="image/*,video/*">
-      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
-        <button id="liveSend" class="run" type="button" style="margin-top:0">إرسال الإطار</button>
-        <button id="liveFinish" class="run" type="button" style="margin-top:0;background:#131519">إنهاء الجلسة وإنتاج التقرير</button>
-      </div>
-      <p class="meta" id="liveStatus"></p>
-      <div id="liveAlerts"></div>
-    </div>
-  </section>
-
-  <section id="report" class="report hidden">
-    <h2 style="margin-top:0" id="tReport">تقرير الفحص</h2>
-    <p class="meta" id="rMeta"></p>
-    <h3 id="tSummary">الملخص</h3>
-    <p id="rSummary"></p>
-    <h3 id="tFindings">الملاحظات</h3>
-    <div id="rFindings"></div>
-    <div class="chat">
-      <h3 id="tChat" style="margin-top:0">اسأل بصير عن هذا الفحص</h3>
-      <div class="chatlog" id="chatLog"></div>
-      <div class="chatrow">
-        <input id="chatInput" type="text">
-        <button id="chatSend" type="button">إرسال</button>
-      </div>
-    </div>
-  </section>
-</main>
+</div>
 <script>
 const S = {
   ar: { dir:"rtl", lang:"ar",
-    title:"بصير — مساعد الفحص الميداني",
-    sub:"ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta: ‏SAM 3.1 للتجزئة وMuse Spark للاستدلال.",
+    navLabel:"لوحة التحكم", navOverview:"نظرة عامة", navInspect:"فحص جديد", navLive:"كاميرا مباشرة", navReport:"تقرير الفحص",
+    foot:"بصير يحوّل مقطع فيديو قصيرًا من الموقع — أو بث كاميرا مباشرة — وملاحظة صوتية بالعربية إلى فحص سلامة موثّق بالأدلة، ثم يتابع الإجراءات التصحيحية حتى يعتمد إنسانٌ إغلاقها.",
+    pT:{overview:"نظرة السلامة العامة", inspect:"فحص جديد", live:"وضع الكاميرا المباشرة", report:"تقرير الفحص"},
+    pS:{overview:"ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta — الرؤية والاستدلال.",
+        inspect:"صور أو فيديو مع ملاحظة المفتش — والنتيجة تقرير كامل في نحو 30 ثانية.",
+        live:"إطارات تصل تباعًا، ومخالفات تُرصد لحظة ظهورها، وتقرير كامل عند إنهاء الجلسة.",
+        report:"تقرير مبني على الأدلة — كل ملاحظة مرتبطة بإطارها، ولا تُغلق إلا باعتماد بشري."},
     files:"صور / فيديو من الموقع", notes:"ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)",
     notesPh:"مثال: لاحظت عاملًا عند الحافة العلوية، والرافعة تعمل قرب منطقة المشاة...",
     ctx:"سياق الموقع (اختياري)", ctxPh:"مثال: ورشة تصنيع — فحص سلامة أسبوعي",
     run:"إنشاء التقرير", running:"جارٍ التحليل...", done:"تم إنشاء التقرير.", error:"حدث خطأ أثناء إنشاء التقرير.",
     report:"تقرير الفحص", summary:"الملخص", findings:"الملاحظات",
-    meta:(r)=>`رقم الفحص: ${r.inspection_id} · الإطارات المعالجة: ${r.frames_processed} · الوضع: ${r.mode}`,
-    action:"الإجراء المطلوب:", evidence:(i)=>`الدليل: الإطار رقم ${i+1}`,
+    meta:(r)=>`رقم الفحص: ${r.inspection_id} · الإطارات المعالجة: ${r.frames_processed} · الوضع: ${r.mode}` + (r.source === "live-camera" ? " · كاميرا مباشرة" : ""),
+    action:"الإجراء المطلوب:", evidence:(i)=>`الإطار رقم ${i+1}`,
     sev:{high:"عالية", medium:"متوسطة", low:"منخفضة"},
-    analytics:"نظرة السلامة العامة", aTotal:"عمليات الفحص", aFindings:"إجمالي الملاحظات", aHigh:"عالية الخطورة",
-    topHazards:"أكثر المخاطر تكرارًا", times:"مرة",
+    analytics:"نظرة السلامة العامة", aTotal:"عمليات الفحص", aFindings:"إجمالي الملاحظات", aHigh:"عالية الخطورة", aMed:"متوسطة الخطورة",
+    sevMix:"توزيع الخطورة", topHazards:"أكثر المخاطر تكرارًا", recent:"أحدث الفحوصات",
+    colHazard:"الخطر", colCount:"التكرار", colId:"رقم الفحص", colDate:"التاريخ", colFindings:"الملاحظات", colHigh:"عالية الخطورة",
+    colSev:"الخطورة", colFinding:"الملاحظة", colEvidence:"الدليل", colAction:"الإجراء المطلوب",
+    times:"مرة", seedNote:"تتضمن هذه الأرقام بيانات تجريبية للعرض، وتُستبدل تلقائيًا مع تراكم الفحوصات الحقيقية.",
+    pipeT:"من الجولة الميدانية إلى الإغلاق الموثّق", pipeHint:"كل فحص يمر بالحلقة نفسها — والملاحظة لا تُغلق أبدًا إلا باعتماد بشري.",
+    pipe:["رصد","فهم","شرح","إجراء","تحقق","تعلّم"],
     chat:"اسأل بصير عن هذا الفحص", chatPh:"مثال: لماذا الملاحظة الأولى عالية الخطورة؟ أو: صِغ إشعارًا للمقاول",
     send:"إرسال", chatErr:"تعذّر الإجابة الآن.",
-    tagline:"الذكاء الذي يرى ويفهم ويتصرف — بالعربية.",
     liveT:"وضع الكاميرا المباشرة",
-    liveHint:"كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة.",
+    liveHint:"كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة. التحليل قريب من الزمن الحقيقي — إطار كل بضع ثوانٍ، لا إطارًا إطارًا.",
     liveStart:"بدء جلسة مباشرة", liveFrame:"إطار من الكاميرا", liveSend:"إرسال الإطار",
     liveFinish:"إنهاء الجلسة وإنتاج التقرير", liveOn:"الجلسة مباشرة الآن", liveFrames:"إطارات مستلمة",
     caseT:"حالة إجراء تصحيحي", caseOpen:"مفتوحة", caseAssigned:"مُسندة", caseClosed:"مغلقة",
     assign:"إسناد", verify:"تحقق", approve:"اعتماد الإغلاق", assignTo:"إسناد إلى...",
     roles:["مشرف السلامة","مدير الموقع","المقاول"], to:"إلى",
+    newInspect:"فحص جديد", newHint:"النتيجة تقرير كامل في نحو 30 ثانية.",
+    dropTitle:"اسحب الملفات هنا أو اضغط للاختيار", dropSub:"صور أو فيديو — MP4 / MOV / JPG / PNG",
+    guideT:"ماذا يفحص بصير؟", guideList:["معدات الوقاية الشخصية: خوذة، سترة عاكسة، قفازات، نظارات.","مخاطر الحركة: مسارات الرافعات، الحواف العلوية، الحواجز.","مخاطر الماكينات: واقيات، مخارج طوارئ، علامات أرضية."],
+    guideNote:"التقرير يستند إلى ما يظهر في الإطار فقط — وما لا يمكن تحديده يُسجَّل كذلك، ولا يُرفع مستوى الخطورة أبدًا عند الشك.",
+    noReport:"لا يوجد تقرير بعد", noReportHint:"شغّل فحصًا جديدًا أو أنهِ جلسة كاميرا مباشرة، وسيظهر التقرير هنا.",
+    modeLive:"مباشر", modeMock:"تجريبي",
+    pipeBadgeMock:"بيانات تجريبية", pipeBadgeLiveCam:"كاميرا مباشرة", pipeBadgeVision:"رؤية Muse", pipeBadgeSam:"SAM 3.1",
+    detUncertain:"تعذّر التحديد",
     pick:(f,k)=>f[k+"_ar"]||f[k+"_en"], sum:(r)=>r.summary_ar },
   en: { dir:"ltr", lang:"en",
-    title:"Baseer — Field Inspection Copilot",
-    sub:"Upload photos or a short video from the worksite and Baseer turns them into a structured inspection report. Powered by Meta models: SAM 3.1 for segmentation, Muse Spark for reasoning.",
+    navLabel:"CONSOLE", navOverview:"Overview", navInspect:"New inspection", navLive:"Live camera", navReport:"Inspection report",
+    foot:"Baseer turns a short site video — or a live camera feed — and an Arabic voice note into an evidence-grounded safety inspection, then tracks corrective actions until a human verifies the resolution.",
+    pT:{overview:"Safety overview", inspect:"New inspection", live:"Live camera mode", report:"Inspection report"},
+    pS:{overview:"Upload photos or a short video from the worksite and Baseer turns them into a structured inspection report. Powered by Meta models — vision and reasoning.",
+        inspect:"Photos or video plus the inspector's note — a full report in about 30 seconds.",
+        live:"Frames arrive in sequence, violations are flagged the moment they appear, and finishing the session produces the full report.",
+        report:"An evidence-grounded report — every finding tied to its frame, never closed without human approval."},
     files:"Site photos / video", notes:"Inspector notes (transcribed voice or written)",
     notesPh:"Example: I noticed a worker near the upper edge, and the forklift operates close to the pedestrian area...",
     ctx:"Site context (optional)", ctxPh:"Example: Manufacturing workshop — weekly safety inspection",
     run:"Generate report", running:"Analyzing...", done:"Report generated.", error:"Something went wrong while generating the report.",
     report:"Inspection Report", summary:"Summary", findings:"Findings",
-    meta:(r)=>`Inspection ID: ${r.inspection_id} · Frames processed: ${r.frames_processed} · Mode: ${r.mode}`,
-    action:"Corrective action:", evidence:(i)=>`Evidence: frame ${i+1}`,
+    meta:(r)=>`Inspection ID: ${r.inspection_id} · Frames processed: ${r.frames_processed} · Mode: ${r.mode}` + (r.source === "live-camera" ? " · live camera" : ""),
+    action:"Corrective action:", evidence:(i)=>`Frame ${i+1}`,
     sev:{high:"High", medium:"Medium", low:"Low"},
-    analytics:"Safety overview", aTotal:"Inspections", aFindings:"Total findings", aHigh:"High severity",
-    topHazards:"Most frequent hazards", times:"times",
+    analytics:"Safety overview", aTotal:"Inspections", aFindings:"Total findings", aHigh:"High severity", aMed:"Medium severity",
+    sevMix:"Severity mix", topHazards:"Most frequent hazards", recent:"Recent inspections",
+    colHazard:"Hazard", colCount:"Count", colId:"Inspection ID", colDate:"Date", colFindings:"Findings", colHigh:"High severity",
+    colSev:"Severity", colFinding:"Finding", colEvidence:"Evidence", colAction:"Corrective action",
+    times:"times", seedNote:"These figures include demo seed data; real inspections replace it automatically as they accumulate.",
+    pipeT:"From walkthrough to verified closure", pipeHint:"Every inspection runs the same loop — and a finding is never closed without human approval.",
+    pipe:["Observe","Understand","Explain","Act","Verify","Learn"],
     chat:"Ask Baseer about this inspection", chatPh:"Example: Why is finding 1 high severity? Or: draft a notice to the contractor",
     send:"Send", chatErr:"Couldn't answer just now.",
-    tagline:"The AI that sees, understands, and acts — in Arabic.",
     liveT:"Live camera mode",
-    liveHint:"A camera connected to the system: frames arrive, Baseer flags violations the moment they appear, and finishing the session produces the full report.",
+    liveHint:"A camera connected to the system: frames arrive, Baseer flags violations the moment they appear, and finishing the session produces the full report. Analysis is sampled near-real-time — a frame every few seconds, not frame-by-frame.",
     liveStart:"Start live session", liveFrame:"Camera frame", liveSend:"Send frame",
     liveFinish:"Finish session & generate report", liveOn:"Session is live", liveFrames:"frames received",
     caseT:"Corrective-action case", caseOpen:"Open", caseAssigned:"Assigned", caseClosed:"Closed",
     assign:"Assign", verify:"Verify", approve:"Approve closure", assignTo:"Assign to...",
     roles:["Safety Supervisor","Site Manager","Contractor"], to:"to",
+    newInspect:"New inspection", newHint:"A full report in about 30 seconds.",
+    dropTitle:"Drop files here or click to choose", dropSub:"Photos or video — MP4 / MOV / JPG / PNG",
+    guideT:"What does Baseer check?", guideList:["PPE: helmet, hi-vis vest, gloves, eye protection.","Movement hazards: forklift paths, upper edges, guard rails.","Machine hazards: guards, emergency exits, floor markings."],
+    guideNote:"The report rests only on what is visible in the frame — what cannot be determined is recorded as such, and uncertainty never raises severity.",
+    noReport:"No report yet", noReportHint:"Run a new inspection or finish a live camera session, and the report will appear here.",
+    modeLive:"LIVE", modeMock:"MOCK",
+    pipeBadgeMock:"Demo data", pipeBadgeLiveCam:"Live camera", pipeBadgeVision:"Muse vision", pipeBadgeSam:"SAM 3.1",
+    detUncertain:"Unable to determine",
     pick:(f,k)=>f[k+"_en"]||f[k+"_ar"], sum:(r)=>r.summary_en }
 };
-let lang = "ar", lastReport = null;
+let lang = "ar", lastReport = null, currentView = "overview";
+const $ = (id) => document.getElementById(id);
+function showView(name) {
+  currentView = name;
+  const s = S[lang];
+  for (const v of ["overview","inspect","live","report"]) $("view-" + v).classList.toggle("hidden", v !== name);
+  for (const [k, v] of [["navOverview","overview"],["navInspect","inspect"],["navLive","live"],["navReport","report"]])
+    $(k).classList.toggle("active", v === name);
+  $("pageTitle").textContent = s.pT[name];
+  $("pageSub").textContent = s.pS[name];
+}
 function applyLang() {
   const s = S[lang];
   document.documentElement.lang = s.lang; document.documentElement.dir = s.dir;
-  document.getElementById("btnAr").classList.toggle("active", lang==="ar");
-  document.getElementById("btnEn").classList.toggle("active", lang==="en");
-  document.getElementById("tTitle").textContent = s.title;
-  document.getElementById("tSub").textContent = s.sub;
-  document.getElementById("tFiles").textContent = s.files;
-  document.getElementById("tNotes").textContent = s.notes;
-  document.getElementById("notes").placeholder = s.notesPh;
-  document.getElementById("tCtx").textContent = s.ctx;
-  document.getElementById("ctx").placeholder = s.ctxPh;
-  document.getElementById("runBtn").textContent = s.run;
-  document.getElementById("tReport").textContent = s.report;
-  document.getElementById("tSummary").textContent = s.summary;
-  document.getElementById("tFindings").textContent = s.findings;
-  document.getElementById("tChat").textContent = s.chat;
-  document.getElementById("chatInput").placeholder = s.chatPh;
-  document.getElementById("chatSend").textContent = s.send;
-  document.getElementById("tTagline").textContent = s.tagline;
-  document.getElementById("tLive").textContent = s.liveT;
-  document.getElementById("tLiveHint").textContent = s.liveHint;
-  document.getElementById("liveStart").textContent = s.liveStart;
-  document.getElementById("tLiveFrame").textContent = s.liveFrame;
-  document.getElementById("liveSend").textContent = s.liveSend;
-  document.getElementById("liveFinish").textContent = s.liveFinish;
+  $("btnAr").classList.toggle("active", lang === "ar");
+  $("btnEn").classList.toggle("active", lang === "en");
+  $("navLabel").textContent = s.navLabel;
+  $("navOverview").textContent = s.navOverview; $("navInspect").textContent = s.navInspect;
+  $("navLive").textContent = s.navLive; $("navReport").textContent = s.navReport;
+  $("sideFoot").textContent = s.foot;
+  $("pageTitle").textContent = s.pT[currentView]; $("pageSub").textContent = s.pS[currentView];
+  $("tSevMix").textContent = s.sevMix; $("tTopHazards").textContent = s.topHazards; $("tRecent").textContent = s.recent;
+  $("thHazard").textContent = s.colHazard; $("thCount").textContent = s.colCount;
+  $("thId").textContent = s.colId; $("thDate").textContent = s.colDate; $("thFindings").textContent = s.colFindings; $("thHigh").textContent = s.colHigh;
+  $("tPipe").textContent = s.pipeT; $("tPipeHint").textContent = s.pipeHint;
+  $("pipeSteps").innerHTML = s.pipe.map((p, i) => `<div class="step"><b>0${i+1}</b><span>${p}</span></div>`).join("");
+  $("tNewInspect").textContent = s.newInspect; $("tNewHint").textContent = s.newHint;
+  $("tFiles").textContent = s.files; $("dropTitle").textContent = s.dropTitle; $("dropSub").textContent = s.dropSub;
+  $("tNotes").textContent = s.notes; $("notes").placeholder = s.notesPh;
+  $("tCtx").textContent = s.ctx; $("ctx").placeholder = s.ctxPh;
+  $("runBtn").textContent = s.run;
+  $("tGuide").textContent = s.guideT;
+  $("tGuideList").innerHTML = s.guideList.map(g => `<li>${g}</li>`).join("");
+  $("tGuideNote").textContent = s.guideNote;
+  $("tLive").textContent = s.liveT; $("tLiveHint").textContent = s.liveHint;
+  $("liveStart").textContent = s.liveStart; $("tLiveFrame").textContent = s.liveFrame;
+  $("liveSend").textContent = s.liveSend; $("liveFinish").textContent = s.liveFinish;
+  $("tNoReport").textContent = s.noReport; $("tNoReportHint").textContent = s.noReportHint; $("goInspect").textContent = s.newInspect;
+  $("tReport").textContent = s.report; $("tSummary").textContent = s.summary; $("tFindings").textContent = s.findings;
+  $("thSev").textContent = s.colSev; $("thFinding").textContent = s.colFinding; $("thEvidence").textContent = s.colEvidence; $("thAction").textContent = s.colAction;
+  $("tChat").textContent = s.chat; $("chatInput").placeholder = s.chatPh; $("chatSend").textContent = s.send;
   loadAnalytics();
   if (lastReport) renderReport(lastReport);
 }
-function caseHTML(f, i) {
+function pipeBadge(r) {
+  const s = S[lang];
+  if (r.mode !== "live") return {cls:"demo", text:s.pipeBadgeMock};
+  if (r.source === "live-camera") return {cls:"vision", text:s.pipeBadgeLiveCam};
+  if (r.segmentation_source === "sam") return {cls:"sam", text:s.pipeBadgeSam};
+  return {cls:"vision", text:s.pipeBadgeVision};
+}
+function caseRowHTML(f, i) {
   const s = S[lang], c = f.case || {status:"open", assignee:"", verification:null};
   const label = c.status === "closed" ? s.caseClosed : c.status === "assigned" ? s.caseAssigned : s.caseOpen;
   const dis = c.status === "closed" ? "disabled" : "";
@@ -218,20 +427,20 @@ function caseHTML(f, i) {
   const roles = s.roles.map(r => `<option ${c.assignee===r?"selected":""}>${r}</option>`).join("");
   const vnote = c.verification ? `<div class="vnote">${c.verification.note}</div>` : "";
   const asg = c.assignee ? `<span class="meta">${s.to} ${c.assignee}</span>` : "";
-  return `<div class="caserow">
+  return `<tr class="caserow"><td colspan="4">
     <span class="ct">${s.caseT}</span>
-    <span class="chip casechip ${c.status}">${label}</span>${asg}
+    <span class="chip casechip ${c.status}">${label}</span> ${asg}
     <select id="asg-${i}" ${dis}><option value="">${s.assignTo}</option>${roles}</select>
     <button type="button" onclick="caseAction(${i},'assign')" ${dis}>${s.assign}</button>
     <button type="button" onclick="caseAction(${i},'verify')" ${dis}>${s.verify}</button>
     <button type="button" onclick="caseAction(${i},'approve')" ${canApprove ? "" : "disabled"}>${s.approve}</button>
-    ${vnote}</div>`;
+    ${vnote}</td></tr>`;
 }
 async function caseAction(i, action) {
   if (!lastReport) return;
   const body = {action};
   if (action === "assign") {
-    const sel = document.getElementById("asg-" + i);
+    const sel = $("asg-" + i);
     body.assignee = sel ? sel.value : "";
     if (!body.assignee) return;
   }
@@ -245,36 +454,62 @@ async function caseAction(i, action) {
 }
 function renderReport(r) {
   const s = S[lang];
-  document.getElementById("rMeta").textContent = s.meta(r);
-  document.getElementById("rSummary").textContent = s.sum(r);
-  document.getElementById("rFindings").innerHTML = r.findings.map((f, i) => `
-    <div class="finding sev-${f.severity}">
-      <span class="chip ${f.severity}">${s.sev[f.severity] || f.severity}</span>
-      <strong> ${s.pick(f,"title")}</strong>
-      <p>${s.pick(f,"detail")}</p>
-      <p><strong>${s.action}</strong> ${s.pick(f,"action")}</p>
-      <p class="meta">${s.evidence(f.frame_index)}</p>
-      ${caseHTML(f, i)}
-    </div>`).join("");
-  document.getElementById("report").classList.remove("hidden");
+  $("rMeta").textContent = s.meta(r);
+  const b = pipeBadge(r);
+  const badge = $("pipeBadge");
+  badge.className = "badge " + b.cls; badge.textContent = b.text;
+  $("rSummary").textContent = s.sum(r);
+  $("rFindings").innerHTML = r.findings.map((f, i) => `
+    <tr>
+      <td class="sevcell sev-${f.severity}"><span class="chip ${f.severity}">${s.sev[f.severity] || f.severity}</span></td>
+      <td><strong>${s.pick(f,"title")}</strong><div>${s.pick(f,"detail")}</div>
+        ${f.determination === "uncertain" ? `<span class="badge uncertain" style="margin-top:6px">${s.detUncertain}</span>` : ""}</td>
+      <td class="meta">${s.evidence(f.frame_index)}</td>
+      <td>${s.pick(f,"action")}</td>
+    </tr>
+    ${caseRowHTML(f, i)}`).join("");
+  $("reportEmpty").classList.add("hidden");
+  $("reportContent").classList.remove("hidden");
 }
 let chatHistory = [];
 async function loadAnalytics() {
   try {
     const a = await (await fetch("/analytics")).json();
     const s = S[lang];
-    document.getElementById("tAnalytics").textContent = s.analytics;
-    document.getElementById("aStats").innerHTML = `
-      <div class="astat"><div class="v">${a.total_inspections}</div><div class="k">${s.aTotal}</div></div>
-      <div class="astat"><div class="v">${a.total_findings}</div><div class="k">${s.aFindings}</div></div>
-      <div class="astat"><div class="v" style="color:var(--high)">${a.by_severity.high}</div><div class="k">${s.aHigh}</div></div>`;
-    document.getElementById("aHazards").innerHTML =
-      `<div class="meta" style="margin-bottom:4px">${s.topHazards}</div>` +
-      a.top_hazards.map(h => `<div class="hazard"><span>${lang==="ar"?h.title_ar:h.title_en}</span><span class="meta">${h.count} ${s.times}</span></div>`).join("");
+    $("seedNotice").classList.toggle("hidden", !a.demo_seed_included);
+    $("seedNotice").textContent = s.seedNote;
+    $("kpis").innerHTML = `
+      <div class="kpi"><div class="v">${a.total_inspections}</div><div class="k">${s.aTotal}</div></div>
+      <div class="kpi"><div class="v">${a.total_findings}</div><div class="k">${s.aFindings}</div></div>
+      <div class="kpi"><div class="v" style="color:var(--high)">${a.by_severity.high}</div><div class="k">${s.aHigh}</div></div>
+      <div class="kpi"><div class="v" style="color:var(--med)">${a.by_severity.medium}</div><div class="k">${s.aMed}</div></div>`;
+    const tot = Math.max(1, a.total_findings);
+    const pct = (n) => (100 * n / tot).toFixed(1) + "%";
+    $("sevBar").innerHTML =
+      `<div style="width:${pct(a.by_severity.high)};background:var(--high)"></div>` +
+      `<div style="width:${pct(a.by_severity.medium)};background:var(--med)"></div>` +
+      `<div style="width:${pct(a.by_severity.low)};background:var(--low)"></div>`;
+    $("sevLegend").innerHTML =
+      `<span><i style="background:var(--high)"></i>${s.sev.high} ${a.by_severity.high}</span>` +
+      `<span><i style="background:var(--med)"></i>${s.sev.medium} ${a.by_severity.medium}</span>` +
+      `<span><i style="background:var(--low)"></i>${s.sev.low} ${a.by_severity.low}</span>`;
+    $("hazardRows").innerHTML = a.top_hazards.map(h =>
+      `<tr><td>${lang==="ar"?h.title_ar:h.title_en}</td><td class="meta">${h.count} ${s.times}</td></tr>`).join("");
+    $("recentRows").innerHTML = (a.recent || []).map(r =>
+      `<tr><td style="font-weight:700">${r.inspection_id}</td><td class="meta">${(r.created_at||"").slice(0,16).replace("T"," ")}</td><td>${r.findings}</td><td style="color:var(--high);font-weight:700">${r.high}</td></tr>`).join("");
   } catch (e) { /* analytics is a layer; never block the core flow */ }
 }
+async function loadHealth() {
+  try {
+    const h = await (await fetch("/health")).json();
+    const s = S[lang], badge = $("modeBadge");
+    badge.classList.remove("hidden");
+    if (h.mode === "live") { badge.className = "badge live"; badge.textContent = s.modeLive; }
+    else { badge.className = "badge mock"; badge.textContent = s.modeMock; }
+  } catch (e) { /* badge stays hidden without a server */ }
+}
 function addMsg(role, text) {
-  const log = document.getElementById("chatLog");
+  const log = $("chatLog");
   const div = document.createElement("div");
   div.className = "msg " + (role === "user" ? "user" : "bot");
   div.textContent = text;
@@ -282,7 +517,7 @@ function addMsg(role, text) {
   log.scrollTop = log.scrollHeight;
 }
 async function sendChat() {
-  const input = document.getElementById("chatInput");
+  const input = $("chatInput");
   const q = input.value.trim();
   if (!q || !lastReport) return;
   addMsg("user", q); input.value = "";
@@ -296,68 +531,82 @@ async function sendChat() {
   } catch (e) { addMsg("assistant", S[lang].chatErr); }
 }
 let liveSessionId = null;
-document.getElementById("liveStart").addEventListener("click", async () => {
+$("liveStart").addEventListener("click", async () => {
   const res = await fetch("/live/sessions", { method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({site_context: document.getElementById("ctx").value}) });
+    body: JSON.stringify({site_context: $("ctx").value}) });
   const data = await res.json();
   liveSessionId = data.session_id;
-  document.getElementById("liveBody").classList.remove("hidden");
-  document.getElementById("liveStart").disabled = true;
-  document.getElementById("liveStatus").textContent = S[lang].liveOn + " · " + liveSessionId;
-  document.getElementById("liveAlerts").innerHTML = "";
+  $("liveBody").classList.remove("hidden");
+  $("liveStart").disabled = true;
+  $("liveStatus").textContent = S[lang].liveOn + " · " + liveSessionId;
+  $("liveAlerts").innerHTML = "";
 });
-document.getElementById("liveSend").addEventListener("click", async () => {
+$("liveSend").addEventListener("click", async () => {
   if (!liveSessionId) return;
   const fd = new FormData();
-  for (const f of document.getElementById("liveFiles").files) fd.append("files", f);
+  for (const f of $("liveFiles").files) fd.append("files", f);
   const res = await fetch(`/live/sessions/${liveSessionId}/frames`, { method: "POST", body: fd });
   const data = await res.json();
-  document.getElementById("liveStatus").textContent =
+  $("liveStatus").textContent =
     `${S[lang].liveOn} · ${data.frames_received} ${S[lang].liveFrames} · ${data.segments_total} segments`;
-  const box = document.getElementById("liveAlerts");
+  const box = $("liveAlerts");
   for (const a of data.new_alerts) {
     const div = document.createElement("div");
-    div.className = "finding"; div.style.borderColor = "var(--high)";
+    div.className = "alert";
     div.textContent = (lang === "ar" ? a.message_ar : a.message_en) + " · " + S[lang].evidence(a.frame_index);
     box.appendChild(div);
   }
 });
-document.getElementById("liveFinish").addEventListener("click", async () => {
+$("liveFinish").addEventListener("click", async () => {
   if (!liveSessionId) return;
   const res = await fetch(`/live/sessions/${liveSessionId}/finish`, { method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({notes: document.getElementById("notes").value}) });
+    body: JSON.stringify({notes: $("notes").value}) });
   lastReport = await res.json();
   liveSessionId = null;
-  document.getElementById("liveStart").disabled = false;
-  document.getElementById("liveBody").classList.add("hidden");
-  chatHistory = []; document.getElementById("chatLog").innerHTML = "";
+  $("liveStart").disabled = false;
+  $("liveBody").classList.add("hidden");
+  chatHistory = []; $("chatLog").innerHTML = "";
   renderReport(lastReport);
   loadAnalytics();
+  showView("report");
 });
-document.getElementById("chatSend").addEventListener("click", sendChat);
-document.getElementById("chatInput").addEventListener("keydown", (e)=>{ if (e.key === "Enter") { e.preventDefault(); sendChat(); } });
-document.getElementById("btnAr").addEventListener("click", ()=>{ lang="ar"; applyLang(); });
-document.getElementById("btnEn").addEventListener("click", ()=>{ lang="en"; applyLang(); });
-document.getElementById("inspForm").addEventListener("submit", async (e) => {
+$("chatSend").addEventListener("click", sendChat);
+$("chatInput").addEventListener("keydown", (e)=>{ if (e.key === "Enter") { e.preventDefault(); sendChat(); } });
+$("btnAr").addEventListener("click", ()=>{ lang="ar"; applyLang(); });
+$("btnEn").addEventListener("click", ()=>{ lang="en"; applyLang(); });
+$("navOverview").addEventListener("click", ()=>showView("overview"));
+$("navInspect").addEventListener("click", ()=>showView("inspect"));
+$("navLive").addEventListener("click", ()=>showView("live"));
+$("navReport").addEventListener("click", ()=>showView("report"));
+$("goInspect").addEventListener("click", ()=>showView("inspect"));
+$("files").addEventListener("change", () => {
+  const names = [...$("files").files].map(f => f.name).join(" · ");
+  $("fileNames").textContent = names;
+});
+$("inspForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const s = S[lang], btn = document.getElementById("runBtn"), status = document.getElementById("status");
+  const s = S[lang], btn = $("runBtn"), status = $("status");
   btn.disabled = true; status.textContent = s.running;
   const fd = new FormData();
-  for (const f of document.getElementById("files").files) fd.append("files", f);
-  fd.append("notes", document.getElementById("notes").value);
-  fd.append("site_context", document.getElementById("ctx").value);
+  for (const f of $("files").files) fd.append("files", f);
+  fd.append("notes", $("notes").value);
+  fd.append("site_context", $("ctx").value);
   try {
     const res = await fetch("/inspections", { method: "POST", body: fd });
     lastReport = await res.json();
-    chatHistory = []; document.getElementById("chatLog").innerHTML = "";
+    chatHistory = []; $("chatLog").innerHTML = "";
     renderReport(lastReport);
     loadAnalytics();
     status.textContent = s.done;
+    showView("report");
   } catch (err) { status.textContent = s.error; }
   finally { btn.disabled = false; }
 });
+const q = new URLSearchParams(location.search);
+if (q.get("lang") === "en") lang = "en";
 applyLang();
+loadHealth();
 </script>
 </body>
 </html>
