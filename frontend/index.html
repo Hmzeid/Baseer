@@ -6,122 +6,192 @@
 <title>Baseer — Field Inspection Console</title>
 <style>
   :root {
-    --navy:#0A2540; --navy2:#10385E; --gold:#C9A94E; --paper:#F7F5EF;
-    --card:#FFFFFF; --line:#E3DED2; --ink:#131519; --muted:#5A5648;
-    --high:#B3261E; --med:#9A6A00; --low:#3C6E47; --soft:#FBFAF7;
+    --navy:#0A2540; --navy2:#10385E; --gold:#C9A94E; --goldink:#7A5F1E;
+    --paper:#F5F3EE; --card:#FFFFFF; --soft:#FBFAF7; --line:#E3DED2; --line2:#EEE9DB;
+    --ink:#131519; --ink2:#3A3A3E; --muted:#6E6A5C;
+    --high:#B3261E; --highTint:#FDECEA; --med:#8A5A00; --medTint:#FBF0DA;
+    --low:#2F5D3A; --lowTint:#E7F2E9; --info:#0A2540; --infoTint:#E9EFFC;
+    --shadow:0 1px 2px rgba(19,21,25,.04),0 12px 32px rgba(19,21,25,.06);
   }
   * { box-sizing: border-box; }
-  body { margin:0; font-family:"Segoe UI", Tahoma, Arial, sans-serif; background:var(--paper); color:var(--ink); font-size:15px; }
+  body { margin:0; font-family:-apple-system,"SF Pro Text","Segoe UI",Tahoma,Arial,sans-serif;
+    background:var(--paper); color:var(--ink); font-size:14.5px; line-height:1.55;
+    -webkit-font-smoothing:antialiased; }
+  button, input, textarea, select { font:inherit; }
   .shell { display:flex; min-height:100vh; }
-  /* ---- Sidebar: dark enterprise nav ---- */
-  .sidebar { width:252px; flex:none; background:var(--navy); color:#DCE4EC; padding:22px 16px; display:flex; flex-direction:column; gap:26px; }
+  /* ---- Sidebar ---- */
+  .sidebar { width:256px; flex:none; background:var(--navy); color:#DCE4EC;
+    padding:24px 16px; display:flex; flex-direction:column; gap:24px;
+    position:sticky; top:0; height:100vh; }
   .brand { display:flex; align-items:center; gap:12px; padding:2px 6px 0; }
-  .logomark { width:42px; height:42px; border-radius:11px; background:#FFFFFF; display:flex; align-items:center; justify-content:center; flex:none; }
+  .logomark { width:44px; height:44px; border-radius:13px; background:#FFFFFF;
+    display:flex; align-items:center; justify-content:center; flex:none; }
   .brandname { font-size:21px; font-weight:800; color:#FFFFFF; line-height:1.1; }
-  .brandsub { font-size:12.5px; color:#9FB0C3; }
+  .brandsub { font-size:11px; color:#9FB0C3; letter-spacing:.14em; font-weight:700; }
   .nav { display:flex; flex-direction:column; gap:4px; }
-  .navlabel { font-size:11.5px; letter-spacing:.08em; color:#8FA3B8; padding:0 12px 6px; font-weight:700; }
-  .nav button { display:block; width:100%; text-align:start; background:transparent; border:0; border-inline-start:3px solid transparent; color:#DCE4EC; padding:10px 12px; border-radius:8px; cursor:pointer; font:inherit; font-weight:600; font-size:14.5px; }
+  .navlabel { font-size:11px; letter-spacing:.14em; color:#8FA3B8; padding:0 12px 6px; font-weight:700; }
+  .nav button { display:flex; align-items:center; gap:11px; width:100%; text-align:start;
+    background:transparent; border:0; border-inline-start:3px solid transparent;
+    color:#DCE4EC; padding:11px 12px; border-radius:9px; cursor:pointer;
+    font-weight:600; font-size:14.5px; }
+  .nav button .glyph { width:20px; text-align:center; font-size:15px; color:#8FA3B8; flex:none; }
   .nav button:hover { background:rgba(255,255,255,.07); }
   .nav button.active { background:rgba(255,255,255,.12); border-inline-start-color:var(--gold); color:#FFFFFF; }
-  .sidefoot { margin-top:auto; padding:12px; border-top:1px solid rgba(255,255,255,.14); font-size:12.5px; color:#9FB0C3; line-height:1.6; }
+  .nav button.active .glyph { color:var(--gold); }
+  .sidefoot { margin-top:auto; display:flex; flex-direction:column; gap:10px; }
+  .sidestat { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.13);
+    border-radius:13px; padding:13px 14px; font-size:12.5px; color:#9FB0C3; line-height:1.6; }
+  .sidestat b { color:#fff; display:block; font-size:13px; margin-bottom:2px; }
+  .sidefoot .fine { font-size:11.5px; color:#71879F; padding:0 4px; line-height:1.6; }
   /* ---- Main column ---- */
-  .main { flex:1; min-width:0; padding:26px 32px 48px; }
-  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:22px; }
-  .topbar h1 { font-size:27px; margin:0 0 4px; letter-spacing:-.01em; }
-  .topbar .sub { color:var(--muted); margin:0; max-width:720px; line-height:1.6; }
-  .toprow { display:flex; gap:10px; align-items:center; flex:none; flex-wrap:wrap; }
-  .badge { display:inline-block; padding:4px 11px; border-radius:99px; font-size:12px; font-weight:800; white-space:nowrap; }
-  .badge.live { background:#E7F2E9; color:var(--low); }
-  .badge.mock { background:#FBF0DA; color:var(--med); }
-  .badge.vision { background:#E9EFFC; color:var(--navy); }
-  .badge.sam { background:#E9EFFC; color:var(--navy); }
-  .badge.demo { background:#FBF0DA; color:var(--med); }
-  .badge.uncertain { background:#FBEED3; color:var(--med); }
+  .main { flex:1; min-width:0; padding:26px 34px 60px; max-width:1460px; }
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:6px; }
+  .eyebrow { font-size:11px; letter-spacing:.16em; font-weight:800; color:var(--goldink); margin:0 0 6px; }
+  .topbar h1 { font-size:30px; margin:0 0 4px; letter-spacing:-.015em; font-weight:800; line-height:1.2; }
+  .topbar .sub { color:var(--muted); margin:0; max-width:76ch; line-height:1.6; font-size:14.5px; }
+  .toprow { display:flex; gap:10px; align-items:center; flex:none; flex-wrap:wrap; padding-top:4px; }
+  .badge { display:inline-block; padding:4px 12px; border-radius:99px; font-size:12px; font-weight:800; white-space:nowrap; }
+  .badge.live { background:var(--lowTint); color:var(--low); }
+  .badge.mock { background:var(--medTint); color:var(--med); }
+  .badge.vision { background:var(--infoTint); color:var(--info); }
+  .badge.sam { background:var(--infoTint); color:var(--info); }
+  .badge.demo { background:var(--medTint); color:var(--med); }
+  .badge.uncertain { background:var(--medTint); color:var(--med); }
   .badge.notvis { background:#F1EFE9; color:var(--muted); }
   .langtoggle { display:flex; border:1px solid var(--line); border-radius:99px; overflow:hidden; background:#fff; flex:none; }
-  .langtoggle button { border:0; background:transparent; padding:7px 15px; font:inherit; font-weight:700; cursor:pointer; color:var(--muted); margin:0; }
+  .langtoggle button { border:0; background:transparent; padding:7px 16px; font-weight:700; cursor:pointer; color:var(--muted); margin:0; }
   .langtoggle button.active { background:var(--navy); color:#fff; }
-  /* ---- Cards, KPIs, tables ---- */
-  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:0 8px 24px rgba(90,80,40,.05); }
-  .card h2 { margin:0 0 4px; font-size:18px; }
-  .card .hint { color:var(--muted); font-size:13.5px; margin:0 0 16px; line-height:1.6; }
-  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
-  .kpi { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; }
-  .kpi .v { font-size:32px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1.1; }
-  .kpi .k { color:var(--muted); font-size:13px; margin-top:2px; }
+  .headaction { margin:16px 0 20px; display:flex; gap:10px; flex-wrap:wrap; }
+  /* ---- Cards, stats, panels ---- */
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:22px 24px; margin-bottom:18px; box-shadow:var(--shadow); }
+  .card h2 { margin:0 0 2px; font-size:17px; font-weight:750; }
+  .card .hint { color:var(--muted); font-size:13px; margin:0 0 16px; line-height:1.6; }
+  .panelhead { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; }
+  .panelhead h2 { margin:0; }
+  .panelhead .tag { font-size:12px; color:var(--muted); }
+  .grid2 { display:grid; grid-template-columns:1.5fr 1fr; gap:18px; align-items:start; }
+  .grid2.even { grid-template-columns:1fr 1fr; }
+  .grid2 > .card { margin-bottom:18px; }
+  .stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 20px; box-shadow:var(--shadow); }
+  .stat .k { color:var(--muted); font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px; }
+  .stat .dot { width:9px; height:9px; border-radius:50%; flex:none; }
+  .stat .v { font-size:32px; font-weight:800; letter-spacing:-.02em; margin-top:6px; line-height:1.05; font-variant-numeric:tabular-nums; }
+  .stat .d { font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .notice { background:var(--medTint); border:1px solid #EAD9A8; color:#6B5510;
+    border-radius:11px; padding:11px 15px; font-size:13.5px; margin-bottom:18px; line-height:1.6; }
+  .notice { background:var(--medTint); border:1px solid #EAD9A8; color:#6B5510;
+    border-radius:11px; padding:11px 15px; font-size:13.5px; margin-bottom:18px; line-height:1.6; }
+  /* ---- Tables ---- */
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  th { color:var(--muted); font-size:11.5px; text-align:start; padding:9px 12px;
+    border-bottom:1px solid var(--line); white-space:nowrap; font-weight:700;
+    text-transform:uppercase; letter-spacing:.06em; }
+  td { padding:11px 12px; border-bottom:1px solid #EFEBE0; vertical-align:middle; }
+  tr:last-child td { border-bottom:0; }
+  tbody tr:hover td { background:#FCFBF8; }
+  .chip { display:inline-block; padding:3px 11px; border-radius:99px; font-size:12px; font-weight:800; color:#fff; white-space:nowrap; }
+  .chip.high { background:var(--high); } .chip.medium { background:#C07F10; } .chip.low { background:var(--low); }
+  .tchip { display:inline-block; padding:3px 11px; border-radius:99px; font-size:12px; font-weight:700; white-space:nowrap; }
+  .tchip.high { background:var(--highTint); color:var(--high); }
+  .tchip.med { background:var(--medTint); color:var(--med); }
+  .tchip.low { background:var(--lowTint); color:var(--low); }
+  .tchip.open { background:var(--highTint); color:var(--high); }
+  .tchip.assigned { background:var(--infoTint); color:var(--info); }
+  .tchip.closed { background:var(--lowTint); color:var(--low); }
+  .tchip.neutral { background:#F1EFE9; color:var(--muted); }
+  .meta { color:var(--muted); font-size:12.5px; }
+  .hidden { display:none !important; }
+  /* ---- Forms ---- */
+  label { display:block; font-weight:700; margin:14px 0 6px; font-size:13.5px; }
+  input[type=text], textarea, select { width:100%; padding:10px 12px; border:1px solid var(--line);
+    border-radius:10px; font-size:14px; background:#fff; color:var(--ink); }
+  textarea { min-height:84px; resize:vertical; }
+  .drop { border:1.5px dashed #CFC8B4; border-radius:14px; padding:26px 22px; text-align:center;
+    cursor:pointer; background:var(--soft); transition:border-color .15s; }
+  .drop:hover { border-color:var(--gold); }
+  .drop input { display:none; }
+  .drop .d1 { font-weight:750; font-size:15.5px; }
+  .drop .d2 { color:var(--muted); font-size:13px; margin-top:4px; }
+  .btn { background:var(--navy); color:#fff; border:0; border-radius:10px; padding:11px 22px;
+    font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+  .btn.gold { background:var(--gold); color:var(--navy); }
+  .btn.ghost { background:#fff; border:1px solid var(--line); color:var(--ink); }
+  .btn.dark { background:var(--ink); color:#fff; }
+  .btn.small { padding:7px 14px; font-size:13px; }
+  .btn:disabled { opacity:.5; cursor:default; }
+  .btnrow { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; align-items:center; }
+  .guide { background:var(--soft); border:1px solid var(--line); border-radius:13px;
+    padding:18px 20px; font-size:14px; line-height:1.7; }
+  .guide h3 { margin:0 0 8px; font-size:15px; }
+  .guide ul { margin:6px 0; padding-inline-start:18px; }
+  .guide li { margin:5px 0; }
+  .steps3 { display:flex; gap:8px; margin-top:14px; }
+  .steps3 div { flex:1; background:#fff; border:1px solid var(--line); border-radius:10px;
+    padding:9px 6px; text-align:center; font-size:12px; font-weight:700; color:var(--muted); }
+  .steps3 div b { display:block; color:var(--goldink); font-size:11px; }
+  /* ---- Pipeline strip ---- */
+  .pipe { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .step { background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:11px 13px; }
+  .step b { display:block; color:var(--goldink); font-size:11.5px; letter-spacing:.06em; }
+  .step span { font-size:13.5px; font-weight:700; }
+  /* ---- Report: finding cards ---- */
+  .rhead { display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; align-items:flex-start; margin-bottom:4px; }
+  .rhead h2 { font-size:21px; margin:0 0 2px; }
+  .summary { border-inline-start:3px solid var(--gold); background:var(--soft);
+    border-radius:8px; padding:14px 18px; margin:14px 0 6px; font-size:15px; line-height:1.7; }
+  .finding { border:1px solid var(--line2); border-radius:15px; padding:0; margin:14px 0;
+    display:flex; gap:0; background:#fff; box-shadow:0 1px 2px rgba(19,21,25,.04); overflow:hidden; }
+  .finding .rail { flex:none; width:5px; }
+  .finding .rail.high { background:var(--high); }
+  .finding .rail.med { background:#C07F10; }
+  .finding .rail.low { background:var(--low); }
+  .finding .fbody { flex:1; min-width:0; padding:18px 20px; }
+  .finding h4 { margin:8px 0 4px; font-size:16.5px; font-weight:750; }
+  .finding .detail { color:var(--ink2); margin:0 0 4px; font-size:14.5px; }
+  .actionBox { background:var(--soft); border:1px solid var(--line2); border-radius:10px;
+    padding:10px 14px; margin-top:10px; font-size:14px; }
+  .actionBox b { color:var(--navy); }
+  .fmeta { display:flex; gap:16px; color:var(--muted); font-size:12.5px; margin-top:10px; flex-wrap:wrap; align-items:center; }
+  .caserow { background:var(--soft); border-top:1px dashed var(--line); padding:12px 20px;
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:13.5px; }
+  .caserow .ct { font-weight:750; }
+  .caserow select { width:auto; padding:7px 10px; font-size:13px; }
+  .caserow button { background:#fff; border:1px solid var(--line); border-radius:8px;
+    padding:7px 14px; font-weight:650; cursor:pointer; font-size:13px; }
+  .caserow button:disabled { opacity:.45; cursor:default; }
+  .vnote { color:var(--muted); font-size:12.5px; flex-basis:100%; }
+  /* ---- Live ---- */
+  .livestats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
+  .alert { border:1px solid var(--line); border-inline-start:4px solid var(--high); border-radius:11px;
+    padding:12px 16px; margin:10px 0; background:#fff; font-size:14px; }
+  /* ---- Chat ---- */
+  .chat { margin-top:20px; border-top:1px solid var(--line); padding-top:16px; }
+  .chatlog { display:flex; flex-direction:column; gap:10px; margin:12px 0; }
+  .msg { max-width:88%; padding:11px 15px; border-radius:15px; font-size:14.5px; white-space:pre-wrap; line-height:1.6; }
+  .msg.user { background:var(--navy); color:#fff; align-self:flex-end; border-end-end-radius:5px; }
+  .msg.bot { background:#F4F1E8; border:1px solid var(--line2); align-self:flex-start; border-end-start-radius:5px; }
+  .chatrow { display:flex; gap:10px; }
+  .chatrow input { flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:10px; }
+  .chatrow button { background:var(--ink); color:#fff; border:0; border-radius:10px;
+    padding:10px 22px; font-weight:700; cursor:pointer; }
   .sevbar { display:flex; height:10px; border-radius:99px; overflow:hidden; background:#EEE9DD; margin:12px 0 8px; }
   .sevbar div { height:100%; }
   .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--muted); }
   .legend i { display:inline-block; width:9px; height:9px; border-radius:50%; margin-inline-end:5px; vertical-align:middle; }
-  table { width:100%; border-collapse:collapse; font-size:14px; }
-  th { color:var(--muted); font-size:12.5px; text-align:start; padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
-  td { padding:11px 12px; border-bottom:1px solid #EFEBE0; vertical-align:top; }
-  tr:last-child td { border-bottom:0; }
-  .chip { display:inline-block; padding:2px 10px; border-radius:99px; font-size:12px; font-weight:800; color:#fff; white-space:nowrap; }
-  .high { background:var(--high); } .medium { background:var(--med); } .low { background:var(--low); }
-  .sevcell { border-inline-start:4px solid var(--line); }
-  .sevcell.sev-high { border-inline-start-color:var(--high); }
-  .sevcell.sev-medium { border-inline-start-color:var(--med); }
-  .sevcell.sev-low { border-inline-start-color:var(--low); }
-  .meta { color:var(--muted); font-size:13px; }
-  .hidden { display:none !important; }
-  /* ---- Forms ---- */
-  label { display:block; font-weight:700; margin:14px 0 6px; font-size:14px; }
-  input[type=text], textarea, select { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font:inherit; background:#fff; }
-  textarea { min-height:84px; }
-  .drop { border:1.5px dashed #CFC8B4; border-radius:12px; padding:22px; text-align:center; cursor:pointer; background:var(--soft); }
-  .drop:hover { border-color:var(--gold); }
-  .drop input { display:none; }
-  .drop .d1 { font-weight:700; }
-  .drop .d2 { color:var(--muted); font-size:13px; margin-top:4px; }
-  .btn { background:var(--navy); color:#fff; border:0; border-radius:10px; padding:11px 22px; font:inherit; font-weight:700; cursor:pointer; }
-  .btn.gold { background:var(--gold); color:var(--navy); }
-  .btn.ghost { background:#fff; border:1px solid var(--line); color:var(--ink); }
-  .btn.dark { background:var(--ink); color:#fff; }
-  .btn:disabled { opacity:.5; cursor:default; }
-  .btnrow { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
-  .twocol { display:grid; grid-template-columns:1.5fr 1fr; gap:18px; align-items:start; }
-  .guide { background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:16px 18px; font-size:14px; line-height:1.7; }
-  .guide h3 { margin:0 0 8px; font-size:15px; }
-  .guide ul { margin:6px 0; padding-inline-start:18px; }
-  /* ---- Pipeline strip ---- */
-  .pipe { display:flex; gap:8px; flex-wrap:wrap; }
-  .step { flex:1 1 120px; background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:11px 13px; }
-  .step b { display:block; color:var(--gold); font-size:12px; letter-spacing:.06em; }
-  .step span { font-size:13.5px; font-weight:700; }
-  /* ---- Report ---- */
-  .rhead { display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; align-items:flex-start; }
-  .rhead h2 { font-size:21px; }
-  .finding-row td:first-child { white-space:nowrap; }
-  .caserow td { background:var(--soft); padding-top:10px; }
-  .caserow .ct { font-weight:700; font-size:13.5px; }
-  .caserow select { width:auto; padding:7px 9px; font-size:13.5px; }
-  .caserow button { background:#fff; border:1px solid var(--line); border-radius:8px; padding:7px 13px; font:inherit; font-weight:650; cursor:pointer; font-size:13.5px; }
-  .caserow button:disabled { opacity:.45; cursor:default; }
-  .casechip { background:#FBF0DA; color:var(--med); }
-  .casechip.assigned { background:#E9EFFC; color:var(--navy); }
-  .casechip.closed { background:#E7F2E9; color:var(--low); }
-  .vnote { color:var(--muted); font-size:13px; margin-top:6px; }
-  /* ---- Chat ---- */
-  .chat { margin-top:22px; border-top:1px solid var(--line); padding-top:16px; }
-  .chatlog { display:flex; flex-direction:column; gap:10px; margin:12px 0; }
-  .msg { max-width:88%; padding:10px 14px; border-radius:14px; font-size:14.5px; white-space:pre-wrap; }
-  .msg.user { background:var(--navy); color:#fff; align-self:flex-end; border-end-end-radius:4px; }
-  .msg.bot { background:#F4F1E8; align-self:flex-start; border-end-start-radius:4px; }
-  .chatrow { display:flex; gap:10px; }
-  .chatrow input { flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font:inherit; }
-  .chatrow button { background:var(--ink); color:#fff; border:0; border-radius:10px; padding:10px 20px; font:inherit; font-weight:700; cursor:pointer; }
-  .alert { border:1px solid var(--line); border-inline-start:4px solid var(--high); border-radius:12px; padding:12px 16px; margin:10px 0; background:#fff; }
-  .notice { background:#FBF0DA; border:1px solid #EAD9A8; color:#6B5510; border-radius:10px; padding:10px 14px; font-size:13.5px; margin-bottom:14px; }
+  @media (max-width: 1100px) {
+    .grid2 { grid-template-columns:1fr; }
+    .stats { grid-template-columns:repeat(2,1fr); }
+    .livestats { grid-template-columns:repeat(3,1fr); }
+  }
   @media (max-width: 900px) {
     .shell { flex-direction:column; }
-    .sidebar { width:auto; flex-direction:row; flex-wrap:wrap; align-items:center; }
+    .sidebar { width:auto; height:auto; position:static; flex-direction:row; flex-wrap:wrap; align-items:center; }
     .sidefoot { display:none; }
     .nav { flex-direction:row; flex-wrap:wrap; }
     .main { padding:20px 16px 40px; }
-    .kpis { grid-template-columns:repeat(2,1fr); }
-    .twocol { grid-template-columns:1fr; }
+    .topbar h1 { font-size:24px; }
   }
 </style>
 </head>
@@ -132,24 +202,28 @@
       <div class="logomark" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="#0A2540" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="#C9A94E"/></svg></div>
       <div>
         <div class="brandname">Baseer · بصير</div>
-        <div class="brandsub">Field Inspection Console</div>
+        <div class="brandsub">FIELD INSPECTION CONSOLE</div>
       </div>
     </div>
     <nav class="nav">
       <div class="navlabel" id="navLabel">CONSOLE</div>
-      <button type="button" id="navOverview" class="active">نظرة عامة</button>
-      <button type="button" id="navInspect">فحص جديد</button>
-      <button type="button" id="navLive">كاميرا مباشرة</button>
-      <button type="button" id="navReport">تقرير الفحص</button>
+      <button type="button" id="navOverview" class="active"><span class="glyph">◫</span><span id="navOverviewT">نظرة عامة</span></button>
+      <button type="button" id="navInspect"><span class="glyph">⊕</span><span id="navInspectT">فحص جديد</span></button>
+      <button type="button" id="navLive"><span class="glyph">◉</span><span id="navLiveT">كاميرا مباشرة</span></button>
+      <button type="button" id="navReport"><span class="glyph">▤</span><span id="navReportT">تقرير الفحص</span></button>
     </nav>
-    <div class="sidefoot" id="sideFoot">Baseer turns a short site video — or a live camera feed — and an Arabic voice note into an evidence-grounded safety inspection, then tracks corrective actions until a human verifies the resolution.<br><br>Built by Veebase.</div>
+    <div class="sidefoot">
+      <div class="sidestat"><b id="sideModeT">وضع تجريبي</b><span id="sideFoot">Baseer turns a short site video — or a live camera feed — and an Arabic voice note into an evidence-grounded safety inspection, then tracks corrective actions until a human verifies the resolution.</span></div>
+      <div class="fine" id="sideFine">Built by Veebase.</div>
+    </div>
   </aside>
 
   <div class="main">
     <header class="topbar">
       <div>
+        <p class="eyebrow" id="crumb">BASEER / OPERATIONS</p>
         <h1 id="pageTitle">نظرة السلامة العامة</h1>
-        <p class="sub" id="pageSub">ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta — الرؤية والاستدلال.</p>
+        <p class="sub" id="pageSub">ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم.</p>
       </div>
       <div class="toprow">
         <span id="modeBadge" class="badge mock hidden">تجريبي</span>
@@ -163,40 +237,51 @@
     <main>
       <!-- ============ OVERVIEW ============ -->
       <section id="view-overview">
+        <div class="headaction">
+          <button id="ctaInspect" class="btn gold" type="button">+ فحص جديد</button>
+        </div>
         <div id="seedNotice" class="notice hidden"></div>
-        <div class="kpis" id="kpis"></div>
-        <div class="card">
-          <h2 id="tSevMix">توزيع الخطورة</h2>
-          <div class="sevbar" id="sevBar"></div>
-          <div class="legend" id="sevLegend"></div>
+        <div class="stats" id="kpis">
+          <div class="stat"><div class="k"><span class="dot" style="background:var(--navy)"></span><span id="kTotal">عمليات الفحص</span></div><div class="v" id="vTotal">–</div><div class="d" id="dTotal"></div></div>
+          <div class="stat"><div class="k"><span class="dot" style="background:var(--gold)"></span><span id="kFindings">إجمالي الملاحظات</span></div><div class="v" id="vFindings">–</div><div class="d" id="dFindings"></div></div>
+          <div class="stat"><div class="k"><span class="dot" style="background:var(--high)"></span><span id="kHigh">عالية الخطورة</span></div><div class="v" id="vHigh" style="color:var(--high)">–</div><div class="d" id="dHigh"></div></div>
+          <div class="stat"><div class="k"><span class="dot" style="background:#C07F10"></span><span id="kMed">متوسطة الخطورة</span></div><div class="v" id="vMed" style="color:#8A5A00">–</div><div class="d" id="dMed"></div></div>
         </div>
-        <div class="card">
-          <h2 id="tTopHazards">أكثر المخاطر تكرارًا</h2>
-          <table>
-            <thead><tr><th id="thHazard">الخطر</th><th id="thCount">التكرار</th></tr></thead>
-            <tbody id="hazardRows"></tbody>
-          </table>
+        <div class="grid2 even">
+          <div class="card" style="margin-bottom:18px">
+            <div class="panelhead"><h2 id="tSevMix">توزيع الخطورة</h2><span class="tag" id="sevTotal"></span></div>
+            <div class="sevbar" id="sevBar"></div>
+            <div class="legend" id="sevLegend"></div>
+          </div>
+          <div class="card" style="margin-bottom:18px">
+            <div class="panelhead"><h2 id="tTopHazards">أكثر المخاطر تكرارًا</h2></div>
+            <table>
+              <thead><tr><th id="thHazard">الخطر</th><th id="thCount">التكرار</th></tr></thead>
+              <tbody id="hazardRows"></tbody>
+            </table>
+          </div>
         </div>
-        <div class="card">
-          <h2 id="tRecent">أحدث الفحوصات</h2>
-          <table>
-            <thead><tr><th id="thId">رقم الفحص</th><th id="thDate">التاريخ</th><th id="thFindings">الملاحظات</th><th id="thHigh">عالية الخطورة</th></tr></thead>
-            <tbody id="recentRows"></tbody>
-          </table>
-        </div>
-        <div class="card">
-          <h2 id="tPipe">من الجولة الميدانية إلى الإغلاق الموثّق</h2>
-          <p class="hint" id="tPipeHint">كل فحص يمر بالحلقة نفسها — والملاحظة لا تُغلق أبدًا إلا باعتماد بشري.</p>
-          <div class="pipe" id="pipeSteps"></div>
+        <div class="grid2 even">
+          <div class="card" style="margin-bottom:18px">
+            <div class="panelhead"><h2 id="tRecent">أحدث الفحوصات</h2></div>
+            <table>
+              <thead><tr><th id="thId">رقم الفحص</th><th id="thDate">التاريخ</th><th id="thFindings">الملاحظات</th><th id="thHigh">عالية الخطورة</th></tr></thead>
+              <tbody id="recentRows"></tbody>
+            </table>
+          </div>
+          <div class="card" style="margin-bottom:18px">
+            <div class="panelhead"><h2 id="tPipe">من الجولة الميدانية إلى الإغلاق الموثّق</h2></div>
+            <p class="hint" id="tPipeHint">كل فحص يمر بالحلقة نفسها — والملاحظة لا تُغلق أبدًا إلا باعتماد بشري.</p>
+            <div class="pipe" id="pipeSteps"></div>
+          </div>
         </div>
       </section>
 
       <!-- ============ NEW INSPECTION ============ -->
       <section id="view-inspect" class="hidden">
-        <div class="twocol">
-          <form id="inspForm" class="card" style="margin-bottom:0">
-            <h2 id="tNewInspect" style="margin-bottom:2px">فحص جديد</h2>
-            <p class="hint" id="tNewHint">النتيجة تقرير كامل في نحو 30 ثانية.</p>
+        <div class="grid2">
+          <form id="inspForm" class="card" style="margin-bottom:18px">
+            <div class="panelhead"><h2 id="tNewInspect">فحص جديد</h2><span class="tag" id="tNewHint">النتيجة تقرير كامل في نحو 30 ثانية.</span></div>
             <label for="files" id="tFiles">صور / فيديو من الموقع</label>
             <label class="drop" for="files">
               <div class="d1" id="dropTitle">اسحب الملفات هنا أو اضغط للاختيار</div>
@@ -213,35 +298,55 @@
               <span id="status" class="meta" style="align-self:center"></span>
             </div>
           </form>
-          <div class="guide">
-            <h3 id="tGuide">ماذا يفحص بصير؟</h3>
-            <ul id="tGuideList">
-              <li>معدات الوقاية الشخصية: خوذة، سترة عاكسة، قفازات، نظارات.</li>
-              <li>مخاطر الحركة: مسارات الرافعات، الحواف العلوية، الحواجز.</li>
-              <li>مخاطر الماكينات: واقيات، مخارج طوارئ، علامات أرضية.</li>
-            </ul>
-            <p class="meta" id="tGuideNote">التقرير يستند إلى ما يظهر في الإطار فقط — وما لا يمكن تحديده يُسجَّل كذلك، ولا يُرفع مستوى الخطورة أبدًا عند الشك.</p>
+          <div>
+            <div class="card guide" style="margin-bottom:18px">
+              <h3 id="tGuide">ماذا يفحص بصير؟</h3>
+              <ul id="tGuideList">
+                <li>معدات الوقاية الشخصية: خوذة، سترة عاكسة، قفازات، نظارات.</li>
+                <li>مخاطر الحركة: مسارات الرافعات، الحواف العلوية، الحواجز.</li>
+                <li>مخاطر الماكينات: واقيات، مخارج طوارئ، علامات أرضية.</li>
+              </ul>
+              <p class="meta" id="tGuideNote">التقرير يستند إلى ما يظهر في الإطار فقط.</p>
+            </div>
+            <div class="card" style="margin-bottom:18px">
+              <div class="panelhead"><h2 id="tHow">كيف يعمل الفحص؟</h2></div>
+              <div class="steps3" id="howSteps">
+                <div><b>01</b><span>الدليل</span></div>
+                <div><b>02</b><span>الفهم</span></div>
+                <div><b>03</b><span>التقرير</span></div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       <!-- ============ LIVE CAMERA ============ -->
       <section id="view-live" class="hidden">
-        <div class="card">
-          <h2 id="tLive">وضع الكاميرا المباشرة</h2>
-          <p class="hint" id="tLiveHint">كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة. التحليل قريب من الزمن الحقيقي — إطار كل بضع ثوانٍ، لا إطارًا إطارًا.</p>
-          <div class="btnrow" style="margin-top:0">
-            <button id="liveStart" class="btn" type="button">بدء جلسة مباشرة</button>
-          </div>
-          <div id="liveBody" class="hidden" style="margin-top:18px">
-            <label for="liveFiles" id="tLiveFrame">إطار من الكاميرا</label>
-            <input id="liveFiles" type="file" accept="image/*,video/*">
-            <div class="btnrow">
-              <button id="liveSend" class="btn" type="button">إرسال الإطار</button>
-              <button id="liveFinish" class="btn dark" type="button">إنهاء الجلسة وإنتاج التقرير</button>
+        <div class="livestats">
+          <div class="stat"><div class="k"><span class="dot" style="background:var(--low)"></span><span id="kLiveState">الحالة</span></div><div class="v" id="vLiveState" style="font-size:22px">–</div><div class="d" id="dLiveState"></div></div>
+          <div class="stat"><div class="k"><span class="dot" style="background:var(--navy)"></span><span id="kLiveFrames">إطارات مستلمة</span></div><div class="v" id="vLiveFrames">0</div><div class="d" id="dLiveFrames"></div></div>
+          <div class="stat"><div class="k"><span class="dot" style="background:var(--high)"></span><span id="kLiveAlerts">تنبيهات</span></div><div class="v" id="vLiveAlerts" style="color:var(--high)">0</div><div class="d" id="dLiveAlerts"></div></div>
+        </div>
+        <div class="grid2 even">
+          <div class="card" style="margin-bottom:18px">
+            <div class="panelhead"><h2 id="tLive">وضع الكاميرا المباشرة</h2></div>
+            <p class="hint" id="tLiveHint">كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها.</p>
+            <div class="btnrow" style="margin-top:0">
+              <button id="liveStart" class="btn" type="button">بدء جلسة مباشرة</button>
             </div>
-            <p class="meta" id="liveStatus" style="margin-top:10px"></p>
-            <div id="liveAlerts"></div>
+            <div id="liveBody" class="hidden" style="margin-top:18px">
+              <label for="liveFiles" id="tLiveFrame">إطار من الكاميرا</label>
+              <input id="liveFiles" type="file" accept="image/*,video/*">
+              <div class="btnrow">
+                <button id="liveSend" class="btn" type="button">إرسال الإطار</button>
+                <button id="liveFinish" class="btn dark" type="button">إنهاء الجلسة وإنتاج التقرير</button>
+              </div>
+              <p class="meta" id="liveStatus" style="margin-top:10px"></p>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:18px">
+            <div class="panelhead"><h2 id="tAlerts">التنبيهات المباشرة</h2><span class="tag" id="alertsCount"></span></div>
+            <div id="liveAlerts"><p class="meta" id="noAlerts">لا تنبيهات بعد — ابدأ جلسة وأرسل إطارًا.</p></div>
           </div>
         </div>
       </section>
@@ -257,18 +362,15 @@
           <div class="card">
             <div class="rhead">
               <div>
-                <h2 id="tReport" style="margin-bottom:2px">تقرير الفحص</h2>
-                <p class="meta" id="rMeta" style="margin:0"></p>
+                <h2 id="tReport">تقرير الفحص</h2>
+                <p class="meta" id="rMeta" style="margin:4px 0 0"></p>
               </div>
               <span id="pipeBadge" class="badge vision"></span>
             </div>
-            <h3 id="tSummary" style="margin:18px 0 6px">الملخص</h3>
-            <p id="rSummary" style="margin:0 0 18px; line-height:1.7"></p>
-            <h3 id="tFindings" style="margin:0 0 8px">الملاحظات</h3>
-            <table>
-              <thead><tr><th id="thSev">الخطورة</th><th id="thFinding">الملاحظة</th><th id="thEvidence">الدليل</th><th id="thAction">الإجراء المطلوب</th></tr></thead>
-              <tbody id="rFindings"></tbody>
-            </table>
+            <h3 id="tSummary" style="margin:16px 0 0">الملخص</h3>
+            <div class="summary" id="rSummary"></div>
+            <div class="panelhead" style="margin:18px 0 4px"><h3 id="tFindings" style="margin:0">الملاحظات</h3><span class="tag" id="findingsCount"></span></div>
+            <div id="rFindings"></div>
             <div class="chat">
               <h3 id="tChat" style="margin-top:0">اسأل بصير عن هذا الفحص</h3>
               <div class="chatlog" id="chatLog"></div>
@@ -286,8 +388,12 @@
 <script>
 const S = {
   ar: { dir:"rtl", lang:"ar",
+    crumb:"بصير / العمليات",
     navLabel:"لوحة التحكم", navOverview:"نظرة عامة", navInspect:"فحص جديد", navLive:"كاميرا مباشرة", navReport:"تقرير الفحص",
     foot:"بصير يحوّل مقطع فيديو قصيرًا من الموقع — أو بث كاميرا مباشرة — وملاحظة صوتية بالعربية إلى فحص سلامة موثّق بالأدلة، ثم يتابع الإجراءات التصحيحية حتى يعتمد إنسانٌ إغلاقها.",
+    fine:"صُنع بواسطة Veebase.",
+    sideMock:"وضع تجريبي", sideLive:"وضع مباشر",
+    ctaNew:"+ فحص جديد",
     pT:{overview:"نظرة السلامة العامة", inspect:"فحص جديد", live:"وضع الكاميرا المباشرة", report:"تقرير الفحص"},
     pS:{overview:"ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta — الرؤية والاستدلال.",
         inspect:"صور أو فيديو مع ملاحظة المفتش — والنتيجة تقرير كامل في نحو 30 ثانية.",
@@ -298,13 +404,15 @@ const S = {
     ctx:"سياق الموقع (اختياري)", ctxPh:"مثال: ورشة تصنيع — فحص سلامة أسبوعي",
     run:"إنشاء التقرير", running:"جارٍ التحليل...", done:"تم إنشاء التقرير.", error:"حدث خطأ أثناء إنشاء التقرير.",
     report:"تقرير الفحص", summary:"الملخص", findings:"الملاحظات",
+    findingsN:(n)=>`${n} ملاحظات`,
     meta:(r)=>`رقم الفحص: ${r.inspection_id} · الإطارات المعالجة: ${r.frames_processed} · الوضع: ${r.mode}` + (r.source === "live-camera" ? " · كاميرا مباشرة" : ""),
     action:"الإجراء المطلوب:", evidence:(i)=>`الإطار رقم ${i+1}`,
+    srcSeg:"النموذج البصري", srcInsp:"ملاحظة المفتش", srcBoth:"النموذج + ملاحظة المفتش",
     sev:{high:"عالية", medium:"متوسطة", low:"منخفضة"},
-    analytics:"نظرة السلامة العامة", aTotal:"عمليات الفحص", aFindings:"إجمالي الملاحظات", aHigh:"عالية الخطورة", aMed:"متوسطة الخطورة",
-    sevMix:"توزيع الخطورة", topHazards:"أكثر المخاطر تكرارًا", recent:"أحدث الفحوصات",
+    aTotal:"عمليات الفحص", aFindings:"إجمالي الملاحظات", aHigh:"عالية الخطورة", aMed:"متوسطة الخطورة",
+    dTotal:"فحوصات مسجلة", dFindings:"عبر كل الفحوصات", dHigh:"تتطلب تدخلًا فوريًا", dMed:"قيد المراجعة",
+    sevMix:"توزيع الخطورة", sevTotal:(n)=>`المجموع: ${n}`, topHazards:"أكثر المخاطر تكرارًا", recent:"أحدث الفحوصات",
     colHazard:"الخطر", colCount:"التكرار", colId:"رقم الفحص", colDate:"التاريخ", colFindings:"الملاحظات", colHigh:"عالية الخطورة",
-    colSev:"الخطورة", colFinding:"الملاحظة", colEvidence:"الدليل", colAction:"الإجراء المطلوب",
     times:"مرة", seedNote:"تتضمن هذه الأرقام بيانات تجريبية للعرض، وتُستبدل تلقائيًا مع تراكم الفحوصات الحقيقية.",
     pipeT:"من الجولة الميدانية إلى الإغلاق الموثّق", pipeHint:"كل فحص يمر بالحلقة نفسها — والملاحظة لا تُغلق أبدًا إلا باعتماد بشري.",
     pipe:["رصد","فهم","شرح","إجراء","تحقق","تعلّم"],
@@ -313,7 +421,10 @@ const S = {
     liveT:"وضع الكاميرا المباشرة",
     liveHint:"كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة. التحليل قريب من الزمن الحقيقي — إطار كل بضع ثوانٍ، لا إطارًا إطارًا.",
     liveStart:"بدء جلسة مباشرة", liveFrame:"إطار من الكاميرا", liveSend:"إرسال الإطار",
-    liveFinish:"إنهاء الجلسة وإنتاج التقرير", liveOn:"الجلسة مباشرة الآن", liveFrames:"إطارات مستلمة",
+    liveFinish:"إنهاء الجلسة وإنتاج التقرير", liveOn:"الجلسة مباشرة الآن", liveIdle:"خاملة",
+    liveFrames:"إطارات مستلمة", liveAlertsT:"تنبيهات",
+    dLiveState:"بانتظار بدء الجلسة", dLiveFrames:"إطارات محللة", dLiveAlerts:"مخالفات مرصودة",
+    alertsT:"التنبيهات المباشرة", alertsN:(n)=>`${n} تنبيهات`, noAlerts:"لا تنبيهات بعد — ابدأ جلسة وأرسل إطارًا.",
     caseT:"حالة إجراء تصحيحي", caseOpen:"مفتوحة", caseAssigned:"مُسندة", caseClosed:"مغلقة",
     assign:"إسناد", verify:"تحقق", approve:"اعتماد الإغلاق", assignTo:"إسناد إلى...",
     roles:["مشرف السلامة","مدير الموقع","المقاول"], to:"إلى",
@@ -321,14 +432,19 @@ const S = {
     dropTitle:"اسحب الملفات هنا أو اضغط للاختيار", dropSub:"صور أو فيديو — MP4 / MOV / JPG / PNG",
     guideT:"ماذا يفحص بصير؟", guideList:["معدات الوقاية الشخصية: خوذة، سترة عاكسة، قفازات، نظارات.","مخاطر الحركة: مسارات الرافعات، الحواف العلوية، الحواجز.","مخاطر الماكينات: واقيات، مخارج طوارئ، علامات أرضية."],
     guideNote:"التقرير يستند إلى ما يظهر في الإطار فقط — وما لا يمكن تحديده يُسجَّل كذلك، ولا يُرفع مستوى الخطورة أبدًا عند الشك.",
+    howT:"كيف يعمل الفحص؟", how:["الدليل","الفهم","التقرير"],
     noReport:"لا يوجد تقرير بعد", noReportHint:"شغّل فحصًا جديدًا أو أنهِ جلسة كاميرا مباشرة، وسيظهر التقرير هنا.",
     modeLive:"مباشر", modeMock:"تجريبي",
     pipeBadgeMock:"بيانات تجريبية", pipeBadgeLiveCam:"كاميرا مباشرة", pipeBadgeVision:"رؤية Muse", pipeBadgeSam:"SAM 3.1",
     detUncertain:"تعذّر التحديد",
     pick:(f,k)=>f[k+"_ar"]||f[k+"_en"], sum:(r)=>r.summary_ar },
   en: { dir:"ltr", lang:"en",
+    crumb:"BASEER / OPERATIONS",
     navLabel:"CONSOLE", navOverview:"Overview", navInspect:"New inspection", navLive:"Live camera", navReport:"Inspection report",
     foot:"Baseer turns a short site video — or a live camera feed — and an Arabic voice note into an evidence-grounded safety inspection, then tracks corrective actions until a human verifies the resolution.",
+    fine:"Built by Veebase.",
+    sideMock:"Demo mode", sideLive:"Live mode",
+    ctaNew:"+ New inspection",
     pT:{overview:"Safety overview", inspect:"New inspection", live:"Live camera mode", report:"Inspection report"},
     pS:{overview:"Upload photos or a short video from the worksite and Baseer turns them into a structured inspection report. Powered by Meta models — vision and reasoning.",
         inspect:"Photos or video plus the inspector's note — a full report in about 30 seconds.",
@@ -339,11 +455,14 @@ const S = {
     ctx:"Site context (optional)", ctxPh:"Example: Manufacturing workshop — weekly safety inspection",
     run:"Generate report", running:"Analyzing...", done:"Report generated.", error:"Something went wrong while generating the report.",
     report:"Inspection Report", summary:"Summary", findings:"Findings",
+    findingsN:(n)=>`${n} findings`,
     meta:(r)=>`Inspection ID: ${r.inspection_id} · Frames processed: ${r.frames_processed} · Mode: ${r.mode}` + (r.source === "live-camera" ? " · live camera" : ""),
     action:"Corrective action:", evidence:(i)=>`Frame ${i+1}`,
+    srcSeg:"Visual model", srcInsp:"Inspector note", srcBoth:"Model + inspector note",
     sev:{high:"High", medium:"Medium", low:"Low"},
-    analytics:"Safety overview", aTotal:"Inspections", aFindings:"Total findings", aHigh:"High severity", aMed:"Medium severity",
-    sevMix:"Severity mix", topHazards:"Most frequent hazards", recent:"Recent inspections",
+    aTotal:"Inspections", aFindings:"Total findings", aHigh:"High severity", aMed:"Medium severity",
+    dTotal:"Recorded inspections", dFindings:"Across all inspections", dHigh:"Need immediate action", dMed:"Under review",
+    sevMix:"Severity mix", sevTotal:(n)=>`Total: ${n}`, topHazards:"Most frequent hazards", recent:"Recent inspections",
     colHazard:"Hazard", colCount:"Count", colId:"Inspection ID", colDate:"Date", colFindings:"Findings", colHigh:"High severity",
     colSev:"Severity", colFinding:"Finding", colEvidence:"Evidence", colAction:"Corrective action",
     times:"times", seedNote:"These figures include demo seed data; real inspections replace it automatically as they accumulate.",
@@ -354,7 +473,10 @@ const S = {
     liveT:"Live camera mode",
     liveHint:"A camera connected to the system: frames arrive, Baseer flags violations the moment they appear, and finishing the session produces the full report. Analysis is sampled near-real-time — a frame every few seconds, not frame-by-frame.",
     liveStart:"Start live session", liveFrame:"Camera frame", liveSend:"Send frame",
-    liveFinish:"Finish session & generate report", liveOn:"Session is live", liveFrames:"frames received",
+    liveFinish:"Finish session & generate report", liveOn:"Session is live", liveIdle:"Idle",
+    liveFrames:"Frames received", liveAlertsT:"Alerts",
+    dLiveState:"Waiting for a session", dLiveFrames:"Frames analyzed", dLiveAlerts:"Violations flagged",
+    alertsT:"Live alerts", alertsN:(n)=>`${n} alerts`, noAlerts:"No alerts yet — start a session and send a frame.",
     caseT:"Corrective-action case", caseOpen:"Open", caseAssigned:"Assigned", caseClosed:"Closed",
     assign:"Assign", verify:"Verify", approve:"Approve closure", assignTo:"Assign to...",
     roles:["Safety Supervisor","Site Manager","Contractor"], to:"to",
@@ -362,33 +484,46 @@ const S = {
     dropTitle:"Drop files here or click to choose", dropSub:"Photos or video — MP4 / MOV / JPG / PNG",
     guideT:"What does Baseer check?", guideList:["PPE: helmet, hi-vis vest, gloves, eye protection.","Movement hazards: forklift paths, upper edges, guard rails.","Machine hazards: guards, emergency exits, floor markings."],
     guideNote:"The report rests only on what is visible in the frame — what cannot be determined is recorded as such, and uncertainty never raises severity.",
+    howT:"How does an inspection work?", how:["Evidence","Understanding","Report"],
     noReport:"No report yet", noReportHint:"Run a new inspection or finish a live camera session, and the report will appear here.",
     modeLive:"LIVE", modeMock:"MOCK",
     pipeBadgeMock:"Demo data", pipeBadgeLiveCam:"Live camera", pipeBadgeVision:"Muse vision", pipeBadgeSam:"SAM 3.1",
     detUncertain:"Unable to determine",
     pick:(f,k)=>f[k+"_en"]||f[k+"_ar"], sum:(r)=>r.summary_en }
 };
-let lang = "ar", lastReport = null, currentView = "overview";
+let lang = "ar", lastReport = null, currentView = "overview", serverMode = "mock";
+let liveState = {active:false, frames:0, alerts:0};
 const $ = (id) => document.getElementById(id);
 function showView(name) {
   currentView = name;
   const s = S[lang];
   for (const v of ["overview","inspect","live","report"]) $("view-" + v).classList.toggle("hidden", v !== name);
-  for (const [k, v] of [["navOverview","overview"],["navInspect","inspect"],["navLive","live"],["navReport","report"]])
-    $(k).classList.toggle("active", v === name);
+  for (const k of ["navOverview","navInspect","navLive","navReport"])
+    $(k).classList.toggle("active", k.toLowerCase().includes(name));
   $("pageTitle").textContent = s.pT[name];
   $("pageSub").textContent = s.pS[name];
+}
+function paintSideMode() {
+  const s = S[lang];
+  $("sideModeT").textContent = serverMode === "live" ? s.sideLive : s.sideMock;
 }
 function applyLang() {
   const s = S[lang];
   document.documentElement.lang = s.lang; document.documentElement.dir = s.dir;
   $("btnAr").classList.toggle("active", lang === "ar");
   $("btnEn").classList.toggle("active", lang === "en");
+  $("crumb").textContent = s.crumb;
   $("navLabel").textContent = s.navLabel;
-  $("navOverview").textContent = s.navOverview; $("navInspect").textContent = s.navInspect;
-  $("navLive").textContent = s.navLive; $("navReport").textContent = s.navReport;
-  $("sideFoot").textContent = s.foot;
+  $("navOverviewT").textContent = s.navOverview; $("navInspectT").textContent = s.navInspect;
+  $("navLiveT").textContent = s.navLive; $("navReportT").textContent = s.navReport;
+  $("sideFoot").textContent = s.foot; $("sideFine").textContent = s.fine;
+  paintSideMode();
+  $("ctaInspect").textContent = s.ctaNew;
   $("pageTitle").textContent = s.pT[currentView]; $("pageSub").textContent = s.pS[currentView];
+  $("kTotal").textContent = s.aTotal; $("kFindings").textContent = s.aFindings;
+  $("kHigh").textContent = s.aHigh; $("kMed").textContent = s.aMed;
+  $("dTotal").textContent = s.dTotal; $("dFindings").textContent = s.dFindings;
+  $("dHigh").textContent = s.dHigh; $("dMed").textContent = s.dMed;
   $("tSevMix").textContent = s.sevMix; $("tTopHazards").textContent = s.topHazards; $("tRecent").textContent = s.recent;
   $("thHazard").textContent = s.colHazard; $("thCount").textContent = s.colCount;
   $("thId").textContent = s.colId; $("thDate").textContent = s.colDate; $("thFindings").textContent = s.colFindings; $("thHigh").textContent = s.colHigh;
@@ -402,15 +537,32 @@ function applyLang() {
   $("tGuide").textContent = s.guideT;
   $("tGuideList").innerHTML = s.guideList.map(g => `<li>${g}</li>`).join("");
   $("tGuideNote").textContent = s.guideNote;
+  $("tHow").textContent = s.howT;
+  $("howSteps").innerHTML = s.how.map((h, i) => `<div><b>0${i+1}</b><span>${h}</span></div>`).join("");
   $("tLive").textContent = s.liveT; $("tLiveHint").textContent = s.liveHint;
   $("liveStart").textContent = s.liveStart; $("tLiveFrame").textContent = s.liveFrame;
   $("liveSend").textContent = s.liveSend; $("liveFinish").textContent = s.liveFinish;
+  paintLiveStats();
+  $("tAlerts").textContent = s.alertsT;
+  if (!$("liveAlerts").querySelector(".alert")) $("noAlerts") && ($("liveAlerts").innerHTML = `<p class="meta" id="noAlerts">${s.noAlerts}</p>`);
   $("tNoReport").textContent = s.noReport; $("tNoReportHint").textContent = s.noReportHint; $("goInspect").textContent = s.newInspect;
   $("tReport").textContent = s.report; $("tSummary").textContent = s.summary; $("tFindings").textContent = s.findings;
-  $("thSev").textContent = s.colSev; $("thFinding").textContent = s.colFinding; $("thEvidence").textContent = s.colEvidence; $("thAction").textContent = s.colAction;
   $("tChat").textContent = s.chat; $("chatInput").placeholder = s.chatPh; $("chatSend").textContent = s.send;
   loadAnalytics();
   if (lastReport) renderReport(lastReport);
+}
+function paintLiveStats() {
+  const s = S[lang];
+  $("kLiveState").textContent = s.liveIdle && !liveState.active ? s.liveIdle : s.liveOn;
+  $("vLiveState").textContent = liveState.active ? s.liveOn : s.liveIdle;
+  $("dLiveState").textContent = s.dLiveState;
+  $("kLiveFrames").textContent = s.liveFrames;
+  $("vLiveFrames").textContent = liveState.frames;
+  $("dLiveFrames").textContent = s.dLiveFrames;
+  $("kLiveAlerts").textContent = s.liveAlertsT;
+  $("vLiveAlerts").textContent = liveState.alerts;
+  $("dLiveAlerts").textContent = s.dLiveAlerts;
+  $("alertsCount").textContent = s.alertsN(liveState.alerts);
 }
 function pipeBadge(r) {
   const s = S[lang];
@@ -419,22 +571,30 @@ function pipeBadge(r) {
   if (r.segmentation_source === "sam") return {cls:"sam", text:s.pipeBadgeSam};
   return {cls:"vision", text:s.pipeBadgeVision};
 }
+function srcLabel(f) {
+  const s = S[lang];
+  if (f.source === "inspector") return s.srcInsp;
+  if (f.source === "both") return s.srcBoth;
+  return s.srcSeg;
+}
+function railCls(sev) { return sev === "high" ? "high" : sev === "medium" ? "med" : "low"; }
 function caseRowHTML(f, i) {
   const s = S[lang], c = f.case || {status:"open", assignee:"", verification:null};
   const label = c.status === "closed" ? s.caseClosed : c.status === "assigned" ? s.caseAssigned : s.caseOpen;
+  const chipCls = c.status === "closed" ? "closed" : c.status === "assigned" ? "assigned" : "open";
   const dis = c.status === "closed" ? "disabled" : "";
   const canApprove = c.verification && c.verification.suggested_resolved && c.status !== "closed";
   const roles = s.roles.map(r => `<option ${c.assignee===r?"selected":""}>${r}</option>`).join("");
   const vnote = c.verification ? `<div class="vnote">${c.verification.note}</div>` : "";
   const asg = c.assignee ? `<span class="meta">${s.to} ${c.assignee}</span>` : "";
-  return `<tr class="caserow"><td colspan="4">
+  return `<div class="caserow">
     <span class="ct">${s.caseT}</span>
-    <span class="chip casechip ${c.status}">${label}</span> ${asg}
+    <span class="tchip ${chipCls}">${label}</span> ${asg}
     <select id="asg-${i}" ${dis}><option value="">${s.assignTo}</option>${roles}</select>
     <button type="button" onclick="caseAction(${i},'assign')" ${dis}>${s.assign}</button>
     <button type="button" onclick="caseAction(${i},'verify')" ${dis}>${s.verify}</button>
     <button type="button" onclick="caseAction(${i},'approve')" ${canApprove ? "" : "disabled"}>${s.approve}</button>
-    ${vnote}</td></tr>`;
+    ${vnote}</div>`;
 }
 async function caseAction(i, action) {
   if (!lastReport) return;
@@ -459,14 +619,19 @@ function renderReport(r) {
   const badge = $("pipeBadge");
   badge.className = "badge " + b.cls; badge.textContent = b.text;
   $("rSummary").textContent = s.sum(r);
+  $("findingsCount").textContent = s.findingsN(r.findings.length);
   $("rFindings").innerHTML = r.findings.map((f, i) => `
-    <tr>
-      <td class="sevcell sev-${f.severity}"><span class="chip ${f.severity}">${s.sev[f.severity] || f.severity}</span></td>
-      <td><strong>${s.pick(f,"title")}</strong><div>${s.pick(f,"detail")}</div>
-        ${f.determination === "uncertain" ? `<span class="badge uncertain" style="margin-top:6px">${s.detUncertain}</span>` : ""}</td>
-      <td class="meta">${s.evidence(f.frame_index)}</td>
-      <td>${s.pick(f,"action")}</td>
-    </tr>
+    <div class="finding">
+      <div class="rail ${railCls(f.severity)}"></div>
+      <div class="fbody">
+        <span class="chip ${f.severity}">${s.sev[f.severity] || f.severity}</span>
+        <h4>${s.pick(f,"title")}</h4>
+        <p class="detail">${s.pick(f,"detail")}</p>
+        <div class="actionBox"><b>${s.action}</b> ${s.pick(f,"action")}</div>
+        <div class="fmeta"><span>${s.evidence(f.frame_index)}</span><span>${srcLabel(f)}</span>
+        ${f.determination === "uncertain" ? `<span class="badge uncertain">${s.detUncertain}</span>` : ""}</div>
+      </div>
+    </div>
     ${caseRowHTML(f, i)}`).join("");
   $("reportEmpty").classList.add("hidden");
   $("reportContent").classList.remove("hidden");
@@ -478,20 +643,20 @@ async function loadAnalytics() {
     const s = S[lang];
     $("seedNotice").classList.toggle("hidden", !a.demo_seed_included);
     $("seedNotice").textContent = s.seedNote;
-    $("kpis").innerHTML = `
-      <div class="kpi"><div class="v">${a.total_inspections}</div><div class="k">${s.aTotal}</div></div>
-      <div class="kpi"><div class="v">${a.total_findings}</div><div class="k">${s.aFindings}</div></div>
-      <div class="kpi"><div class="v" style="color:var(--high)">${a.by_severity.high}</div><div class="k">${s.aHigh}</div></div>
-      <div class="kpi"><div class="v" style="color:var(--med)">${a.by_severity.medium}</div><div class="k">${s.aMed}</div></div>`;
+    $("vTotal").textContent = a.total_inspections;
+    $("vFindings").textContent = a.total_findings;
+    $("vHigh").textContent = a.by_severity.high;
+    $("vMed").textContent = a.by_severity.medium;
+    $("sevTotal").textContent = s.sevTotal(a.total_findings);
     const tot = Math.max(1, a.total_findings);
     const pct = (n) => (100 * n / tot).toFixed(1) + "%";
     $("sevBar").innerHTML =
       `<div style="width:${pct(a.by_severity.high)};background:var(--high)"></div>` +
-      `<div style="width:${pct(a.by_severity.medium)};background:var(--med)"></div>` +
+      `<div style="width:${pct(a.by_severity.medium)};background:#C07F10"></div>` +
       `<div style="width:${pct(a.by_severity.low)};background:var(--low)"></div>`;
     $("sevLegend").innerHTML =
       `<span><i style="background:var(--high)"></i>${s.sev.high} ${a.by_severity.high}</span>` +
-      `<span><i style="background:var(--med)"></i>${s.sev.medium} ${a.by_severity.medium}</span>` +
+      `<span><i style="background:#C07F10"></i>${s.sev.medium} ${a.by_severity.medium}</span>` +
       `<span><i style="background:var(--low)"></i>${s.sev.low} ${a.by_severity.low}</span>`;
     $("hazardRows").innerHTML = a.top_hazards.map(h =>
       `<tr><td>${lang==="ar"?h.title_ar:h.title_en}</td><td class="meta">${h.count} ${s.times}</td></tr>`).join("");
@@ -503,9 +668,11 @@ async function loadHealth() {
   try {
     const h = await (await fetch("/health")).json();
     const s = S[lang], badge = $("modeBadge");
+    serverMode = h.mode === "live" ? "live" : "mock";
     badge.classList.remove("hidden");
     if (h.mode === "live") { badge.className = "badge live"; badge.textContent = s.modeLive; }
     else { badge.className = "badge mock"; badge.textContent = s.modeMock; }
+    paintSideMode();
   } catch (e) { /* badge stays hidden without a server */ }
 }
 function addMsg(role, text) {
@@ -531,15 +698,31 @@ async function sendChat() {
   } catch (e) { addMsg("assistant", S[lang].chatErr); }
 }
 let liveSessionId = null;
+function paintAlertsList(alerts) {
+  const s = S[lang];
+  const box = $("liveAlerts");
+  box.innerHTML = "";
+  if (!alerts.length) { box.innerHTML = `<p class="meta" id="noAlerts">${s.noAlerts}</p>`; return; }
+  for (const a of alerts) {
+    const div = document.createElement("div");
+    div.className = "alert";
+    div.textContent = (lang === "ar" ? a.message_ar : a.message_en) + " · " + s.evidence(a.frame_index);
+    box.appendChild(div);
+  }
+}
+let liveAlerts = [];
 $("liveStart").addEventListener("click", async () => {
   const res = await fetch("/live/sessions", { method: "POST", headers: {"Content-Type": "application/json"},
     body: JSON.stringify({site_context: $("ctx").value}) });
   const data = await res.json();
   liveSessionId = data.session_id;
+  liveState = {active:true, frames:0, alerts:0};
+  liveAlerts = [];
+  paintLiveStats();
+  paintAlertsList(liveAlerts);
   $("liveBody").classList.remove("hidden");
   $("liveStart").disabled = true;
   $("liveStatus").textContent = S[lang].liveOn + " · " + liveSessionId;
-  $("liveAlerts").innerHTML = "";
 });
 $("liveSend").addEventListener("click", async () => {
   if (!liveSessionId) return;
@@ -547,15 +730,13 @@ $("liveSend").addEventListener("click", async () => {
   for (const f of $("liveFiles").files) fd.append("files", f);
   const res = await fetch(`/live/sessions/${liveSessionId}/frames`, { method: "POST", body: fd });
   const data = await res.json();
+  liveState.frames = data.frames_received;
+  liveState.alerts = data.alerts_total;
+  for (const a of data.new_alerts) liveAlerts.push(a);
+  paintLiveStats();
+  paintAlertsList(liveAlerts);
   $("liveStatus").textContent =
     `${S[lang].liveOn} · ${data.frames_received} ${S[lang].liveFrames} · ${data.segments_total} segments`;
-  const box = $("liveAlerts");
-  for (const a of data.new_alerts) {
-    const div = document.createElement("div");
-    div.className = "alert";
-    div.textContent = (lang === "ar" ? a.message_ar : a.message_en) + " · " + S[lang].evidence(a.frame_index);
-    box.appendChild(div);
-  }
 });
 $("liveFinish").addEventListener("click", async () => {
   if (!liveSessionId) return;
@@ -564,6 +745,8 @@ $("liveFinish").addEventListener("click", async () => {
     body: JSON.stringify({notes: $("notes").value}) });
   lastReport = await res.json();
   liveSessionId = null;
+  liveState = {active:false, frames:lastReport.frames_processed || 0, alerts:liveState.alerts};
+  paintLiveStats();
   $("liveStart").disabled = false;
   $("liveBody").classList.add("hidden");
   chatHistory = []; $("chatLog").innerHTML = "";
@@ -579,6 +762,7 @@ $("navOverview").addEventListener("click", ()=>showView("overview"));
 $("navInspect").addEventListener("click", ()=>showView("inspect"));
 $("navLive").addEventListener("click", ()=>showView("live"));
 $("navReport").addEventListener("click", ()=>showView("report"));
+$("ctaInspect").addEventListener("click", ()=>showView("inspect"));
 $("goInspect").addEventListener("click", ()=>showView("inspect"));
 $("files").addEventListener("change", () => {
   const names = [...$("files").files].map(f => f.name).join(" · ");
@@ -605,8 +789,10 @@ $("inspForm").addEventListener("submit", async (e) => {
 });
 const q = new URLSearchParams(location.search);
 if (q.get("lang") === "en") lang = "en";
+paintLiveStats();
 applyLang();
 loadHealth();
 </script>
 </body>
 </html>
+
