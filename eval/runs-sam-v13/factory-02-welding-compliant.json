@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-02-welding-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No in-scope safety violations were observed in the evidence provided. Total findings are zero: zero high, zero medium, and zero low, with no most urgent item. No work stoppage in any area is required based on this evidence.",
+ "segmentation_source": "sam"
+}

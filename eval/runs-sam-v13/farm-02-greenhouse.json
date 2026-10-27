@@ -1,0 +1,8 @@
+{
+ "scene_id": "farm-02-greenhouse",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No violations were identified in the provided evidence: zero high, zero medium, and zero low severity findings. There is no urgent item, as only persons are shown without visually confirmed hazardous equipment or activities. No work stoppage is required in any area based on this evidence.",
+ "segmentation_source": "sam"
+}

@@ -1,0 +1,17 @@
+{
+ "scene_id": "factory-02-helmet-in-hand",
+ "labels": [
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Unable to confirm hard hat use",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One low-severity finding was recorded, with no medium- or high-severity findings. The most urgent item is the on-site verification of hard hat use in frame 0 due to the conflict between the note and the segments. No work stoppage in any area is required based on the current evidence.",
+ "segmentation_source": "sam"
+}

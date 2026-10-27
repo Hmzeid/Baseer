@@ -1,0 +1,17 @@
+{
+ "scene_id": "construction-04-ladder-facade",
+ "labels": [
+  "worker_without_helmet"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Worker without a hard hat on a construction site",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There is one high-severity finding and no medium- or low-severity findings. The most urgent item is a worker without a hard hat near a ladder on a construction site. This worker's work in the area should stop until a hard hat is worn and verified.",
+ "segmentation_source": "sam"
+}

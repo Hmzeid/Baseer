@@ -126,6 +126,32 @@ roof-edge call on the ladder-carry). Uncertainty honesty: uncertain
 determinations now appear only where a finding exists (3 scenes), instead
 of hedging everywhere.
 
+SAM path (Oct 27, live SAM 3.1 segmentation via Responses API + Wonder 1.0
+reasoning, prompt v1.3, same fixed set/harness/map; evidence in
+`eval/runs-sam-v13/`, `eval/predictions-sam-v13.json`): precision 0.600,
+recall 0.375, F1 0.462 (TP 3, FP 2, FN 5; 1 false alarm on 18 negative
+scenes). Exact scene matches: 19/24. Opposite profile to vision: the
+highest precision of any run, but recall drops — the SAM path misses the
+flagship forklift path, the raised-hood welder, both ladder-carry
+violations, and halves the facade-ladder call (helmet instead of ladder
+work). Only 2 false positives in all 24 scenes.
+Failure list: 5 misses (flagship path, welder hood, 2x ladder-carry,
+facade ladder-work) vs 2 false flags (a vest call on the compliant crew,
+a helmet call on the facade ladder).
+Vest-flag investigation (evidence, no tuning): on the compliant-crew photo
+SAM returns 4 person + 4 hard-hat + 4 safety-vest segments with vest boxes
+overlapping the person boxes — and the photo shows all four workers in
+hi-vis. The segments are correct; the reasoner minted "Worker without a
+safety vest" anyway (likely the partially occluded worker behind netting).
+Verdict: reasoning over-flag, NOT a SAM mislabel. Proposed general fix
+(separate step, not applied): a missing-PPE finding should require a
+person box with no overlapping PPE box; when every person overlaps a PPE
+box, no missing-PPE finding.
+Path switching verified live: auto mode uses SAM when enabled
+(`segmentation_source: sam` on upload and live-camera finish); with SAM
+unreachable (bogus model name forcing a 404) uploads fall back to vision
+and live sessions pin vision (`segmentation_source: vision` both cases).
+
 Shared failures (published, not tuned away):
 - Over-eager observations: clean negatives almost always draw flags —
   mostly cautious "unable to verify X" wordings, but also genuine

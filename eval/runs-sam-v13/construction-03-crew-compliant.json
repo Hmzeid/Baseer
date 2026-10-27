@@ -1,0 +1,17 @@
+{
+ "scene_id": "construction-03-crew-compliant",
+ "labels": [
+  "worker_without_a_safety_vest"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Worker without a safety vest",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One medium-severity finding was identified, with no high- or low-severity findings. The most urgent action is to provide a safety vest to the worker not wearing one and ensure it is worn. No area needs to stop work based on this evidence.",
+ "segmentation_source": "sam"
+}

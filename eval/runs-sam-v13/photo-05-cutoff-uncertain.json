@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-05-cutoff-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No confirmed safety violations were observed in the provided evidence. Total findings: 0 high, 0 medium, and 0 low. There is no urgent item, and no area requires work to stop based on this frame alone.",
+ "segmentation_source": "sam"
+}

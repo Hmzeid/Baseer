@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-02-crew-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: zero — 0 high, 0 medium, and 0 low severity. There is no urgent item, as the inspected area shows no confirmed violations and the clearly visible worker wears a hard hat and a safety vest. No area needs to stop work based on this evidence.",
+ "segmentation_source": "sam"
+}

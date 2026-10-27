@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-04-grinder-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total confirmed findings are zero: 0 high, 0 medium, and 0 low. There is no confirmed urgent item; persons in frames 1 and 2 wear hard hats, and hard-hat status in frame 0 cannot be confirmed because the person box is clipped at the frame edge, so it was not counted as a violation. No work stoppage is required in any area based on this evidence.",
+ "segmentation_source": "sam"
+}
