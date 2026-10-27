@@ -127,6 +127,19 @@ def main() -> int:
     check("analytics merges", an["total_inspections"] == 3 + 3 and an["total_findings"] == 7 + 9,
           f"{an['total_inspections']} inspections, {an['total_findings']} findings")
 
+    # Arabic display labels must not collide: two distinct English
+    # findings sharing one Arabic string renders as a duplicated row.
+    import analytics as _analytics
+    seen: dict[str, str] = {}
+    for r in _analytics.SEED_REPORTS + [rep, rep_v, fin]:
+        for f in r.get("findings", []):
+            en, ar = f.get("title_en", ""), f.get("title_ar", "")
+            if ar in seen and seen[ar] != en:
+                check("arabic labels distinct", False,
+                      f"{ar!r} labels both {seen[ar]!r} and {en!r}")
+            seen[ar] = en
+    check("arabic labels distinct", True)
+
     print(f"mock suite: GREEN ({an['total_inspections']} inspections, {an['total_findings']} findings)")
     return 0
 
