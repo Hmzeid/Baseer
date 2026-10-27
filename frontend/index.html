@@ -952,6 +952,25 @@ $("files").addEventListener("change", () => {
   const names = [...$("files").files].map(f => f.name).join(" · ");
   $("fileNames").textContent = names;
 });
+const dropZone = document.querySelector(".drop");
+if (dropZone) {
+  ["dragenter", "dragover"].forEach(ev => dropZone.addEventListener(ev, (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = "var(--gold)";
+  }));
+  ["dragleave", "drop"].forEach(ev => dropZone.addEventListener(ev, (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = "";
+  }));
+  dropZone.addEventListener("drop", (e) => {
+    if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+    const dt = new DataTransfer();
+    for (const f of $("files").files) dt.items.add(f);
+    for (const f of e.dataTransfer.files) dt.items.add(f);
+    $("files").files = dt.files;
+    $("fileNames").textContent = [...$("files").files].map(f => f.name).join(" · ");
+  });
+}
 $("inspForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const s = S[lang], btn = $("runBtn"), status = $("status");
