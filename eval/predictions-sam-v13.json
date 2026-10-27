@@ -1,0 +1,36 @@
+{
+ "factory-03-grinding-uncertain": [],
+ "factory-04-grinder-uncertain": [],
+ "viol-02-sparks-uncertain": [],
+ "photo-04-grinder-close-uncertain": [],
+ "photo-05-cutoff-uncertain": [],
+ "photo-09-roof-dusk-uncertain": [],
+ "factory-01-flagship": [
+  "worker_without_helmet"
+ ],
+ "photo-07-welder-hood-up": [],
+ "photo-08-ladder-carry": [],
+ "construction-04-ladder-facade": [
+  "worker_without_helmet"
+ ],
+ "construction-01-scaffold": [
+  "worker_without_helmet"
+ ],
+ "factory-02-helmet-in-hand": [
+  "worker_without_helmet"
+ ],
+ "construction-02-crew-compliant": [],
+ "construction-03-platform-compliant": [],
+ "construction-05-goggles-compliant": [],
+ "factory-05-textile-compliant": [],
+ "factory-06-machinery-watch": [],
+ "farm-01-tractor-distant": [],
+ "farm-02-greenhouse": [],
+ "factory-02-welding-compliant": [],
+ "viol-04-descend-indeterminate": [],
+ "construction-03-crew-compliant": [
+  "worker_without_a_safety_vest"
+ ],
+ "photo-10-glove-mask-compliant": [],
+ "photo-06-rebar-compliant": []
+}

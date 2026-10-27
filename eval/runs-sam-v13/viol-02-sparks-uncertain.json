@@ -1,0 +1,8 @@
+{
+ "scene_id": "viol-02-sparks-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings are 0: no high, medium, or low findings. There is no most urgent item, as no confirmed safety violation was observed in the provided frames. No work stoppage is required on the basis of this evidence.",
+ "segmentation_source": "sam"
+}

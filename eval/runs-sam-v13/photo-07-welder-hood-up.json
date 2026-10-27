@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-07-welder-hood-up",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: 0 high, 0 medium, and 0 low. There is no urgent item in the provided evidence, as only one person is shown with no observable hazard or safety violation. No work stoppage is required in any area based on this evidence.",
+ "segmentation_source": "sam"
+}

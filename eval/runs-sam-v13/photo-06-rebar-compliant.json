@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-06-rebar-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: zero, with no high, medium, or low severity findings. All three persons in frame 0 appear wearing hard hats and safety vests, and no safety violation is visible in the inspected area. No work stoppage is required in any area.",
+ "segmentation_source": "sam"
+}

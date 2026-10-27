@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-06-machinery-watch",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings are zero (high: 0, medium: 0, low: 0). There is no urgent item, and the available evidence shows no observable safety violations. No work stoppage is required in any area based on this evidence.",
+ "segmentation_source": "sam"
+}

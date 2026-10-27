@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-09-roof-dusk-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No confirmed safety violations were observed in the provided evidence. Totals are 0 high, 0 medium, and 0 low severity findings. There is no urgent item, and no work stoppage is required based on this frame.",
+ "segmentation_source": "sam"
+}

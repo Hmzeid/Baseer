@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-03-grinding-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No findings were recorded; the total is zero (high 0, medium 0, low 0). The frame shows only a person, with no accompanying hazard, operating equipment, or confirmed violation. No work stoppage is required in any area based on this evidence.",
+ "segmentation_source": "sam"
+}

@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-04-grinder-close-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: 0 — 0 high, 0 medium, and 0 low. There is no most urgent item, and no area requires work to stop based on this evidence. The inspected area in frame 0 shows a partially visible person with no confirmable safety violation.",
+ "segmentation_source": "sam"
+}
