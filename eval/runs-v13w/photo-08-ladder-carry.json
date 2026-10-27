@@ -1,0 +1,31 @@
+{
+ "scene_id": "photo-08-ladder-carry",
+ "labels": [
+  "unsafe_ladder_work",
+  "worker_on_roof_edge_with_no_visible_fall_protect",
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Worker without a hard hat below the roof edge",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Carrying a roll while using the ladder",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Worker on roof edge with no visible fall protection",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "A total of 3 findings: 2 high severity and 1 low with an uncertain determination. The most urgent item is using the ladder while carrying a roll without a hard hat below the roof edge. Roof and ladder work in this area should stop until the high findings are corrected and roof fall protection is verified.",
+ "segmentation_source": "vision"
+}

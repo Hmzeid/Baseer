@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-02-crew-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No findings were identified: high 0, medium 0, low 0. Workers whose heads are visible wear hard hats, all wear high-visibility vests, and the worker in the foreground of frame 0 wears gloves while handling mortar. There is no urgent item, and no work stoppage is required in the inspected area based on these frames.",
+ "segmentation_source": "vision"
+}

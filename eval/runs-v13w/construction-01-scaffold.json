@@ -1,0 +1,17 @@
+{
+ "scene_id": "construction-01-scaffold",
+ "labels": [
+  "worker_without_helmet"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Worker on scaffold without a safety helmet",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Total findings: one high-severity finding, with no medium- or low-severity findings. The most urgent item is the worker on the scaffold without a safety helmet. Work on this scaffold should stop until the helmet is worn and fall-protection measures are verified on site.",
+ "segmentation_source": "vision"
+}

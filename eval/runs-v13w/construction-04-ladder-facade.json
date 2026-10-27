@@ -1,0 +1,24 @@
+{
+ "scene_id": "construction-04-ladder-facade",
+ "labels": [
+  "unsafe_ladder_work",
+  "worker_without_helmet"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Unsafe ladder use and side overreaching at height",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Worker at height without a protective helmet",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There are two high-severity findings, and no medium- or low-severity findings. The most urgent item is side leaning and overreaching on the ladder at height due to the fall risk. Work at height in this area must stop until the ladder position is corrected and a protective helmet is used.",
+ "segmentation_source": "vision"
+}

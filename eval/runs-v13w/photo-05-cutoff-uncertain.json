@@ -1,0 +1,17 @@
+{
+ "scene_id": "photo-05-cutoff-uncertain",
+ "labels": [
+  "combustible_cloth_in_the_spark_zone_of_the_cut_o"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Combustible cloth in the spark zone of the cut-off saw",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One medium-severity finding was identified, with no high- or low-severity findings. The most urgent item is the combustible cloth in the spark zone of the operating cut-off saw. Cutting in this area should stop temporarily until the combustible materials are removed and eye and face protection is verified.",
+ "segmentation_source": "vision"
+}

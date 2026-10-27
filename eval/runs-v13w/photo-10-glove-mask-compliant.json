@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-10-glove-mask-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No safety violations were identified in this inspection: 0 high, 0 medium, and 0 low. The worker in the center of frame 0 is wearing a welding helmet, gloves, and long sleeves during welding, with no in-scope violation visible. Work stoppage is not required based on the visual evidence provided.",
+ "segmentation_source": "vision"
+}

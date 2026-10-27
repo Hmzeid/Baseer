@@ -1,0 +1,17 @@
+{
+ "scene_id": "factory-05-textile-compliant",
+ "labels": [
+  "mask_worn_incorrectly_while_operating_the_machin"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Mask worn incorrectly while operating the machine",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There is one low-severity finding, with no high or medium findings. The most urgent item is to verify whether a mask is mandatory for the worker shown on the right of frame 0 and correct its use if required. The current evidence does not require stopping work in any area.",
+ "segmentation_source": "vision"
+}

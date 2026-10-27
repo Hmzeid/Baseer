@@ -98,15 +98,33 @@ photo). Core hazards found — helmet 3/4 (F1 0.75), ladder 2/2 (F1 0.8),
 unmarked forklift path 1/1. Uncertainty honesty: 5 of 6
 uncertain-by-design scenes carry an "uncertain" determination.
 
-Wonder 1.0 (final-report model, Oct 26): precision 0.096, recall 0.875,
-F1 0.173 (TP 7, FP 66, FN 1; 58 false alarms on 18 negative scenes).
-Exact scene matches: 1/24. Recall is better — helmets 4/4, ladders 2/2,
-path 1/1, contradiction scene nailed with the exact `worker_without_helmet`
-label — but verbosity nearly doubles the false alarms (66 vs 41):
-Wonder narrates far more "unable to verify" observations as findings, and
-still missed the raised-hood welder (true `missing_eye_protection`) while
-firing that label 9 times elsewhere. Uncertainty honesty holds 6/6, but
-the model hedges on 23/24 scenes while emitting findings anyway.
+Wonder 1.0 (final-report model, Oct 26, prompt v1.2): precision 0.096,
+recall 0.875, F1 0.173 (TP 7, FP 66, FN 1; 58 false alarms on 18 negative
+scenes). Exact scene matches: 1/24. Recall is better — helmets 4/4,
+ladders 2/2, path 1/1, contradiction scene nailed with the exact
+`worker_without_helmet` label — but verbosity nearly doubles the false
+alarms (66 vs 41): Wonder narrates far more "unable to verify"
+observations as findings, and still missed the raised-hood welder (true
+`missing_eye_protection`) while firing that label 9 times elsewhere.
+Uncertainty honesty holds 6/6, but the model hedges on 23/24 scenes
+while emitting findings anyway.
+
+Wonder 1.0 re-run (Oct 27, prompt v1.3 finding-economy rule, same fixed
+set/harness/map; evidence in `eval/runs-v13w/`, `eval/predictions-v13w.json`):
+precision 0.412, recall 0.875, F1 0.560 (TP 7, FP 10, FN 1; 8 false alarms
+on 18 negative scenes). Exact scene matches: 15/24. Recall fully preserved
+(helmets 4/4, ladders 2/2, path 1/1, flagship exact) while false alarms
+fell 58 → 8. 11 of 18 negative scenes come back exactly empty —
+including every compliant crew/platform scene and both farm scenes.
+Remaining failures, published: the raised-hood welder is STILL missed
+(`missing_eye_protection` FN, fired once elsewhere on a spark close-up);
+grinding/spark close-ups still draw 4 flags (disc guard, bare hands, one-hand
+operation, eye protection on faceless frames); plus one flag each on the
+dusk-ladder silhouette, the textile mask, and the lathe chuck; two positives
+gained one extra finding each (a helmet call on the facade ladder, a
+roof-edge call on the ladder-carry). Uncertainty honesty: uncertain
+determinations now appear only where a finding exists (3 scenes), instead
+of hedging everywhere.
 
 Shared failures (published, not tuned away):
 - Over-eager observations: clean negatives almost always draw flags —
@@ -116,9 +134,12 @@ Shared failures (published, not tuned away):
 - Compliant scenes rarely come back exactly empty; hedging plus findings
   at once inflates precision damage.
 
-Takeaway for production: recall first is the right bias for safety, but
-the prompt must stop minting "unable to verify" findings and the label
-space needs constraining before precision is acceptable on either model.
-Verdict stands: Spark for cheap dev loops (higher F1, ~7x cheaper per
-the Day-0 A/B), Wonder for final reports (higher recall, richer actions)
-with the same prompt fix outstanding on both.
+Takeaway for production: recall first is the right bias for safety, and
+the v1.3 economy rule proved the verbosity was prompt-fixable on Wonder
+(F1 0.173 → 0.560, same recall). Remaining work is model-side, not
+prompt-side: the missed raised-hood welder and the grinding-close-up
+flags need better visual grounding, not stricter wording.
+Verdict stands: Spark for cheap dev loops (~7x cheaper per the Day-0 A/B),
+Wonder for final reports (higher recall, richer actions); a Spark v1.3
+re-run is still open and would test whether the economy rule lifts its
+F1 0.218 the same way.

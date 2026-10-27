@@ -1,0 +1,24 @@
+{
+ "scene_id": "photo-04-grinder-close-uncertain",
+ "labels": [
+  "missing_disc_guard_on_angle_grinder_during_opera",
+  "operating_angle_grinder_with_bare_hands_and_no_g"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Missing disc guard on angle grinder during operation",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Operating angle grinder with bare hands and no gloves",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Two findings were recorded: one high severity and one medium. The most urgent item is the missing disc guard on the operating angle grinder in frame 0. Grinding work in the area should stop until the guard is fitted and protective equipment is verified.",
+ "segmentation_source": "vision"
+}

@@ -158,6 +158,16 @@ def main() -> int:
             seen[ar] = en
     check("arabic labels distinct", True)
 
+    # 7. prompt v1.3: finding-economy rule present in BOTH reasoning
+    # paths (severity rubric untouched — count only, never softer).
+    import prompts as _prompts
+    check("prompt economy rule",
+          _prompts.PROMPT_VERSION == "1.3"
+          and "FINDING ECONOMY" in _prompts.SYSTEM_PROMPT
+          and "FINDING ECONOMY" in _prompts.VISION_SYSTEM_PROMPT
+          and "empty findings array" in _prompts.VISION_SYSTEM_PROMPT,
+          _prompts.PROMPT_VERSION)
+
     print(f"mock suite: GREEN ({an['total_inspections']} inspections, {an['total_findings']} findings)")
     return 0
 

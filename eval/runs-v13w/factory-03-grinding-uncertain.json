@@ -1,0 +1,17 @@
+{
+ "scene_id": "factory-03-grinding-uncertain",
+ "labels": [
+  "operating_an_angle_grinder_with_one_hand"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Operating an angle grinder with one hand",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Total findings: 1 high, 0 medium, and 0 low. The most urgent item is one-handed angle grinder operation in frame 0. Grinding work in this area must stop until it is corrected and protective equipment is verified.",
+ "segmentation_source": "vision"
+}

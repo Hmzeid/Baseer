@@ -1,0 +1,17 @@
+{
+ "scene_id": "factory-02-helmet-in-hand",
+ "labels": [
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Uncertain hard hat use near the forklift",
+   "severity": "medium",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One finding was recorded at medium severity, with no high or low findings. The most urgent item is the on-site verification of continuous hard hat use, due to the conflict between the inspector's note and the frames. The current evidence does not require stopping work in any area, provided the verification is completed immediately.",
+ "segmentation_source": "vision"
+}

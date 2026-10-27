@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-07-welder-hood-up",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: zero, with no high, medium, or low severity items. The worker on the right side of frame 0 is wearing a welding helmet and gloves while working on the metal frame, and no in-scope violation was observed. There is no urgent item and no work stoppage is required in the visible area based on this evidence.",
+ "segmentation_source": "vision"
+}

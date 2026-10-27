@@ -71,14 +71,22 @@ def main() -> int:
     load_dotenv()
     import pipeline
 
+    # EVAL_TAG reruns the FIXED set into parallel artifacts
+    # (runs-<tag>/, predictions-<tag>.json) without touching the
+    # committed runs. Empty tag = original in-place behavior.
+    tag = os.getenv("EVAL_TAG", "").strip()
+    outdir = "runs-" + tag if tag else "runs"
+    predf = f"predictions-{tag}.json" if tag else "predictions.json"
+    detf = f"determinations-{tag}.json" if tag else "determinations.json"
+
     scenes = json.load(open(os.path.join(HERE, "scenes.json"), encoding="utf-8"))
-    os.makedirs(os.path.join(HERE, "runs"), exist_ok=True)
+    os.makedirs(os.path.join(HERE, outdir), exist_ok=True)
     predictions: dict[str, list[str]] = {}
     determinations: dict[str, bool] = {}
     pending: list[dict] = []
     for scene in scenes:
         sid = scene["scene_id"]
-        rp = os.path.join(HERE, "runs", f"{sid}.json")
+        rp = os.path.join(HERE, outdir, f"{sid}.json")
         if os.path.exists(rp):
             try:
                 prev = json.load(open(rp, encoding="utf-8"))
@@ -110,12 +118,12 @@ def main() -> int:
                                "frame_index": f["frame_index"]} for f in report.findings],
                  "summary_en": report.summary_en,
                  "segmentation_source": report.segmentation_source},
-                open(os.path.join(HERE, "runs", f"{sid}.json"), "w", encoding="utf-8"),
+                open(os.path.join(HERE, outdir, f"{sid}.json"), "w", encoding="utf-8"),
                 ensure_ascii=False, indent=1)
         except Exception as exc:  # a scene that errors is a miss, recorded honestly
             labels, uncertain = [], False
             json.dump({"scene_id": sid, "error": str(exc)[:300]},
-                      open(os.path.join(HERE, "runs", f"{sid}.json"), "w", encoding="utf-8"))
+                      open(os.path.join(HERE, outdir, f"{sid}.json"), "w", encoding="utf-8"))
             print(f"[{n}/{len(scenes)}] {sid}: RUN-ERROR {exc}", flush=True)
             predictions[sid] = labels
             determinations[sid] = uncertain
@@ -123,11 +131,11 @@ def main() -> int:
         predictions[sid] = labels
         determinations[sid] = uncertain
         print(f"[{n}/{len(pending)}] {sid}: {labels} uncertain={uncertain}", flush=True)
-    json.dump(predictions, open(os.path.join(HERE, "predictions.json"), "w", encoding="utf-8"),
+    json.dump(predictions, open(os.path.join(HERE, predf), "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
-    json.dump(determinations, open(os.path.join(HERE, "determinations.json"), "w", encoding="utf-8"),
+    json.dump(determinations, open(os.path.join(HERE, detf), "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
-    print(f"wrote predictions.json for {len(predictions)} scenes")
+    print(f"wrote {predf} for {len(predictions)} scenes")
     return 0
 
 

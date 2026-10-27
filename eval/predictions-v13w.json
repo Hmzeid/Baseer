@@ -1,0 +1,55 @@
+{
+ "factory-03-grinding-uncertain": [
+  "operating_an_angle_grinder_with_one_hand"
+ ],
+ "factory-04-grinder-uncertain": [],
+ "viol-02-sparks-uncertain": [
+  "missing_eye_protection"
+ ],
+ "photo-04-grinder-close-uncertain": [
+  "missing_disc_guard_on_angle_grinder_during_opera",
+  "operating_angle_grinder_with_bare_hands_and_no_g"
+ ],
+ "photo-05-cutoff-uncertain": [
+  "combustible_cloth_in_the_spark_zone_of_the_cut_o"
+ ],
+ "photo-09-roof-dusk-uncertain": [
+  "unsafe_ladder_work"
+ ],
+ "factory-01-flagship": [
+  "forklift_path_unmarked",
+  "worker_without_helmet"
+ ],
+ "photo-07-welder-hood-up": [],
+ "photo-08-ladder-carry": [
+  "unsafe_ladder_work",
+  "worker_on_roof_edge_with_no_visible_fall_protect",
+  "worker_without_helmet"
+ ],
+ "construction-04-ladder-facade": [
+  "unsafe_ladder_work",
+  "worker_without_helmet"
+ ],
+ "construction-01-scaffold": [
+  "worker_without_helmet"
+ ],
+ "factory-02-helmet-in-hand": [
+  "worker_without_helmet"
+ ],
+ "construction-02-crew-compliant": [],
+ "construction-03-platform-compliant": [],
+ "construction-05-goggles-compliant": [],
+ "factory-05-textile-compliant": [
+  "mask_worn_incorrectly_while_operating_the_machin"
+ ],
+ "factory-06-machinery-watch": [
+  "unguarded_rotating_lathe_chuck"
+ ],
+ "farm-01-tractor-distant": [],
+ "farm-02-greenhouse": [],
+ "factory-02-welding-compliant": [],
+ "viol-04-descend-indeterminate": [],
+ "construction-03-crew-compliant": [],
+ "photo-10-glove-mask-compliant": [],
+ "photo-06-rebar-compliant": []
+}

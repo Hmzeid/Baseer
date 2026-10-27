@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-03-crew-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No visible safety violations were identified in the inspected frame: total 0 high, 0 medium, and 0 low findings. Workers visible in frame 0 wear hard hats and high-visibility clothing, with guardrails present on both work levels. There is no urgent item, and no work stoppage is required in the area based on this frame.",
+ "segmentation_source": "vision"
+}
