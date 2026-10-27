@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-03-platform-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: 0 high, 0 medium, and 0 low. There is no urgent item, and no area needs to stop work based on the visible frames. Both workers in the centre of the frames wear blue hard hats and high-visibility vests, and the platform area is netted, scaffolded, and signed.",
+ "segmentation_source": "vision"
+}

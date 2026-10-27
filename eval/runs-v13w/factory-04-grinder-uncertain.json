@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-04-grinder-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings are zero: no high, medium, or low findings. There is no most urgent item, as the worker on the left side of frame 2 is wearing a face shield, safety glasses, and gloves while operating the angle grinder. No work stoppage is required in any area based on the visual evidence provided.",
+ "segmentation_source": "vision"
+}

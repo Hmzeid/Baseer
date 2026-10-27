@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-05-goggles-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No violations were observed in the three frames: zero high, zero medium, and zero low findings. The worker shown on the right side of the frames wears a hard hat throughout and wears safety glasses in frames 1 and 2, with no active hazard exposure visible. No work stoppage is required based on this evidence.",
+ "segmentation_source": "vision"
+}

@@ -36,6 +36,14 @@ Refinement log:
        scenes (factory-03, factory-04). Day-0 check: confirm on the
        first live call whether any score token exists; capture it
        if it ever appears, never fabricate it.
+  v1.3 — finding-economy rule 11 appended to both the SAM and the
+       vision prompts (Oct 27, post-eval diagnosis): one finding per
+       distinct violation, uncertainty folds into the owning finding
+       instead of minting standalone unable-to-verify findings,
+       closed violation scope, clean evidence stays clean (empty
+       findings allowed), cap 6. Severity rubric untouched — the rule
+       limits COUNT only, never lowers a severity. Eval set stays
+       fixed; re-run measures precision gain honestly.
        Wiring still open (live build, not this file): `determination`
        through the Finding model, and the `site_standards` field in
        inspection setup feeding site context.
@@ -53,7 +61,7 @@ Design rules baked in:
     source "inspector" and a note that it was not visually confirmed.
 """
 
-PROMPT_VERSION = "1.2-draft"
+PROMPT_VERSION = "1.3"
 
 SEVERITY_MATRIX = """SEVERITY CALIBRATION BY SITE TYPE (appendix to rule 3 — the credible-worst-outcome rubric still governs; this matrix calibrates it per site context):
 - Industrial / warehouse (flagship):
@@ -120,7 +128,13 @@ Rules — follow all of them:
    (b) Contradiction: the inspector's note conflicts with the segments → uncertain.
    (c) Missing co-evidence: the confirming segment for an attribute is absent → uncertain (e.g. a face shield appears raised, face mostly out of frame).
    (d) LLM judgment backstop: you may still mark "determination": "uncertain" when the evidence cannot support a verdict.
-10. OUTPUT. JSON only — no markdown fences, no commentary outside the JSON object."""
+10. OUTPUT. JSON only — no markdown fences, no commentary outside the JSON object.
+11. FINDING ECONOMY. Report fewer, sharper findings — each finding must earn its place. (Severity rubric untouched: this rule limits COUNT, never lowers a severity.)
+   (a) One finding per distinct violation: the same violation seen in several frames is ONE finding citing the earliest frame, not one finding per frame.
+   (b) Uncertainty folds inward: an attribute you cannot determine (rule 9) is recorded inside the detail text of the finding it belongs to ("eye protection: unable to determine — face out of frame"), NEVER as a finding of its own. "Poor lighting", "face out of frame", or "cannot see clearly" alone are not findings.
+   (c) Closed scope: findings are observable safety violations only — missing or misused PPE on a present worker, vehicle–pedestrian conflicts, unmarked routes where vehicles operate, fall-from-height exposure, missing machine guarding, blocked egress, or an inspector-noted item (rule 1). General commentary, photo-quality remarks, and hypothetical hazards are not findings.
+   (d) Clean evidence stays clean: if no in-scope violation is visible and the notes allege none, return an empty findings array with a summary saying the inspected area shows no violations. An empty report on clean evidence is correct; a padded report is a failure.
+   (e) Cap: at most 6 findings. If more distinct violations exist, keep the highest-severity ones and note the overflow in the summary."""
 
 SYSTEM_PROMPT += "\n\n" + SEVERITY_MATRIX + "\n\n" + SITE_PRESETS_TEXT
 
@@ -246,7 +260,13 @@ Rules — follow all of them:
    (b) Contradiction: the inspector's note conflicts with what the frames show → uncertain.
    (c) Missing co-evidence: the confirming visual evidence for an attribute is absent from the frames → uncertain.
    (d) LLM judgment backstop: you may still mark "determination": "uncertain" when the evidence cannot support a verdict.
-10. OUTPUT. JSON only — no markdown fences, no commentary outside the JSON object."""
+10. OUTPUT. JSON only — no markdown fences, no commentary outside the JSON object.
+11. FINDING ECONOMY. Report fewer, sharper findings — each finding must earn its place. (Severity rubric untouched: this rule limits COUNT, never lowers a severity.)
+   (a) One finding per distinct violation: the same violation seen in several frames is ONE finding citing the earliest frame, not one finding per frame.
+   (b) Uncertainty folds inward: an attribute you cannot determine (rule 9) is recorded inside the detail text of the finding it belongs to ("eye protection: unable to determine — face out of frame"), NEVER as a finding of its own. "Poor lighting", "face out of frame", or "cannot see clearly" alone are not findings.
+   (c) Closed scope: findings are observable safety violations only — missing or misused PPE on a present worker, vehicle–pedestrian conflicts, unmarked routes where vehicles operate, fall-from-height exposure, missing machine guarding, blocked egress, or an inspector-noted item (rule 1). General commentary, photo-quality remarks, and hypothetical hazards are not findings.
+   (d) Clean evidence stays clean: if no in-scope violation is visible and the notes allege none, return an empty findings array with a summary saying the inspected area shows no violations. An empty report on clean evidence is correct; a padded report is a failure.
+   (e) Cap: at most 6 findings. If more distinct violations exist, keep the highest-severity ones and note the overflow in the summary."""
 
 VISION_SYSTEM_PROMPT += "\n\n" + SEVERITY_MATRIX + "\n\n" + SITE_PRESETS_TEXT
 

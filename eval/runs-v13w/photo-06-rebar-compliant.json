@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-06-rebar-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: zero — no high, medium, or low severity findings in frame 0. There is no urgent item requiring action, and workers appear to be wearing safety helmets and high-visibility vests. Work does not need to stop in the visible area based on this evidence.",
+ "segmentation_source": "vision"
+}

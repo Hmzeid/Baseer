@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-02-welding-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No safety violations were identified in the inspected frames: total findings 0 (high 0, medium 0, low 0). The welder on the left side of frame 0 is shown wearing a lowered welding helmet and gloves during welding. There is no urgent item, and no work stoppage is required on this evidence.",
+ "segmentation_source": "vision"
+}

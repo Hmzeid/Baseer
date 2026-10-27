@@ -1,0 +1,17 @@
+{
+ "scene_id": "photo-09-roof-dusk-uncertain",
+ "labels": [
+  "unsafe_ladder_work"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Worker standing on top of ladder without fall protection",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One high-severity finding was identified, with no medium or low findings. The most urgent item is the worker standing on top of the ladder without fall protection. This work must stop immediately until safe access is provided.",
+ "segmentation_source": "vision"
+}

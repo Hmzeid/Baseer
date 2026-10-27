@@ -1,0 +1,8 @@
+{
+ "scene_id": "viol-04-descend-indeterminate",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings are zero (high: 0, medium: 0, low: 0). There is no most urgent item or confirmed violation; the worker visible inside the vessel in the frames is wearing a protective suit, gloves, a head cover, and a harness strap. No work stoppage in any area is required based on the available visual evidence.",
+ "segmentation_source": "vision"
+}

@@ -1,0 +1,8 @@
+{
+ "scene_id": "farm-02-greenhouse",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No violations were observed in the inspected frames: zero high-severity, zero medium-severity, and zero low-severity findings. There is no urgent item to prioritize. No work stoppage is required in the visible area.",
+ "segmentation_source": "vision"
+}

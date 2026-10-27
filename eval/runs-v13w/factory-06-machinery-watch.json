@@ -1,0 +1,17 @@
+{
+ "scene_id": "factory-06-machinery-watch",
+ "labels": [
+  "unguarded_rotating_lathe_chuck"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Unguarded rotating lathe chuck",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There is one high-severity finding and no medium or low findings. The most urgent item is the exposed rotating lathe chuck next to the worker. Work on this lathe must stop immediately until the guard is installed and verified.",
+ "segmentation_source": "vision"
+}

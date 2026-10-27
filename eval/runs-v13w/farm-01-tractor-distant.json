@@ -1,0 +1,8 @@
+{
+ "scene_id": "farm-01-tractor-distant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings are zero: no high, medium, or low severity findings in the three frames. There is no single urgent item, and no work stoppage is required in the visible area based on this evidence. A sprayer is operating at a distance in the middle of the field with no workers visible outside the cab or persons in its path.",
+ "segmentation_source": "vision"
+}
