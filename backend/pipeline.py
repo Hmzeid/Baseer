@@ -33,6 +33,7 @@ class InspectionReport:
     summary_ar: str = ""
     summary_en: str = ""
     segmentation_source: str = "sam"  # sam | vision | mock (mock mode never claims SAM)
+    site_context: str = ""  # free-text site label; drives /sites + site-scoped /analytics
 
 
 def extract_frames(files: list[tuple[str, bytes]]) -> list[bytes]:
@@ -94,8 +95,19 @@ def with_cases(finding_dicts: list[dict]) -> list[dict]:
     Lifecycle: open -> assigned -> (verification suggested) -> closed
     (human approval only — Baseer never closes a case by itself)."""
     for d in finding_dicts:
-        d["case"] = {"status": "open", "assignee": "", "verification": None}
+        d["case"] = {"status": "open", "assignee": "", "verification": None, "history": []}
     return finding_dicts
+
+
+def log_case_action(case: dict, action: str, actor: str, detail: str = "") -> None:
+    """Append one entry to a case's audit history. History is append-only:
+    entries are never edited or removed, only added."""
+    case.setdefault("history", []).append({
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "action": action,
+        "actor": actor or "inspector",
+        "detail": detail,
+    })
 
 
 def run_inspection(files: list[tuple[str, bytes]], inspector_notes: str,
@@ -149,4 +161,5 @@ def run_inspection(files: list[tuple[str, bytes]], inspector_notes: str,
         summary_ar=summary_ar,
         summary_en=summary_en,
         segmentation_source=segmentation_source,
+        site_context=site_context,
     )

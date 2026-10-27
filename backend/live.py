@@ -185,5 +185,6 @@ def finish_session(session_id: str, inspector_notes: str = "") -> dict:
         "summary_ar": summary_ar,
         "summary_en": summary_en,
         "segmentation_source": segmentation_source,
+        "site_context": session.get("site_context", ""),
         "live_alerts": session["alerts"],
     }

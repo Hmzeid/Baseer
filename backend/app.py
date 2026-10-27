@@ -11,7 +11,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -63,6 +63,7 @@ def chat(inspection_id: str, req: ChatRequest):
 class CaseRequest(BaseModel):
     action: str  # assign | verify | approve
     assignee: str = ""
+    actor: str = ""  # declared role identity, stored verbatim in the audit trail
 
 
 @app.post("/inspections/{inspection_id}/findings/{index}/case")
@@ -81,14 +82,19 @@ def update_case(inspection_id: str, index: int, req: CaseRequest):
             raise HTTPException(status_code=400, detail="assignee required")
         case["assignee"] = req.assignee.strip()
         case["status"] = "assigned"
+        pipeline.log_case_action(case, "assign", req.actor, f"to {case['assignee']}")
     elif req.action == "verify":
         case["verification"] = meta_client.verify_finding(finding)
+        pipeline.log_case_action(case, "verify", req.actor,
+            "suggested resolved" if (case.get("verification") or {}).get("suggested_resolved")
+            else "not resolved")
     elif req.action == "approve":
         if not (case.get("verification") or {}).get("suggested_resolved"):
             raise HTTPException(
                 status_code=400,
                 detail="closure requires a verification suggesting resolution — a human approves, Baseer never closes alone")
         case["status"] = "closed"
+        pipeline.log_case_action(case, "approve", req.actor, "closed")
     else:
         raise HTTPException(status_code=400, detail="unknown action")
     return finding
@@ -97,6 +103,7 @@ def update_case(inspection_id: str, index: int, req: CaseRequest):
 @app.post("/inspections/{inspection_id}/findings/{index}/verify-evidence")
 async def verify_with_evidence(
     inspection_id: str, index: int, files: list[UploadFile] = File(default=[]),
+    actor: str = Form(""),
 ):
     """Verify against AFTER photo/video of the same location (vision
     comparison). Additive to the plain verify action, which stays
@@ -113,6 +120,9 @@ async def verify_with_evidence(
     payload = [(f.filename or "after", await f.read()) for f in files]
     frames = pipeline.extract_frames(payload)
     case["verification"] = meta_client.compare_for_verification(finding, frames)
+    pipeline.log_case_action(case, "verify_evidence", actor,
+        "suggested resolved" if (case.get("verification") or {}).get("suggested_resolved")
+        else "not resolved")
     return finding
 
 
@@ -150,8 +160,51 @@ def live_finish(session_id: str, req: LiveFinishRequest):
 
 
 @app.get("/analytics")
-def get_analytics():
-    return analytics.compute(list(REPORTS.values()))
+def get_analytics(site: str = ""):
+    return analytics.compute(list(REPORTS.values()), site=site)
+
+
+@app.get("/sites")
+def list_sites():
+    """Site registry derived from real inspection contexts — never
+    invented. Empty contexts group under 'general'."""
+    counts: dict[str, int] = {}
+    for r in list(analytics.SEED_REPORTS) + list(REPORTS.values()):
+        key = (r.get("site_context") or "").strip() or "general"
+        counts[key] = counts.get(key, 0) + 1
+    return {"sites": [{"site": s, "inspections": n} for s, n in sorted(counts.items())]}
+
+
+@app.get("/audit")
+def get_audit(format: str = "json"):
+    """Formal audit trail: every case action across live reports, newest
+    first. History entries are append-only at the case level; this endpoint
+    only reads. format=csv returns a downloadable CSV."""
+    entries = []
+    for r in list(REPORTS.values()):
+        for i, f in enumerate(r.get("findings", [])):
+            for h in (f.get("case") or {}).get("history", []):
+                entries.append({
+                    "ts": h.get("ts", ""),
+                    "inspection_id": r.get("inspection_id", ""),
+                    "site": (r.get("site_context") or "").strip() or "general",
+                    "finding_index": i,
+                    "finding": f.get("title_en", ""),
+                    "action": h.get("action", ""),
+                    "actor": h.get("actor", ""),
+                    "detail": h.get("detail", ""),
+                })
+    entries.sort(key=lambda e: e["ts"], reverse=True)
+    if format == "csv":
+        import csv
+        import io
+        buf = io.StringIO()
+        w = csv.DictWriter(buf, fieldnames=["ts", "inspection_id", "site", "finding_index",
+                                            "finding", "action", "actor", "detail"])
+        w.writeheader()
+        w.writerows(entries)
+        return PlainTextResponse(buf.getvalue(), media_type="text/csv")
+    return {"entries": entries}
 
 
 @app.websocket("/voice/transcribe")

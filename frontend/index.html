@@ -236,6 +236,7 @@
       <button type="button" id="navInspect"><span class="glyph">⊕</span><span id="navInspectT">فحص جديد</span></button>
       <button type="button" id="navLive"><span class="glyph">◉</span><span id="navLiveT">كاميرا مباشرة</span></button>
       <button type="button" id="navReport"><span class="glyph">▤</span><span id="navReportT">تقرير الفحص</span></button>
+      <button type="button" id="navAudit"><span class="glyph">≡</span><span id="navAuditT">سجل التدقيق</span></button>
     </nav>
     <div class="sidefoot">
       <div class="sidestat"><b id="sideModeT">وضع تجريبي</b><span id="sideFoot">Baseer turns a short site video — or a live camera feed — and an Arabic voice note into an evidence-grounded safety inspection, then tracks corrective actions until a human verifies the resolution.</span></div>
@@ -264,6 +265,7 @@
       <section id="view-overview">
         <div class="headaction">
           <button id="ctaInspect" class="btn gold" type="button">+ فحص جديد</button>
+          <select id="siteFilter" style="width:auto;padding:11px 14px" aria-label="Site"></select>
         </div>
         <div id="seedNotice" class="notice hidden"></div>
         <div class="stats" id="kpis">
@@ -403,6 +405,7 @@
                 <span id="pipeBadge" class="badge vision"></span>
                 <button id="printBtn" class="btn ghost small" type="button">طباعة التقرير</button>
                 <button id="waBtn" class="btn ghost small" type="button">مشاركة واتساب</button>
+                <select id="actorSel" class="btn ghost small" style="width:auto" title="acting"></select>
               </div>
             </div>
             <h3 id="tSummary" style="margin:16px 0 0">الملخص</h3>
@@ -422,6 +425,24 @@
           </div>
         </div>
       </section>
+
+      <!-- ============ AUDIT LOG ============ -->
+      <section id="view-audit" class="hidden">
+        <div class="card">
+          <div class="panelhead">
+            <div>
+              <h2 id="tAudit">سجل التدقيق</h2>
+              <p class="hint" id="tAuditHint" style="margin:4px 0 0">كل إجراء على الحالات — إسنادًا وتحققًا واعتمادًا — مسجل هنا ولا يُحذف.</p>
+            </div>
+            <button id="csvBtn" class="btn ghost small" type="button">تنزيل CSV</button>
+          </div>
+          <table>
+            <thead><tr><th id="thTime">الوقت</th><th id="thAuditId">الفحص</th><th id="thSite">الموقع</th><th id="thFindingN">ملاحظة #</th><th id="thAction">الإجراء</th><th id="thActor">الفاعل</th><th id="thDetail">التفاصيل</th></tr></thead>
+            <tbody id="auditRows"></tbody>
+          </table>
+          <p class="meta hidden" id="auditEmpty">لا إجراءات مسجلة بعد.</p>
+        </div>
+      </section>
     </main>
   </div>
 </div>
@@ -429,16 +450,17 @@
 const S = {
   ar: { dir:"rtl", lang:"ar",
     crumb:"بصير / العمليات",
-    navLabel:"لوحة التحكم", navOverview:"نظرة عامة", navInspect:"فحص جديد", navLive:"كاميرا مباشرة", navReport:"تقرير الفحص",
+    navLabel:"لوحة التحكم", navOverview:"نظرة عامة", navInspect:"فحص جديد", navLive:"كاميرا مباشرة", navReport:"تقرير الفحص", navAudit:"سجل التدقيق",
     foot:"بصير يحوّل مقطع فيديو قصيرًا من الموقع — أو بث كاميرا مباشرة — وملاحظة صوتية بالعربية إلى فحص سلامة موثّق بالأدلة، ثم يتابع الإجراءات التصحيحية حتى يعتمد إنسانٌ إغلاقها.",
     fine:"صُنع بواسطة Veebase.",
     sideMock:"وضع تجريبي", sideLive:"وضع مباشر",
     ctaNew:"+ فحص جديد",
-    pT:{overview:"نظرة السلامة العامة", inspect:"فحص جديد", live:"وضع الكاميرا المباشرة", report:"تقرير الفحص"},
+    pT:{overview:"نظرة السلامة العامة", inspect:"فحص جديد", live:"وضع الكاميرا المباشرة", report:"تقرير الفحص", audit:"سجل التدقيق"},
     pS:{overview:"ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta — الرؤية والاستدلال.",
         inspect:"صور أو فيديو مع ملاحظة المفتش — والنتيجة تقرير كامل في نحو 30 ثانية.",
         live:"إطارات تصل تباعًا، ومخالفات تُرصد لحظة ظهورها، وتقرير كامل عند إنهاء الجلسة.",
-        report:"تقرير مبني على الأدلة — كل ملاحظة مرتبطة بإطارها، ولا تُغلق إلا باعتماد بشري."},
+        report:"تقرير مبني على الأدلة — كل ملاحظة مرتبطة بإطارها، ولا تُغلق إلا باعتماد بشري.",
+        audit:"كل إجراء على الحالات — إسنادًا وتحققًا واعتمادًا — مسجل ومحمي من الحذف."},
     files:"صور / فيديو من الموقع", notes:"ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)",
     notesPh:"مثال: لاحظت عاملًا عند الحافة العلوية، والرافعة تعمل قرب منطقة المشاة...",
     micRec:"تسجيل ملاحظة صوتية", micStop:"إيقاف التسجيل", micListening:"يستمع… تحدث الآن.",
@@ -483,20 +505,26 @@ const S = {
     modeLive:"مباشر", modeMock:"تجريبي",
     pipeBadgeMock:"بيانات تجريبية", pipeBadgeLiveCam:"كاميرا مباشرة", pipeBadgeVision:"رؤية Muse", pipeBadgeSam:"SAM 3.1",
     printRep:"طباعة التقرير", shareWa:"مشاركة واتساب",
+    tAudit:"سجل التدقيق", tAuditHint:"كل إجراء على الحالات — إسنادًا وتحققًا واعتمادًا — مسجل هنا ولا يُحذف.",
+    csvBtn:"تنزيل CSV", thTime:"الوقت", thAuditId:"الفحص", thSite:"الموقع", thFindingN:"ملاحظة #",
+    thAction:"الإجراء", thActor:"الفاعل", thDetail:"التفاصيل", auditEmpty:"لا إجراءات مسجلة بعد.",
+    siteAll:"كل المواقع", actAs:"أتصرف بصفة",
+    actAssign:"إسناد", actVerify:"تحقق", actApprove:"اعتماد الإغلاق", actVerifyEv:"تحقق بدليل",
     detUncertain:"تعذّر التحديد",
     pick:(f,k)=>f[k+"_ar"]||f[k+"_en"], sum:(r)=>r.summary_ar },
   en: { dir:"ltr", lang:"en",
     crumb:"BASEER / OPERATIONS",
-    navLabel:"CONSOLE", navOverview:"Overview", navInspect:"New inspection", navLive:"Live camera", navReport:"Inspection report",
+    navLabel:"CONSOLE", navOverview:"Overview", navInspect:"New inspection", navLive:"Live camera", navReport:"Inspection report", navAudit:"Audit log",
     foot:"Baseer turns a short site video — or a live camera feed — and an Arabic voice note into an evidence-grounded safety inspection, then tracks corrective actions until a human verifies the resolution.",
     fine:"Built by Veebase.",
     sideMock:"Demo mode", sideLive:"Live mode",
     ctaNew:"+ New inspection",
-    pT:{overview:"Safety overview", inspect:"New inspection", live:"Live camera mode", report:"Inspection report"},
+    pT:{overview:"Safety overview", inspect:"New inspection", live:"Live camera mode", report:"Inspection report", audit:"Audit log"},
     pS:{overview:"Upload photos or a short video from the worksite and Baseer turns them into a structured inspection report. Powered by Meta models — vision and reasoning.",
         inspect:"Photos or video plus the inspector's note — a full report in about 30 seconds.",
         live:"Frames arrive in sequence, violations are flagged the moment they appear, and finishing the session produces the full report.",
-        report:"An evidence-grounded report — every finding tied to its frame, never closed without human approval."},
+        report:"An evidence-grounded report — every finding tied to its frame, never closed without human approval.",
+        audit:"Every case action — assign, verify, approve — recorded and protected from deletion."},
     files:"Site photos / video", notes:"Inspector notes (transcribed voice or written)",
     notesPh:"Example: I noticed a worker near the upper edge, and the forklift operates close to the pedestrian area...",
     micRec:"Record voice note", micStop:"Stop recording", micListening:"Listening… speak now.",
@@ -541,20 +569,27 @@ const S = {
     modeLive:"LIVE", modeMock:"MOCK",
     pipeBadgeMock:"Demo data", pipeBadgeLiveCam:"Live camera", pipeBadgeVision:"Muse vision", pipeBadgeSam:"SAM 3.1",
     printRep:"Print report", shareWa:"Share via WhatsApp",
+    tAudit:"Audit log", tAuditHint:"Every case action — assignment, verification, approval — is recorded here and never deleted.",
+    csvBtn:"Download CSV", thTime:"Time", thAuditId:"Inspection", thSite:"Site", thFindingN:"Finding #",
+    thAction:"Action", thActor:"Actor", thDetail:"Detail", auditEmpty:"No recorded actions yet.",
+    siteAll:"All sites", actAs:"Acting as",
+    actAssign:"Assign", actVerify:"Verify", actApprove:"Approve closure", actVerifyEv:"Verify with evidence",
     detUncertain:"Unable to determine",
     pick:(f,k)=>f[k+"_en"]||f[k+"_ar"], sum:(r)=>r.summary_en }
 };
 let lang = "ar", lastReport = null, currentView = "overview", serverMode = "mock";
+let currentSite = "", actor = "";
 let liveState = {active:false, frames:0, alerts:0};
 const $ = (id) => document.getElementById(id);
 function showView(name) {
   currentView = name;
   const s = S[lang];
-  for (const v of ["overview","inspect","live","report"]) $("view-" + v).classList.toggle("hidden", v !== name);
-  for (const k of ["navOverview","navInspect","navLive","navReport"])
+  for (const v of ["overview","inspect","live","report","audit"]) $("view-" + v).classList.toggle("hidden", v !== name);
+  for (const k of ["navOverview","navInspect","navLive","navReport","navAudit"])
     $(k).classList.toggle("active", k.toLowerCase().includes(name));
   $("pageTitle").textContent = s.pT[name];
   $("pageSub").textContent = s.pS[name];
+  if (name === "audit") loadAudit();
 }
 function paintSideMode() {
   const s = S[lang];
@@ -568,7 +603,7 @@ function applyLang() {
   $("crumb").textContent = s.crumb;
   $("navLabel").textContent = s.navLabel;
   $("navOverviewT").textContent = s.navOverview; $("navInspectT").textContent = s.navInspect;
-  $("navLiveT").textContent = s.navLive; $("navReportT").textContent = s.navReport;
+  $("navLiveT").textContent = s.navLive; $("navReportT").textContent = s.navReport; $("navAuditT").textContent = s.navAudit;
   $("sideFoot").textContent = s.foot; $("sideFine").textContent = s.fine;
   paintSideMode();
   $("ctaInspect").textContent = s.ctaNew;
@@ -606,6 +641,14 @@ function applyLang() {
   $("tEvidence").textContent = s.tEvidence;
   $("printBtn").textContent = s.printRep;
   $("waBtn").textContent = s.shareWa;
+  $("tAudit").textContent = s.tAudit; $("tAuditHint").textContent = s.tAuditHint;
+  $("csvBtn").textContent = s.csvBtn;
+  $("thTime").textContent = s.thTime; $("thAuditId").textContent = s.thAuditId; $("thSite").textContent = s.thSite;
+  $("thFindingN").textContent = s.thFindingN; $("thAction").textContent = s.thAction;
+  $("thActor").textContent = s.thActor; $("thDetail").textContent = s.thDetail;
+  $("auditEmpty").textContent = s.auditEmpty;
+  paintActorSel(); paintSiteFilter();
+  if (currentView === "audit") loadAudit();
   loadAnalytics();
   if (lastReport) renderReport(lastReport);
 }
@@ -709,7 +752,7 @@ function caseRowHTML(f, i) {
 }
 async function caseAction(i, action) {
   if (!lastReport) return;
-  const body = {action};
+  const body = {action, actor};
   if (action === "assign") {
     const sel = $("asg-" + i);
     body.assignee = sel ? sel.value : "";
@@ -753,7 +796,8 @@ function renderReport(r) {
 let chatHistory = [];
 async function loadAnalytics() {
   try {
-    const a = await (await fetch("/analytics")).json();
+    const q = currentSite ? "?site=" + encodeURIComponent(currentSite) : "";
+    const a = await (await fetch("/analytics" + q)).json();
     const s = S[lang];
     $("seedNotice").classList.toggle("hidden", !a.demo_seed_included);
     $("seedNotice").textContent = s.seedNote;
@@ -783,6 +827,48 @@ async function loadAnalytics() {
     $("recentRows").innerHTML = (a.recent || []).map(r =>
       `<tr><td style="font-weight:700">${r.inspection_id}</td><td class="meta">${(r.created_at||"").slice(0,16).replace("T"," ")}</td><td>${r.findings}</td><td style="color:var(--high);font-weight:700">${r.high}</td></tr>`).join("");
   } catch (e) { /* analytics is a layer; never block the core flow */ }
+  paintSiteFilter();
+}
+async function paintSiteFilter() {
+  const s = S[lang], sel = $("siteFilter");
+  if (!sel) return;
+  let sites = [];
+  try { sites = (await (await fetch("/sites")).json()).sites || []; } catch (e) { /* keep options */ }
+  if (!sites.length && !sel.options.length) return;
+  if (!sites.length) return;
+  sel.title = s.siteAll;
+  sel.innerHTML = `<option value="">${s.siteAll}</option>` + sites.map(o =>
+    `<option value="${esc(o.site)}"${o.site === currentSite ? " selected" : ""}>${esc(o.site)} (${o.inspections})</option>`).join("");
+  if ([...sel.options].some(o => o.value === currentSite)) sel.value = currentSite;
+}
+function paintActorSel() {
+  const s = S[lang], sel = $("actorSel");
+  if (!sel) return;
+  sel.title = s.actAs;
+  const keep = s.roles.includes(actor) ? actor : s.roles[0];
+  sel.innerHTML = s.roles.map(r => `<option${r === keep ? " selected" : ""}>${r}</option>`).join("");
+  actor = sel.value;
+}
+function auditActionLabel(a) {
+  const s = S[lang];
+  if (a === "assign") return s.actAssign;
+  if (a === "verify") return s.actVerify;
+  if (a === "approve") return s.actApprove;
+  if (a === "verify_evidence") return s.actVerifyEv;
+  return a;
+}
+async function loadAudit() {
+  const s = S[lang], tb = $("auditRows");
+  try {
+    const a = await (await fetch("/audit")).json();
+    $("auditEmpty").classList.toggle("hidden", a.entries.length > 0);
+    tb.innerHTML = a.entries.map(e =>
+      `<tr><td class="meta">${esc((e.ts || e.timestamp || "").slice(0, 16).replace("T", " "))}</td>` +
+      `<td style="font-weight:700">${esc(e.inspection_id || "")}</td>` +
+      `<td class="meta">${esc(e.site || "")}</td><td>${e.finding_index}</td>` +
+      `<td>${auditActionLabel(e.action)}</td><td>${esc(e.actor || "")}</td>` +
+      `<td class="meta">${esc(e.detail || "")}</td></tr>`).join("");
+  } catch (e) { /* layer only — never break the console */ }
 }
 async function loadHealth() {
   try {
@@ -931,6 +1017,7 @@ async function verifyWithEvidence(i) {
   if (!input || !input.files.length) return;
   const fd = new FormData();
   for (const f of input.files) fd.append("files", f);
+  fd.append("actor", actor);
   try {
     const res = await fetch(`/inspections/${lastReport.inspection_id}/findings/${i}/verify-evidence`, {
       method: "POST", body: fd });
@@ -1000,6 +1087,19 @@ $("navOverview").addEventListener("click", ()=>showView("overview"));
 $("navInspect").addEventListener("click", ()=>showView("inspect"));
 $("navLive").addEventListener("click", ()=>showView("live"));
 $("navReport").addEventListener("click", ()=>showView("report"));
+$("navAudit").addEventListener("click", ()=>showView("audit"));
+$("siteFilter").addEventListener("change", (e)=>{ currentSite = e.target.value; loadAnalytics(); });
+$("actorSel").addEventListener("change", (e)=>{ actor = e.target.value; });
+$("csvBtn").addEventListener("click", async ()=>{
+  try {
+    const res = await fetch("/audit?format=csv");
+    const blob = await res.blob();
+    const u = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = u; a.download = "baseer-audit.csv"; a.click();
+    URL.revokeObjectURL(u);
+  } catch (e) { /* layer only */ }
+});
 $("ctaInspect").addEventListener("click", ()=>showView("inspect"));
 $("goInspect").addEventListener("click", ()=>showView("inspect"));
 $("printBtn").addEventListener("click", ()=>window.print());
