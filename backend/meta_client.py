@@ -114,9 +114,11 @@ def parse_sam_output(text: str, concept: str, frame_index: int) -> list[Segment]
 
     Boxes arrive as <|box;x1=..;y1=..;x2=..;y2=..;w=..;h=..|>; masks as
     <|mask;...data=<H>,<W>,<base85 payload>|> ('~' prefix = lossless,
-    '!' = one-bit). Mask decoding for evidence overlays lands in the
+    '!' = one-bit). Mask payloads are deliberately NOT stored — a single
+    frame's lane can exceed 300KB of base85, and boxes + labels are enough
+    for reasoning input. Mask decoding for evidence overlays lands in the
     Oct 26-27 build (the third-party `meta-sam-parser` package implements
-    the same format); boxes + labels are enough for reasoning input.
+    the same format).
     """
     out: list[Segment] = []
     for m in _BOX_RE.finditer(text or ""):
@@ -141,11 +143,31 @@ CONCEPT_AR = {
 }
 
 
+def _responses_text(resp_json: dict) -> str:
+    """Extract SAM's special-token lane from a Responses API object.
+
+    Segmentation output arrives as output_text parts inside message items
+    (one line per frame: <Nf>id<|box;...|><|mask;...|> records). An absent
+    concept completes with empty output_text — a normal zero-match result,
+    not an error.
+    """
+    texts = []
+    for item in resp_json.get("output", []) or []:
+        if item.get("type") != "message":
+            continue
+        for part in item.get("content", []) or []:
+            if part.get("type") == "output_text" and part.get("text"):
+                texts.append(part["text"])
+    return "\n".join(texts)
+
+
 def segment_frames(frames: list[bytes]) -> list[Segment]:
     """Run SAM 3.1 segmentation over extracted frames.
 
-    Hosted SAM takes ONE text concept per call, so this loops concepts x
-    frames. A 404 means SAM is not enabled for the team — surface it loudly.
+    SAM 3.1 is served ONLY on the Responses API (/v1/responses) — the Chat
+    Completions shape 404s for it. Hosted SAM takes ONE text concept per
+    call, so this loops concepts x frames. A 404 means SAM is not enabled
+    for the team — surface it loudly (auto mode falls back to vision).
     """
     if MODE != "live":
         return _mock_segments(len(frames))
@@ -158,22 +180,23 @@ def segment_frames(frames: list[bytes]) -> list[Segment]:
             for concept in SAM_CONCEPTS:
                 payload = {
                     "model": SAM_MODEL,
-                    "messages": [{
+                    "input": [{
+                        "type": "message",
                         "role": "user",
                         "content": [
-                            {"type": "image_url", "image_url": {"url": image_url}},
-                            {"type": "text", "text": concept},
+                            {"type": "input_text", "text": concept},
+                            {"type": "input_image", "image_url": image_url},
                         ],
                     }],
                 }
-                resp = client.post(f"{BASE_URL}/chat/completions",
+                resp = client.post(f"{BASE_URL}/responses",
                                    json=payload, headers=_headers())
                 if resp.status_code == 404:
                     raise RuntimeError(
                         "SAM 3.1 returned 404 model_not_found — the model is "
                         "not enabled for this team/key yet. Check dev.meta.ai.")
                 resp.raise_for_status()
-                text = resp.json()["choices"][0]["message"]["content"]
+                text = _responses_text(resp.json())
                 segments.extend(parse_sam_output(text, concept, idx))
     return segments
 
