@@ -70,9 +70,20 @@
   .panelhead { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; }
   .panelhead h2 { margin:0; }
   .panelhead .tag { font-size:12px; color:var(--muted); }
-  .grid2 { display:grid; grid-template-columns:1.5fr 1fr; gap:18px; align-items:start; }
+  .grid2 { display:grid; grid-template-columns:1.5fr 1fr; gap:18px; align-items:stretch; }
   .grid2.even { grid-template-columns:1fr 1fr; }
-  .grid2 > .card { margin-bottom:18px; }
+  .grid2 > .card { margin-bottom:18px; display:flex; flex-direction:column; }
+  .sevrows { display:flex; flex-direction:column; gap:0; margin-top:14px; border-top:1px solid var(--line2); }
+  .sevrows .sr { display:flex; justify-content:space-between; align-items:center; padding:9px 2px; border-bottom:1px solid #EFEBE0; font-size:13.5px; }
+  .sevrows .sr:last-child { border-bottom:0; }
+  .sevrows .sr b { font-variant-numeric:tabular-nums; font-size:15px; }
+  .sevrows .sr .who { display:flex; align-items:center; gap:8px; font-weight:650; }
+  .sevrows .sr .dot { width:9px; height:9px; border-radius:50%; }
+  input[type=file]:not(.hidden) { font-size:13px; color:var(--muted); }
+  input[type=file]:not(.hidden)::file-selector-button { background:#fff; border:1px solid var(--line);
+    border-radius:9px; padding:9px 16px; font-weight:700; cursor:pointer; color:var(--ink);
+    margin-inline-end:12px; }
+  input[type=file]:not(.hidden)::file-selector-button:hover { border-color:var(--gold); }
   .stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
   .stat { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 20px; box-shadow:var(--shadow); }
   .stat .k { color:var(--muted); font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px; }
@@ -261,6 +272,7 @@
             <div class="panelhead"><h2 id="tSevMix">توزيع الخطورة</h2><span class="tag" id="sevTotal"></span></div>
             <div class="sevbar" id="sevBar"></div>
             <div class="legend" id="sevLegend"></div>
+            <div class="sevrows" id="sevRows"></div>
           </div>
           <div class="card" style="margin-bottom:18px">
             <div class="panelhead"><h2 id="tTopHazards">أكثر المخاطر تكرارًا</h2></div>
@@ -699,6 +711,12 @@ async function loadAnalytics() {
       `<span><i style="background:var(--high)"></i>${s.sev.high} ${a.by_severity.high}</span>` +
       `<span><i style="background:#C07F10"></i>${s.sev.medium} ${a.by_severity.medium}</span>` +
       `<span><i style="background:var(--low)"></i>${s.sev.low} ${a.by_severity.low}</span>`;
+    const row = (color, label, n) =>
+      `<div class="sr"><span class="who"><span class="dot" style="background:${color}"></span>${label}</span><b>${n}</b></div>`;
+    $("sevRows").innerHTML =
+      row("var(--high)", s.sev.high, a.by_severity.high) +
+      row("#C07F10", s.sev.medium, a.by_severity.medium) +
+      row("var(--low)", s.sev.low, a.by_severity.low);
     $("hazardRows").innerHTML = a.top_hazards.map(h =>
       `<tr><td>${lang==="ar"?h.title_ar:h.title_en}</td><td class="meta">${h.count} ${s.times}</td></tr>`).join("");
     $("recentRows").innerHTML = (a.recent || []).map(r =>
