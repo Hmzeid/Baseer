@@ -172,6 +172,11 @@
   .caserow button { background:#fff; border:1px solid var(--line); border-radius:8px;
     padding:7px 14px; font-weight:650; cursor:pointer; font-size:13px; }
   .caserow button:disabled { opacity:.45; cursor:default; }
+  .evcard { width:180px; border:1px solid var(--line2); border-radius:12px; overflow:hidden; background:var(--soft); }
+  .evcard img, .evcard video { width:100%; height:110px; object-fit:cover; display:block; background:#0A2540; }
+  .evcard .evi { padding:8px 10px; font-size:12px; color:var(--muted); line-height:1.5; }
+  .evcard .evi b { display:block; color:var(--ink2); font-size:12.5px; word-break:break-all; }
+  .fthumb { width:100%; max-height:220px; object-fit:cover; border-radius:10px; margin:10px 0 2px; border:1px solid var(--line2); }
   .vnote { color:var(--muted); font-size:12.5px; flex-basis:100%; }
   /* ---- Live ---- */
   .livestats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
@@ -402,6 +407,8 @@
             </div>
             <h3 id="tSummary" style="margin:16px 0 0">الملخص</h3>
             <div class="summary" id="rSummary"></div>
+            <div class="panelhead" style="margin:18px 0 4px"><h3 id="tEvidence" style="margin:0">الأدلة المرفقة</h3><span class="tag" id="evStamp"></span></div>
+            <div id="rEvidence" style="display:flex;gap:12px;flex-wrap:wrap"></div>
             <div class="panelhead" style="margin:18px 0 4px"><h3 id="tFindings" style="margin:0">الملاحظات</h3><span class="tag" id="findingsCount"></span></div>
             <div id="rFindings"></div>
             <div class="chat">
@@ -452,6 +459,7 @@ const S = {
     pipeT:"من الجولة الميدانية إلى الإغلاق الموثّق", pipeHint:"كل فحص يمر بالحلقة نفسها — والملاحظة لا تُغلق أبدًا إلا باعتماد بشري.",
     pipe:["رصد","فهم","شرح","إجراء","تحقق","تعلّم"],
     chat:"اسأل بصير عن هذا الفحص", chatPh:"مثال: لماذا الملاحظة الأولى عالية الخطورة؟ أو: صِغ إشعارًا للمقاول",
+    tEvidence:"الأدلة المرفقة", evLive:"جلسة كاميرا مباشرة", evFrames:(n)=>`${n} إطارات`,
     send:"إرسال", chatErr:"تعذّر الإجابة الآن.",
     liveT:"وضع الكاميرا المباشرة",
     liveHint:"كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة. التحليل قريب من الزمن الحقيقي — إطار كل بضع ثوانٍ، لا إطارًا إطارًا.",
@@ -509,6 +517,7 @@ const S = {
     pipeT:"From walkthrough to verified closure", pipeHint:"Every inspection runs the same loop — and a finding is never closed without human approval.",
     pipe:["Observe","Understand","Explain","Act","Verify","Learn"],
     chat:"Ask Baseer about this inspection", chatPh:"Example: Why is finding 1 high severity? Or: draft a notice to the contractor",
+    tEvidence:"Attached evidence", evLive:"Live camera session", evFrames:(n)=>`${n} frames`,
     send:"Send", chatErr:"Couldn't answer just now.",
     liveT:"Live camera mode",
     liveHint:"A camera connected to the system: frames arrive, Baseer flags violations the moment they appear, and finishing the session produces the full report. Analysis is sampled near-real-time — a frame every few seconds, not frame-by-frame.",
@@ -594,6 +603,7 @@ function applyLang() {
   $("tNoReport").textContent = s.noReport; $("tNoReportHint").textContent = s.noReportHint; $("goInspect").textContent = s.newInspect;
   $("tReport").textContent = s.report; $("tSummary").textContent = s.summary; $("tFindings").textContent = s.findings;
   $("tChat").textContent = s.chat; $("chatInput").placeholder = s.chatPh; $("chatSend").textContent = s.send;
+  $("tEvidence").textContent = s.tEvidence;
   $("printBtn").textContent = s.printRep;
   $("waBtn").textContent = s.shareWa;
   loadAnalytics();
@@ -620,6 +630,54 @@ function pipeBadge(r) {
   if (r.mode !== "live") return {cls:"demo", text:s.pipeBadgeMock};
   if (r.segmentation_source === "sam") return {cls:"sam", text:s.pipeBadgeSam};
   return {cls:"vision", text:s.pipeBadgeVision};
+}
+function esc(t) {
+  return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function fmtSize(n) {
+  if (n > 1048576) return (n / 1048576).toFixed(1) + " MB";
+  return Math.max(1, Math.round(n / 1024)) + " KB";
+}
+function fmtTime(ts) {
+  try {
+    return new Date(ts).toLocaleString(lang === "ar" ? "ar" : "en",
+      {dateStyle: "medium", timeStyle: "short"});
+  } catch (e) { return ""; }
+}
+function filesToMedia(fileList, ts) {
+  return [...fileList].map(f => ({
+    name: f.name, kind: (f.type || "").startsWith("video") ? "video" : "image",
+    size: f.size, ts, url: URL.createObjectURL(f),
+  }));
+}
+function dropReportMedia() {
+  if (lastReport && lastReport._media) {
+    for (const m of lastReport._media) {
+      try { URL.revokeObjectURL(m.url); } catch (e) {}
+    }
+  }
+}
+function renderEvidence() {
+  const s = S[lang], box = $("rEvidence");
+  box.innerHTML = "";
+  const media = (lastReport && lastReport._media) || [];
+  $("evStamp").textContent = lastReport && lastReport._ts ? fmtTime(lastReport._ts) : "";
+  if (!media.length && !(lastReport && lastReport._live)) return;
+  if (lastReport && lastReport._live) {
+    const d = document.createElement("div");
+    d.className = "evcard";
+    d.innerHTML = `<div class="evi"><b>${s.evLive}</b>${s.evFrames(lastReport._live.frames)} · ${fmtTime(lastReport._ts)}</div>`;
+    box.appendChild(d);
+  }
+  for (const m of media) {
+    const d = document.createElement("div");
+    d.className = "evcard";
+    const visual = m.kind === "video"
+      ? `<video src="${m.url}" controls preload="metadata"></video>`
+      : `<img src="${m.url}" alt="">`;
+    d.innerHTML = `${visual}<div class="evi"><b>${esc(m.name)}</b>${fmtSize(m.size)} · ${fmtTime(m.ts)}</div>`;
+    box.appendChild(d);
+  }
 }
 function srcLabel(f) {
   const s = S[lang];
@@ -672,13 +730,16 @@ function renderReport(r) {
   const badge = $("pipeBadge");
   badge.className = "badge " + b.cls; badge.textContent = b.text;
   $("rSummary").textContent = s.sum(r);
+  renderEvidence();
   $("findingsCount").textContent = s.findingsN(r.findings.length);
+  const shots = (r._media || []).filter(m => m.kind === "image");
   $("rFindings").innerHTML = r.findings.map((f, i) => `
     <div class="finding">
       <div class="rail ${railCls(f.severity)}"></div>
       <div class="fbody">
         <span class="chip ${f.severity}">${s.sev[f.severity] || f.severity}</span>
         <h4>${s.pick(f,"title")}</h4>
+        ${shots[f.frame_index] ? `<img class="fthumb" src="${shots[f.frame_index].url}" alt="">` : ""}
         <p class="detail">${s.pick(f,"detail")}</p>
         <div class="actionBox"><b>${s.action}</b> ${s.pick(f,"action")}</div>
         <div class="fmeta"><span>${s.evidence(f.frame_index)}</span><span>${srcLabel(f)}</span>
@@ -850,6 +911,10 @@ $("liveFinish").addEventListener("click", async () => {
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({notes: $("notes").value}) });
   lastReport = await res.json();
+  dropReportMedia();
+  lastReport._media = [];
+  lastReport._live = {frames: lastReport.frames_processed || 0};
+  lastReport._ts = Date.now();
   liveSessionId = null;
   liveState = {active:false, frames:lastReport.frames_processed || 0, alerts:liveState.alerts};
   paintLiveStats();
@@ -948,10 +1013,11 @@ $("waBtn").addEventListener("click", ()=>{
   });
   window.open("https://wa.me/?text=" + encodeURIComponent(lines.join("\n")), "_blank");
 });
-$("files").addEventListener("change", () => {
-  const names = [...$("files").files].map(f => f.name).join(" · ");
-  $("fileNames").textContent = names;
-});
+function paintFileNames() {
+  $("fileNames").textContent =
+    [...$("files").files].map(f => `${f.name} (${fmtSize(f.size)})`).join(" · ");
+}
+$("files").addEventListener("change", paintFileNames);
 const dropZone = document.querySelector(".drop");
 if (dropZone) {
   ["dragenter", "dragover"].forEach(ev => dropZone.addEventListener(ev, (e) => {
@@ -968,7 +1034,7 @@ if (dropZone) {
     for (const f of $("files").files) dt.items.add(f);
     for (const f of e.dataTransfer.files) dt.items.add(f);
     $("files").files = dt.files;
-    $("fileNames").textContent = [...$("files").files].map(f => f.name).join(" · ");
+    paintFileNames();
   });
 }
 $("inspForm").addEventListener("submit", async (e) => {
@@ -981,7 +1047,12 @@ $("inspForm").addEventListener("submit", async (e) => {
   fd.append("site_context", $("ctx").value);
   try {
     const res = await fetch("/inspections", { method: "POST", body: fd });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); status.textContent = e.detail || s.error; return; }
+    dropReportMedia();
+    const nowTs = Date.now();
     lastReport = await res.json();
+    lastReport._media = filesToMedia($("files").files, nowTs);
+    lastReport._ts = nowTs;
     chatHistory = []; $("chatLog").innerHTML = "";
     renderReport(lastReport);
     loadAnalytics();
