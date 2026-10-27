@@ -12,23 +12,28 @@ from collections import Counter
 
 SEED_REPORTS: list[dict] = [
     {"inspection_id": "seed-1041", "created_at": "2026-10-26T09:12:00Z", "frames_processed": 6,
+     "site_context": "factory",
      "findings": [
          {"title_en": "Worker without a safety helmet", "title_ar": "عامل بدون خوذة حماية", "severity": "high"},
          {"title_en": "Unmarked forklift path", "title_ar": "مسار الرافعة غير محدد بعلامات", "severity": "medium"}]},
     {"inspection_id": "seed-1038", "created_at": "2026-10-25T14:03:00Z", "frames_processed": 5,
+     "site_context": "construction",
      "findings": [
          {"title_en": "Worker without a safety helmet", "title_ar": "عامل بدون خوذة حماية", "severity": "high"},
          {"title_en": "Missing guard rail at the edge", "title_ar": "غياب حاجز الحماية عند الحافة", "severity": "high"},
          {"title_en": "Blocked emergency exit", "title_ar": "مخرج طوارئ مسدود", "severity": "medium"}]},
     {"inspection_id": "seed-1035", "created_at": "2026-10-24T08:47:00Z", "frames_processed": 4,
+     "site_context": "factory",
      "findings": [
          {"title_en": "Unmarked forklift path", "title_ar": "مسار الرافعة غير محدد بعلامات", "severity": "medium"},
          {"title_en": "Missing machine guard", "title_ar": "غياب واقي الماكينة", "severity": "high"}]},
 ]
 
 
-def compute(live_reports: list[dict]) -> dict:
+def compute(live_reports: list[dict], site: str = "") -> dict:
     reports = SEED_REPORTS + live_reports
+    if site:
+        reports = [r for r in reports if ((r.get("site_context") or "").strip() or "general") == site]
     by_severity: Counter = Counter()
     hazard_counter: Counter = Counter()
     hazard_ar: dict[str, str] = {}

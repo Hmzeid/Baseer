@@ -127,6 +127,24 @@ def main() -> int:
     check("analytics merges", an["total_inspections"] == 3 + 3 and an["total_findings"] == 7 + 9,
           f"{an['total_inspections']} inspections, {an['total_findings']} findings")
 
+    # 6. multi-site slicing + formal audit log (all suite posts use factory)
+    sl = c.get("/sites").json()
+    check("sites listed",
+          any(s["site"] == "factory" and s["inspections"] == 2 + 3 for s in sl["sites"]),
+          str(sl)[:150])
+    anf = c.get("/analytics", params={"site": "factory"}).json()
+    check("analytics site filter",
+          anf["total_inspections"] == 2 + 3 and anf["total_findings"] == 4 + 9,
+          f"{anf['total_inspections']} inspections, {anf['total_findings']} findings")
+    au = c.get("/audit").json()
+    check("audit log records",
+          len(au["entries"]) >= 3 and all("actor" in e for e in au["entries"]),
+          f"{len(au['entries'])} entries")
+    csv = c.get("/audit", params={"format": "csv"})
+    check("audit csv export",
+          csv.status_code == 200 and csv.text.splitlines()[0].startswith("ts,"),
+          csv.text[:80])
+
     # Arabic display labels must not collide: two distinct English
     # findings sharing one Arabic string renders as a duplicated row.
     import analytics as _analytics
