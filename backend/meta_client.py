@@ -408,7 +408,7 @@ def _mock_findings(segments: list[Segment]) -> tuple[list[Finding], str, str]:
             frame_index=0, source="segments",
         ),
         Finding(
-            title_ar="مسار الرافعة غير محدد بعلامات",
+            title_ar="مسار الرافعة بلا علامات أرضية",
             title_en="Forklift path not marked",
             severity="medium",
             detail_ar="مسار حركة الرافعة الشوكية غير محدد بعلامات أرضية، ويتقاطع مع مسار مشاة العمال.",
