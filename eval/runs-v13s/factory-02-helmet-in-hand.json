@@ -1,0 +1,17 @@
+{
+ "scene_id": "factory-02-helmet-in-hand",
+ "labels": [
+  "worker_without_helmet"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Worker without safety helmet near a forklift",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One high-severity finding was recorded: a worker without a helmet near a forklift in frame 0. The most urgent item is the head-injury risk in the forklift area. Work in the forklift area must stop until all workers wear helmets; compliance appears in frames 1 and 2 and must be verified as sustained.",
+ "segmentation_source": "vision"
+}

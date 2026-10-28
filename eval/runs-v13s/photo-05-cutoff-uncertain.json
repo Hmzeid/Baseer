@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-05-cutoff-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No confirmed safety violation was observed in frame 0, for a total of zero high, medium and low findings. There is no urgent item and no need to stop work in the visible area. Eye and face protection could not be verified because the worker's face is out of frame and should be checked on the next visit.",
+ "segmentation_source": "vision"
+}

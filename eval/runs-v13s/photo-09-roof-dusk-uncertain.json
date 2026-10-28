@@ -1,0 +1,17 @@
+{
+ "scene_id": "photo-09-roof-dusk-uncertain",
+ "labels": [
+  "unsafe_ladder_work"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Work at height from top of unsecured stepladder with fall risk",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One high-severity finding was recorded. The most urgent item is work at height from the top of an unsecured stepladder with fall risk. Work on the roof in this area should stop until safe access is provided.",
+ "segmentation_source": "vision"
+}

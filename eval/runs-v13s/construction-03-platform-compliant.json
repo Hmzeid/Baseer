@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-03-platform-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: zero, with no high, medium, or low violations across the three frames. The two workers visible in the center of frame 0 wear safety helmets and high-visibility vests inside the scaffold-enclosed material platform, with load-limit and acceptance signs posted. No work stoppage is required in this area; continue routine monitoring.",
+ "segmentation_source": "vision"
+}

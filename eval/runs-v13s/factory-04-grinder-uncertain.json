@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-04-grinder-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No safety violations were observed in the inspected grinding area, with zero high, medium, or low findings in total. The worker in frame 2 is wearing a face shield and gloves while operating the angle grinder with sparks directed away from personnel. No work stoppage is required in this area provided PPE use continues.",
+ "segmentation_source": "vision"
+}

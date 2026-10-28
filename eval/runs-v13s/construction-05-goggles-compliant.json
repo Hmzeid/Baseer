@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-05-goggles-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings zero (no high, medium, or low) across frames 0 to 2. The visible worker wears a yellow hard hat, safety glasses and gloves, with earmuffs hung around the neck and no visible evidence of an active noise hazard requiring their use. There is no urgent item and no need to stop work in this area based on the visible evidence.",
+ "segmentation_source": "vision"
+}

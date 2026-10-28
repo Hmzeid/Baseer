@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-02-crew-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No safety violations were observed in the inspected area across the three frames (no high, medium, or low findings). Both workers with visible heads wear yellow hard hats, high-visibility vests, and gloves, with no visible fall, vehicle, or egress hazard. No stop-work is required, with continued compliance with personal protective equipment.",
+ "segmentation_source": "vision"
+}

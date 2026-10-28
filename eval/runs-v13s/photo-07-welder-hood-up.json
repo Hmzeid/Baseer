@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-07-welder-hood-up",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No safety violations were observed in the inspected frame: zero high, zero medium, and zero low findings. The visible worker is wearing a welding helmet and gloves while working on the metal structure. There is no urgent item and no stop-work is required in this area.",
+ "segmentation_source": "vision"
+}

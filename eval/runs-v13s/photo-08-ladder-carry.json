@@ -1,0 +1,24 @@
+{
+ "scene_id": "photo-08-ladder-carry",
+ "labels": [
+  "worker_on_elevated_open_edge_without_fall_protec",
+  "worker_without_helmet"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Worker on elevated open edge without fall protection",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Worker below overhead work without safety helmet",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Two high-severity findings were recorded. The most urgent is a worker standing on an open roof edge with no guardrail and a leaning ladder with no visible tie-off. Work on the roof and at the ladder must stop until edge protection is installed, the ladder is secured, and safety helmets are provided.",
+ "segmentation_source": "vision"
+}

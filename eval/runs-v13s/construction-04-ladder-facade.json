@@ -1,0 +1,24 @@
+{
+ "scene_id": "construction-04-ladder-facade",
+ "labels": [
+  "unsafe_ladder_work",
+  "worker_without_helmet"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Fall risk from side overreach on ladder",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Work at height without safety helmet",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Two high-severity findings were recorded: side overreach on the ladder and work without a helmet at height. The most urgent is the fall risk from side overreach on the ladder. Work at height in this area must stop until the ladder position is corrected and a helmet is worn.",
+ "segmentation_source": "vision"
+}
