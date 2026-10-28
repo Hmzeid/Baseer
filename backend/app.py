@@ -35,6 +35,9 @@ REPORTS: dict[str, dict] = {}
 
 store.init(str(DATA_DIR / "baseer.db"))
 REPORTS.update(store.load_reports())
+_n_restored = live.restore_sessions(str(DATA_DIR))
+if _n_restored:
+    print(f"[baseer] restored {_n_restored} interrupted live session(s) — resume them from the Live view")
 
 _secret_file = DATA_DIR / ".secret"
 if _secret_file.exists():
@@ -239,6 +242,8 @@ def live_start(req: LiveStartRequest, user: dict = Depends(current_user)):
 async def live_frames(session_id: str, files: list[UploadFile] = File(default=[]),
                       user: dict = Depends(current_user)):
     payload = [(f.filename or "frame", await f.read()) for f in files]
+    if session_id not in live.SESSIONS:
+        raise HTTPException(status_code=404, detail="live session not found")
     _dest = DATA_DIR / "evidence" / session_id
     _dest.mkdir(parents=True, exist_ok=True)
     _base = int(time.time() * 1000)

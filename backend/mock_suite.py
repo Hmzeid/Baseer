@@ -237,6 +237,46 @@ def main() -> int:
                   json={"username": "layla", "password": "new-field-pw-2"})
     check("deleted user locked out", r.status_code == 401, r.text[:120])
 
+    # 10. live sessions survive a restart: frames + alerts + decision.
+    import live as _live
+    ops = TestClient(app.app,
+                     headers={"Authorization": f"Bearer {admin_tok}"})
+    s2 = ops.post("/live/sessions", json={"site_context": "factory"}).json()
+    sid2 = s2["session_id"]
+    ops.post(f"/live/sessions/{sid2}/frames",
+             files={"files": ("frame.jpg", jpg, "image/jpeg")})
+    _live.SESSIONS.clear()
+    n_restored = _live.restore_sessions(os.environ["BASEER_DATA_DIR"])
+    check("session restored", n_restored == 1 and sid2 in _live.SESSIONS,
+          f"restored={n_restored}")
+    f2 = ops.post(f"/live/sessions/{sid2}/frames",
+                  files={"files": ("frame.jpg", jpg, "image/jpeg")}).json()
+    check("resumed session dedupes alerts",
+          f2["frames_received"] == 2 and len(f2["new_alerts"]) == 0, str(f2))
+    fin2 = ops.post(f"/live/sessions/{sid2}/finish", json={"notes": "t"}).json()
+    # 11. overlap guard: covered PPE drops the finding, an uncovered
+    # worker keeps it, other violations and person-less scenes pass.
+    import pipeline as _pipe
+    import meta_client as _mc
+    _p1 = _mc.Segment(label="person", label_ar="شخص", confidence=0.0,
+                      frame_index=0, bbox=[0.2, 0.1, 0.2, 0.3])
+    _v1 = _mc.Segment(label="safety vest", label_ar="سترة", confidence=0.0,
+                      frame_index=0, bbox=[0.21, 0.15, 0.15, 0.15])
+    _p2 = _mc.Segment(label="person", label_ar="شخص", confidence=0.0,
+                      frame_index=0, bbox=[0.6, 0.1, 0.2, 0.3])
+    _vest = {"title_en": "Worker without a safety vest", "title_ar": "عامل بدون سترة"}
+    _lad = {"title_en": "Unsafe ladder work", "title_ar": "عمل خطر"}
+    _kept = _pipe.drop_covered_ppe_findings([_vest, _lad], [_p1, _v1, _p2])
+    check("overlap guard keeps uncovered", len(_kept) == 2, str(_kept))
+    check("overlap guard drops covered",
+          _pipe.drop_covered_ppe_findings([_vest], [_p1, _v1]) == [], "covered kept")
+    check("overlap guard passthrough",
+          _pipe.drop_covered_ppe_findings([_vest, _lad], []) == [_vest, _lad],
+          "empty segments dropped")
+    check("resumed session finishes",
+          fin2["source"] == "live-camera" and len(fin2["findings"]) == 3,
+          str({k: fin2.get(k) for k in ("source", "segmentation_source")}))
+
     print(f"mock suite: GREEN ({an['total_inspections']} inspections, {an['total_findings']} findings)")
     return 0
 

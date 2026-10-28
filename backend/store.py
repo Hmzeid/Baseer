@@ -31,6 +31,10 @@ CREATE TABLE IF NOT EXISTS audit (
     detail TEXT NOT NULL DEFAULT '',
     finding TEXT NOT NULL DEFAULT ''
 );
+CREATE TABLE IF NOT EXISTS live_sessions (
+    session_id TEXT PRIMARY KEY,
+    data TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS users (
     username TEXT PRIMARY KEY,
     pw_hash TEXT NOT NULL,
@@ -99,3 +103,24 @@ def read_audit() -> list[dict]:
 
 def db_path() -> str:
     return _path
+
+
+def save_session(session_id: str, data: dict) -> None:
+    with _lock:
+        _conn().execute(
+            "INSERT OR REPLACE INTO live_sessions (session_id, data) VALUES (?, ?)",
+            (session_id, json.dumps(data, ensure_ascii=False)),
+        )
+        _conn().commit()
+
+
+def load_sessions() -> dict[str, dict]:
+    cur = _conn().execute("SELECT session_id, data FROM live_sessions")
+    return {row[0]: json.loads(row[1]) for row in cur.fetchall()}
+
+
+def delete_session(session_id: str) -> None:
+    with _lock:
+        _conn().execute("DELETE FROM live_sessions WHERE session_id = ?",
+                        (session_id,))
+        _conn().commit()

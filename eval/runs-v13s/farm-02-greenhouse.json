@@ -1,0 +1,8 @@
+{
+ "scene_id": "farm-02-greenhouse",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No safety violations were observed across the three inspected frames, with zero high, medium, or low findings in total. There is no most urgent item and no need to stop work in the greenhouse area. Workers appear harvesting leafy crops under normal conditions with no vehicle conflicts, fall exposure, chemical spraying, or blocked egress.",
+ "segmentation_source": "vision"
+}

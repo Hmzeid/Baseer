@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-06-rebar-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No safety violations were observed in the inspected area: 0 high, 0 medium, and 0 low. All workers visible in frame 0 are wearing hard hats and high-visibility vests, with no urgent item to address. No work stoppage is required in any area; continue following safety procedures.",
+ "segmentation_source": "vision"
+}

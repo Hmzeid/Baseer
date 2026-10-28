@@ -1,0 +1,17 @@
+{
+ "scene_id": "factory-06-machinery-watch",
+ "labels": [
+  "exposed_rotating_lathe_chuck_without_guard"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Exposed rotating lathe chuck without guard",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One high-severity finding was observed: operation of a lathe with an exposed rotating chuck without a guard. This is the most urgent item due to the risk of serious entanglement injury. Work on this lathe should stop until the guard is installed.",
+ "segmentation_source": "vision"
+}

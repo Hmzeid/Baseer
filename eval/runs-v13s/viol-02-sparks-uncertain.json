@@ -1,0 +1,17 @@
+{
+ "scene_id": "viol-02-sparks-uncertain",
+ "labels": [
+  "operating_angle_grinder_without_gloves_with_expo"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Operating angle grinder without gloves with exposed forearms",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One medium-severity finding was recorded: angle grinding without gloves with exposed forearms to sparks. Full area shutdown is not required, but grinding work should pause until the worker wears proper gloves and protection. Eye protection appears present; face and respiratory protection could not be determined from the frames.",
+ "segmentation_source": "vision"
+}

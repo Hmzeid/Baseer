@@ -23,9 +23,10 @@
 
 ## After a restart / crash
 - `launchctl` restarts the service automatically (`KeepAlive`). Reports,
-  cases, users, and the audit log reload from `data/baseer.db`; in-flight
-  live-camera sessions do not survive a restart (by design — re-start the
-  session). Verify with `/health` and the mock suite:
+  cases, users, the audit log, and interrupted live-camera sessions reload
+  from `data/baseer.db` (frames rebuild from `data/evidence/`); keep the
+  browser's Live view open and keep sending frames to the same session.
+  Verify with `/health` and the mock suite:
   `cd backend && BASEER_MODE=mock ../.venv/bin/python mock_suite.py`.
 
 ## Key rotation / staff changes

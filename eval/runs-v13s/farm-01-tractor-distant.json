@@ -1,0 +1,8 @@
+{
+ "scene_id": "farm-01-tractor-distant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No findings were recorded (zero high, zero medium, zero low) across the three inspected frames, with no urgent item requiring action. The self-propelled sprayer is seen operating in the middle of the field with no ground workers visible in the spray area. No work stoppage is required in this area.",
+ "segmentation_source": "vision"
+}

@@ -62,8 +62,9 @@ Sign-in is required: accounts carry one of the Safety Supervisor, Site
 Manager, Contractor, or Admin roles, and every case action is stamped
 `username (role)` in the audit log. State is durable — inspections, cases,
 users, and the audit trail live in `data/baseer.db` (SQLite, git-ignored)
-with original uploads under `data/evidence/`; only in-flight live-camera
-sessions are lost on a restart. First boot creates the `admin` user (set
+with original uploads under `data/evidence/`; interrupted live-camera
+sessions resume from the database (frames rebuild from evidence). First
+boot creates the `admin` user (set
 `BASEER_ADMIN_PASSWORD`, otherwise a one-time password prints to the
 server log). Run it as a service with `ops/com.veebase.baseer.plist`
 (launchd, auto-restart, never port 8000), back up with `sh ops/backup.sh`,
@@ -106,12 +107,21 @@ are scored, never dropped. Scored with `eval/score.py`. Both runs below
 used the identical set, harness, and map; per-model evidence lives in
 `eval/runs-spark/` and `eval/runs-wonder/`.
 
-Spark 1.3 (dev default, Oct 26): precision 0.128, recall 0.75, F1 0.218
-(TP 6, FP 41, FN 2; 36 false alarms on 18 negative scenes). Exact scene
-matches: 3/24 (flagship factory, scaffold helmet, one compliant crew
-photo). Core hazards found — helmet 3/4 (F1 0.75), ladder 2/2 (F1 0.8),
-unmarked forklift path 1/1. Uncertainty honesty: 5 of 6
+Spark 1.3 (dev default, Oct 26, prompt v1.2): precision 0.128, recall 0.75,
+F1 0.218 (TP 6, FP 41, FN 2; 36 false alarms on 18 negative scenes).
+Exact scene matches: 3/24 (flagship factory, scaffold helmet, one
+compliant crew photo). Core hazards found — helmet 3/4 (F1 0.75), ladder
+2/2 (F1 0.8), unmarked forklift path 1/1. Uncertainty honesty: 5 of 6
 uncertain-by-design scenes carry an "uncertain" determination.
+
+Spark 1.3 re-run (Oct 28, prompt v1.3, same fixed set/harness/map;
+evidence in `eval/runs-v13s/`, `eval/predictions-v13s.json`): precision
+0.429, recall 0.75, F1 0.545 (TP 6, FP 8, FN 2; 6 false alarms on 18
+negative scenes). The economy rule lifts Spark the same way it lifted
+Wonder — false alarms 36 → 6 at identical recall. Exact scene matches:
+16/24. Remaining misses: the raised-hood welder and the ladder-carry
+violation (an edge-exposure call fired instead); grinding close-ups still
+draw 4 flags.
 
 Wonder 1.0 (final-report model, Oct 26, prompt v1.2): precision 0.096,
 recall 0.875, F1 0.173 (TP 7, FP 66, FN 1; 58 false alarms on 18 negative
@@ -158,10 +168,11 @@ SAM returns 4 person + 4 hard-hat + 4 safety-vest segments with vest boxes
 overlapping the person boxes — and the photo shows all four workers in
 hi-vis. The segments are correct; the reasoner minted "Worker without a
 safety vest" anyway (likely the partially occluded worker behind netting).
-Verdict: reasoning over-flag, NOT a SAM mislabel. Proposed general fix
-(separate step, not applied): a missing-PPE finding should require a
-person box with no overlapping PPE box; when every person overlaps a PPE
-box, no missing-PPE finding.
+Verdict: reasoning over-flag, NOT a SAM mislabel. Fix applied (Oct 28,
+code-side in `pipeline.drop_covered_ppe_findings`, prompts frozen): a
+missing-helmet/vest finding survives only if some person box has no
+overlapping box of that PPE concept. Applies to SAM-path reports from
+this commit forward; all numbers above predate it.
 Path switching verified live: auto mode uses SAM when enabled
 (`segmentation_source: sam` on upload and live-camera finish); with SAM
 unreachable (bogus model name forcing a 404) uploads fall back to vision

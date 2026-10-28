@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-05-textile-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No safety violations were observed in the inspected area across frames 0 to 2, with zero high, zero medium and zero low findings. There is no most urgent item and no need to stop work; normal safe operation may continue.",
+ "segmentation_source": "vision"
+}

@@ -23,8 +23,56 @@ from datetime import datetime, timezone
 
 import meta_client
 import pipeline
+import store
 
 SESSIONS: dict[str, dict] = {}
+
+
+def _snapshot(session: dict) -> None:
+    """Persist everything needed to resume: segments + alerts + decision.
+    Frame bytes are rebuilt from the stored evidence originals on restore."""
+    try:
+        store.save_session(session["session_id"], {
+            "site_context": session.get("site_context", ""),
+            "started_at": session.get("started_at", ""),
+            "seg_path": session.get("seg_path"),
+            "segments": [asdict(s) for s in session.get("segments", [])],
+            "alerted_labels": sorted(session.get("alerted_labels", set())),
+            "alerts": session.get("alerts", []),
+            "frames_received": session.get("frames_received", 0),
+        })
+    except Exception:
+        pass  # durability layer; never break the live loop
+
+
+def restore_sessions(evidence_root: str) -> int:
+    """Re-register sessions salvaged from SQLite after a restart. Returns
+    the count restored. Frame bytes are re-extracted from the stored
+    evidence originals (chronological order)."""
+    from pathlib import Path
+    restored = 0
+    for sid, snap in store.load_sessions().items():
+        frames: list[bytes] = []
+        evdir = Path(evidence_root) / "evidence" / sid
+        if evdir.exists():
+            for p in sorted(evdir.glob("*")):
+                try:
+                    frames.extend(pipeline.extract_frames([(p.name, p.read_bytes())]))
+                except Exception:
+                    continue
+        SESSIONS[sid] = {
+            "session_id": sid,
+            "site_context": snap.get("site_context", ""),
+            "started_at": snap.get("started_at", ""),
+            "segments": [meta_client.Segment(**s) for s in snap.get("segments", [])],
+            "frames": frames,
+            "seg_path": snap.get("seg_path"),
+            "alerted_labels": set(snap.get("alerted_labels", [])),
+            "alerts": snap.get("alerts", []),
+            "frames_received": snap.get("frames_received", 0),
+        }
+        restored += 1
+    return restored
 
 # Labels that read as violations get an immediate live alert on first sight.
 VIOLATION_HINTS = ("without", "missing", "no_", "_no")
@@ -43,6 +91,7 @@ def start_session(site_context: str = "") -> dict:
         "alerts": [],
         "frames_received": 0,
     }
+    _snapshot(SESSIONS[sid])
     return {"session_id": sid, "status": "live"}
 
 
@@ -141,6 +190,7 @@ def add_frames(session_id: str, frames: list[bytes]) -> dict:
                     session["alerts"].append(alert)
                     new_alerts.append(alert)
         session["frames_received"] += 1
+    _snapshot(session)
     return {
         "session_id": session_id,
         "frames_received": session["frames_received"],
@@ -157,6 +207,10 @@ def finish_session(session_id: str, inspector_notes: str = "") -> dict:
     session = SESSIONS.pop(session_id, None)
     if session is None:
         raise KeyError("session not found")
+    try:
+        store.delete_session(session_id)
+    except Exception:
+        pass
     segmentation_source = "mock" if meta_client.MODE != "live" else "sam"
     if session.get("seg_path") == "vision" or (
             meta_client.MODE == "live" and not session["segments"] and session["frames"]):

@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-03-crew-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings zero (no high, medium, or low findings). There is no urgent item, as all workers visible in frame 0 wear hard hats and high-visibility clothing and work behind the scaffold guardrails. No stop of work is required in the visible area.",
+ "segmentation_source": "vision"
+}

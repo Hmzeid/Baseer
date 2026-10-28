@@ -1,0 +1,8 @@
+{
+ "scene_id": "viol-04-descend-indeterminate",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No clear safety violations were observed in the three inspected frames, with zero high, zero medium and zero low findings. There is no urgent item requiring immediate action. No stop of work is required based on the current visual evidence.",
+ "segmentation_source": "vision"
+}

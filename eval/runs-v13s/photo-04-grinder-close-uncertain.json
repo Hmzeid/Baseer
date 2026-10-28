@@ -1,0 +1,24 @@
+{
+ "scene_id": "photo-04-grinder-close-uncertain",
+ "labels": [
+  "angle_grinder_operated_without_disc_guard",
+  "grinding_work_without_protective_gloves"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Angle grinder operated without disc guard",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  },
+  {
+   "title_en": "Grinding work without protective gloves",
+   "severity": "medium",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Two findings were recorded: one high severity and one medium severity. The most urgent is operating the angle grinder without a disc guard while sparks fly. Grinding work in the area must stop until the guard is fitted and gloves are provided.",
+ "segmentation_source": "vision"
+}

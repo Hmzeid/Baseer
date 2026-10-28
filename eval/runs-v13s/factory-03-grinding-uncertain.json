@@ -1,0 +1,17 @@
+{
+ "scene_id": "factory-03-grinding-uncertain",
+ "labels": [
+  "single_handed_angle_grinder_operation_with_flyin"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Single-handed angle grinder operation with flying sparks",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "One high-severity finding was recorded. The most urgent item is the single-handed angle grinder operation with flying sparks. Stop grinding work in this area until handling is corrected and PPE is verified.",
+ "segmentation_source": "vision"
+}

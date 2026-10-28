@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-02-welding-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No safety violations were recorded in the inspected welding area, total findings zero (0 high, 0 medium, 0 low). The welder appears in frames 0, 1 and 2 wearing a welding helmet and protective gloves during arc welding. There is no urgent item and no need to stop work in this area.",
+ "segmentation_source": "vision"
+}
