@@ -168,11 +168,16 @@ SAM returns 4 person + 4 hard-hat + 4 safety-vest segments with vest boxes
 overlapping the person boxes — and the photo shows all four workers in
 hi-vis. The segments are correct; the reasoner minted "Worker without a
 safety vest" anyway (likely the partially occluded worker behind netting).
-Verdict: reasoning over-flag, NOT a SAM mislabel. Fix applied (Oct 28,
-code-side in `pipeline.drop_covered_ppe_findings`, prompts frozen): a
-missing-helmet/vest finding survives only if some person box has no
-overlapping box of that PPE concept. Applies to SAM-path reports from
-this commit forward; all numbers above predate it.
+Verdict: reasoning over-flag, NOT a SAM mislabel. A code-side overlap
+guard was then built and measured — and reverted the same day. Forensics:
+SAM returns 4 persons but only 3 vests for that photo on most calls (one
+vest detection drops out run to run), so some worker is always "uncovered"
+and the guard can never fire there; meanwhile it risks dropping true
+violations whenever boxes happen to overlap (a held helmet inside a person
+box reads as "worn"). A full 24-scene guard run scored P 0.400 / R 0.250 /
+F1 0.308 — worse than unguarded SAM — so the guard was removed, not
+shipped. Lesson recorded: box-count association cannot fix reasoning
+over-flags on noisy per-call segments.
 Path switching verified live: auto mode uses SAM when enabled
 (`segmentation_source: sam` on upload and live-camera finish); with SAM
 unreachable (bogus model name forcing a 404) uploads fall back to vision

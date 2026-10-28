@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-03-grinding-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: zero — 0 high, 0 medium, and 0 low. There is no urgent item in the reviewed frame, and no confirmed safety violation is shown. No work stoppage is required in any area based on this evidence.",
+ "segmentation_source": "sam"
+}

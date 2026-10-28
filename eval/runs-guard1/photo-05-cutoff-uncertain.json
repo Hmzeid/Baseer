@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-05-cutoff-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No confirmed safety violations were identified in the available frame, which shows a person and a machine without evidence of an observable violation. Total findings: zero high, zero medium, and zero low. There is no urgent item, and work does not need to stop based on this evidence.",
+ "segmentation_source": "sam"
+}

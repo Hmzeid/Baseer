@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-07-welder-hood-up",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings are 0 (0 high, 0 medium, and 0 low). There is no urgent item to prioritize, as the frame shows only a person with no in-scope safety violation observable. No work stoppage is required in any area based on this evidence.",
+ "segmentation_source": "sam"
+}

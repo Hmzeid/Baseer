@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-02-helmet-in-hand",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "There is one low-severity finding with an uncertain determination, and no high- or medium-severity findings. The most urgent item is verifying hard hat use because the inspector's note conflicts with the frame 0 segmentation results. This evidence alone does not require stopping work, and a direct on-site check is required before closing the item.",
+ "segmentation_source": "sam"
+}

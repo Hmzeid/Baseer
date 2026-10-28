@@ -254,28 +254,91 @@ def main() -> int:
     check("resumed session dedupes alerts",
           f2["frames_received"] == 2 and len(f2["new_alerts"]) == 0, str(f2))
     fin2 = ops.post(f"/live/sessions/{sid2}/finish", json={"notes": "t"}).json()
-    # 11. overlap guard: covered PPE drops the finding, an uncovered
-    # worker keeps it, other violations and person-less scenes pass.
-    import pipeline as _pipe
-    import meta_client as _mc
-    _p1 = _mc.Segment(label="person", label_ar="شخص", confidence=0.0,
-                      frame_index=0, bbox=[0.2, 0.1, 0.2, 0.3])
-    _v1 = _mc.Segment(label="safety vest", label_ar="سترة", confidence=0.0,
-                      frame_index=0, bbox=[0.21, 0.15, 0.15, 0.15])
-    _p2 = _mc.Segment(label="person", label_ar="شخص", confidence=0.0,
-                      frame_index=0, bbox=[0.6, 0.1, 0.2, 0.3])
-    _vest = {"title_en": "Worker without a safety vest", "title_ar": "عامل بدون سترة"}
-    _lad = {"title_en": "Unsafe ladder work", "title_ar": "عمل خطر"}
-    _kept = _pipe.drop_covered_ppe_findings([_vest, _lad], [_p1, _v1, _p2])
-    check("overlap guard keeps uncovered", len(_kept) == 2, str(_kept))
-    check("overlap guard drops covered",
-          _pipe.drop_covered_ppe_findings([_vest], [_p1, _v1]) == [], "covered kept")
-    check("overlap guard passthrough",
-          _pipe.drop_covered_ppe_findings([_vest, _lad], []) == [_vest, _lad],
-          "empty segments dropped")
     check("resumed session finishes",
           fin2["source"] == "live-camera" and len(fin2["findings"]) == 3,
           str({k: fin2.get(k) for k in ("source", "segmentation_source")}))
+
+    # 12. voice proxy plumbing: bytes forwarded, upstream text relayed
+    # verbatim, server-side key never leaks into client frames.
+    import asyncio as _asyncio
+    import voice as _voice
+
+    class _FakeUpstream:
+        def __init__(self):
+            self.got = []
+            self.n = 0
+        async def send(self, data):
+            self.got.append(data)
+        async def recv(self):
+            self.n += 1
+            if self.n == 1:
+                return '{"type": "final", "text": "عامل بدون خوذة"}'
+            raise ConnectionError("upstream done")
+        async def close(self):
+            pass
+
+    class _FakeClient:
+        def __init__(self):
+            self.sent = []
+            self.closed = False
+        async def accept(self):
+            pass
+        def iter_bytes(self):
+            async def _gen():
+                yield b"\x01\x02audio-bytes"
+            return _gen()
+        async def send_text(self, text):
+            self.sent.append(text)
+        async def close(self):
+            self.closed = True
+
+    async def _run_proxy():
+        import websockets as _wsmod
+        _fake = _FakeUpstream()
+        async def _fake_connect(*a, **k):
+            _fake.args = (a, k)
+            return _fake
+        _real_connect = _wsmod.connect
+        _wsmod.connect = _fake_connect
+        _old_key = os.environ.get("MODEL_API_KEY")
+        _old_url = _voice.TRANSCRIBE_URL
+        try:
+            os.environ["MODEL_API_KEY"] = "DUMMY-KEY-NEVER-SENT"
+            _voice.TRANSCRIBE_URL = "ws://dummy-upstream/test"
+            _client = _FakeClient()
+            await _voice.proxy(_client)
+            return _client, _fake
+        finally:
+            _wsmod.connect = _real_connect
+            if _old_key is None:
+                os.environ.pop("MODEL_API_KEY", None)
+            else:
+                os.environ["MODEL_API_KEY"] = _old_key
+            _voice.TRANSCRIBE_URL = _old_url
+
+    _client, _fake = _asyncio.run(_run_proxy())
+    check("voice forwards audio",
+          _fake.got == [b"\x01\x02audio-bytes"], str(_fake.got)[:120])
+    check("voice relays transcript verbatim",
+          _client.sent and '"عامل بدون خوذة"' in _client.sent[0], str(_client.sent)[:150])
+    check("voice never leaks key",
+          all("DUMMY-KEY-NEVER-SENT" not in t for t in _client.sent),
+          "key present in client frames")
+
+    # 13. login hardening + session listing.
+    r = admin.post("/auth/users",
+                   json={"username": "shorty", "password": "123",
+                         "role": "Contractor"})
+    check("short password rejected", r.status_code == 400, r.text[:120])
+    for _ in range(6):
+        anon.post("/auth/login",
+                  json={"username": "nobody-here", "password": "wrong"})
+    r = anon.post("/auth/login",
+                  json={"username": "nobody-here", "password": "wrong"})
+    check("login throttled", r.status_code == 429, r.text[:120])
+    r = ops.get("/live/sessions")
+    check("session list", r.status_code == 200 and r.json()["sessions"] == [],
+          r.text[:120])
 
     print(f"mock suite: GREEN ({an['total_inspections']} inspections, {an['total_findings']} findings)")
     return 0

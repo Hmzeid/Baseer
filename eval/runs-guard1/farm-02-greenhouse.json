@@ -1,0 +1,8 @@
+{
+ "scene_id": "farm-02-greenhouse",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: zero — zero high, zero medium, and zero low. There is no urgent item and no need to stop work in the inspected area. The frames show only persons, with no observable safety violations within the defined scope.",
+ "segmentation_source": "sam"
+}

@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-06-rebar-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: 0 (high: 0, medium: 0, low: 0). There is no urgent item; the inspected area in frame 0 shows three persons wearing hard hats and safety vests with no in-scope violations visible. No work stoppage is required in any area.",
+ "segmentation_source": "sam"
+}

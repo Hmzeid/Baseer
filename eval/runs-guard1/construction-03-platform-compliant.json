@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-03-platform-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: zero high, zero medium, and zero low. Workers in all frames appear wearing hard hats and safety vests, and no in-scope violation is observed. There is no urgent item, and no area needs to stop work.",
+ "segmentation_source": "sam"
+}

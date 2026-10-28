@@ -1,0 +1,8 @@
+{
+ "scene_id": "viol-04-descend-indeterminate",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No safety violations were observed in the provided evidence. Totals: 0 high severity, 0 medium severity, 0 low severity. There is no urgent item, and there is no need to stop work in any area based on this evidence.",
+ "segmentation_source": "sam"
+}

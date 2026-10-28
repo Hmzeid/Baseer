@@ -1,0 +1,17 @@
+{
+ "scene_id": "construction-01-scaffold",
+ "labels": [
+  "worker_without_helmet"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Worker without a hard hat in the scaffolding area",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There is one finding in total: one high severity, and no medium or low findings. The most urgent item is a worker without a hard hat in the scaffolding area. Work must stop in that area immediately until the hard hat is worn.",
+ "segmentation_source": "sam"
+}

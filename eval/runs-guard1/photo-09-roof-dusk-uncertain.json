@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-09-roof-dusk-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: 0, including 0 high, 0 medium, and 0 low severity. There is no urgent item in the provided evidence, as only a person and a ladder appear with no confirmable safety violation. Work does not need to stop in any area based on this evidence.",
+ "segmentation_source": "sam"
+}

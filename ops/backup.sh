@@ -1,8 +1,9 @@
 #!/bin/sh
 # Baseer backup: SQLite snapshot + evidence, timestamped.
-# Run nightly (or before any upgrade). Restores by unzipping over data/.
+# Run nightly (or before any upgrade). Restores by copying over data/.
+# ROOT override for testing: BASEER_ROOT=/tmp/x sh ops/backup.sh
 set -eu
-ROOT="/Users/husseinabdelwahab/Ai/Baseer"
+ROOT="${BASEER_ROOT:-/Users/husseinabdelwahab/Ai/Baseer}"
 STAMP=$(date +%Y%m%d-%H%M%S)
 OUT="$ROOT/backups/baseer-$STAMP"
 mkdir -p "$ROOT/backups"

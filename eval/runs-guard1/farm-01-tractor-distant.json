@@ -1,0 +1,8 @@
+{
+ "scene_id": "farm-01-tractor-distant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No findings were recorded. Totals: 0 high, 0 medium, and 0 low. There is no urgent item, and no area requires work to stop based on the evidence provided.",
+ "segmentation_source": "sam"
+}
