@@ -20,8 +20,12 @@ https://developer.meta.com/docs/model-api in a normal browser at kickoff):
     special-token text records: boxes + base85-encoded masks + stable object
     IDs tracked across video frames (see parse below). Per-team gated: a team
     without SAM enabled gets 404 model_not_found — verify before kickoff.
-    DAY-0 VERDICT (Oct 26): this team IS gated (404). Fallback: Muse reads
-    the frames directly (reason_from_frames, prompts.VISION_SYSTEM_PROMPT).
+    DAY-0 VERDICT (Oct 26): Chat Completions returned 404 for sam-3.1.
+    OCT 27 CORRECTION: the 404 was the wrong surface, not a team gate —
+    sam-3.1 is listed by GET /v1/models and answers on the Responses API,
+    so segment_frames() below uses POST /v1/responses. Fallback stays:
+    when SAM is unreachable, Muse reads the frames directly
+    (reason_from_frames, prompts.VISION_SYSTEM_PROMPT).
     Pipeline selects via env BASEER_SEGMENTATION: "auto" (default — try SAM,
     fall back to vision on the 404), "sam" (never fall back), "vision"
     (skip SAM entirely). The report records which source was used.
@@ -244,7 +248,7 @@ def reason_from_frames(frames: list[bytes], inspector_notes: str,
 
     Same Finding contract as reason_findings, except findings carry
     source "vision" and describe their region in words (no boxes exist).
-    Used when SAM 3.1 is gated (Day-0 verdict: 404 for this team) and when
+    Used when SAM 3.1 is unreachable (404 fallback in auto mode) and when
     BASEER_SEGMENTATION=vision. The caller labels each image with its
     frame index so findings can cite frame_index correctly.
     """

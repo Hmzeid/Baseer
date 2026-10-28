@@ -135,7 +135,7 @@ def run_inspection(files: list[tuple[str, bytes]], inspector_notes: str,
             findings, summary_ar, summary_en = meta_client.reason_findings(
                 segments, inspector_notes, site_context)
         except RuntimeError as exc:
-            # SAM gated (404) + auto mode: fall back to vision, loudly.
+            # SAM unreachable (404) + auto mode: fall back to vision, loudly.
             if meta_client.SEGMENTATION == "auto" and "404" in str(exc):
                 segmentation_source = "vision"
                 if frames:
