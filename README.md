@@ -7,10 +7,10 @@ inspection report — then opens a corrective-action case for what it found,
 and verifies the fix on re-inspection, with a human approving every closure. **SAM 3.1** segments the scene — equipment, workers, PPE,
 vehicles, visible hazards — and **Muse Spark** reasons over those segments
 together with the inspector's Arabic voice or text notes. **Live note
-(Oct 26): SAM 3.1 is per-team gated and this team is gated (404), so the
-live path currently uses Muse's own multimodal vision on the frames
-instead — same report schema, but no bounding-box overlays, only frame
-indices and regions described in words. The report records
+(Oct 27): SAM 3.1 answers via the Responses API — the Oct 26 404 was the
+Chat Completions surface, not a team gate. The live path uses SAM in auto
+mode and falls back to Muse's own multimodal vision on the frames when SAM
+is unreachable — same report schema either way. The report records
 `segmentation_source` so the difference is always visible.** The output is a
 structured report in Arabic (with an English summary): every finding carries a
 severity, the exact frame as evidence, and a recommended corrective action.
