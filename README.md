@@ -78,7 +78,10 @@ roadmap item — see BUILD_PLAN.md.
 - `BUILD_PLAN.md` — day-by-day build plan and submission checklist
 - `demo/` — demo footage plan (staged/public material only)
 
-## Evaluation benchmark (fixed 24-scene set, live vision path)
+## Evaluation benchmark (fixed 24-scene set, vision + SAM paths)
+Demo filmed on the vision path (Muse multimodal reasoning); the SAM 3.1
+segmentation path is evaluated alongside it — precision 0.600, recall
+0.375 — see the SAM numbers below.
 24 labeled scenes from the same staged/public Pexels footage as the demo
 (`demo/SOURCES.md`; binaries re-fetched via `eval/fetch_media.py`, never
 committed). The set was fixed in `eval/scenes.json` before any run and
