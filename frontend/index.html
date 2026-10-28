@@ -237,6 +237,7 @@
       <button type="button" id="navLive"><span class="glyph">◉</span><span id="navLiveT">كاميرا مباشرة</span></button>
       <button type="button" id="navReport"><span class="glyph">▤</span><span id="navReportT">تقرير الفحص</span></button>
       <button type="button" id="navAudit"><span class="glyph">≡</span><span id="navAuditT">سجل التدقيق</span></button>
+      <button type="button" id="navUsers" class="hidden"><span class="glyph">◍</span><span id="navUsersT">المستخدمون</span></button>
       <div class="navlabel" id="navUser" style="margin-top:14px">—</div>
       <button type="button" id="navLogout"><span class="glyph">⏻</span><span id="navLogoutT">خروج</span></button>
     </nav>
@@ -442,6 +443,37 @@
         </div>
       </section>
 
+      <!-- ============ USERS (ADMIN) ============ -->
+      <section id="view-users" class="hidden">
+        <div class="card">
+          <div class="panelhead">
+            <div>
+              <h2 id="tUsers">المستخدمون</h2>
+              <p class="hint" id="tUsersHint" style="margin:4px 0 0">حسابات المفتشين وأدوارهم — الإدارة فقط.</p>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th id="thUName">المستخدم</th><th id="thURole">الدور</th><th id="thUCreated">أُنشئ</th><th></th></tr></thead>
+            <tbody id="userRows"></tbody>
+          </table>
+          <h3 id="tNewUser" style="margin-top:18px">حساب جديد</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end">
+            <div><label for="nuName" id="tNuName">الاسم</label><input id="nuName" type="text" style="width:160px"></div>
+            <div><label for="nuPass" id="tNuPass">كلمة المرور</label><input id="nuPass" type="password" style="width:160px"></div>
+            <div><label for="nuRole" id="tNuRole">الدور</label><select id="nuRole" style="width:170px"></select></div>
+            <button id="nuBtn" class="btn gold" type="button">إضافة</button>
+          </div>
+          <p class="meta hidden" id="nuErr" style="color:var(--high)"></p>
+          <h3 id="tMyPass" style="margin-top:18px">كلمتي</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end">
+            <div><label for="pwOld" id="tPwOld">الحالية</label><input id="pwOld" type="password" style="width:160px"></div>
+            <div><label for="pwNew" id="tPwNew">الجديدة (8+)</label><input id="pwNew" type="password" style="width:160px"></div>
+            <button id="pwBtn" class="btn ghost" type="button">تغيير</button>
+          </div>
+          <p class="meta hidden" id="pwMsg"></p>
+        </div>
+      </section>
+
       <!-- ============ AUDIT LOG ============ -->
       <section id="view-audit" class="hidden">
         <div class="card">
@@ -471,13 +503,14 @@ const S = {
     fine:"صُنع بواسطة Veebase.",
     sideMock:"وضع تجريبي", sideLive:"وضع مباشر",
     ctaNew:"+ فحص جديد",
-    pT:{overview:"نظرة السلامة العامة", inspect:"فحص جديد", live:"وضع الكاميرا المباشرة", report:"تقرير الفحص", audit:"سجل التدقيق", login:"تسجيل الدخول"},
+    pT:{overview:"نظرة السلامة العامة", inspect:"فحص جديد", live:"وضع الكاميرا المباشرة", report:"تقرير الفحص", audit:"سجل التدقيق", login:"تسجيل الدخول", users:"المستخدمون"},
     pS:{overview:"ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta — الرؤية والاستدلال.",
         inspect:"صور أو فيديو مع ملاحظة المفتش — والنتيجة تقرير كامل في نحو 30 ثانية.",
         live:"إطارات تصل تباعًا، ومخالفات تُرصد لحظة ظهورها، وتقرير كامل عند إنهاء الجلسة.",
         report:"تقرير مبني على الأدلة — كل ملاحظة مرتبطة بإطارها، ولا تُغلق إلا باعتماد بشري.",
         audit:"كل إجراء على الحالات — إسنادًا وتحققًا واعتمادًا — مسجل ومحمي من الحذف.",
-        login:"سجّل الدخول بحسابك للوصول إلى وحدة التحكم."},
+        login:"سجّل الدخول بحسابك للوصول إلى وحدة التحكم.",
+        users:"حسابات المفتشين وأدوارهم — الإدارة فقط."},
     files:"صور / فيديو من الموقع", notes:"ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)",
     notesPh:"مثال: لاحظت عاملًا عند الحافة العلوية، والرافعة تعمل قرب منطقة المشاة...",
     micRec:"تسجيل ملاحظة صوتية", micStop:"إيقاف التسجيل", micListening:"يستمع… تحدث الآن.",
@@ -529,6 +562,11 @@ const S = {
     loginHint:"حسابك الشخصي — كل إجراء يُسجَّل باسمك.", loginUser:"اسم المستخدم",
     loginPass:"كلمة المرور", loginGo:"دخول",
     loginErr:"تعذّر الدخول — تحقق من الاسم وكلمة المرور.", logout:"خروج",
+    navUsers:"المستخدمون", tUsers:"المستخدمون", tUsersHint:"حسابات المفتشين وأدوارهم — الإدارة فقط.",
+    thUName:"المستخدم", thURole:"الدور", thUCreated:"أُنشئ",
+    tNewUser:"حساب جديد", tNuName:"الاسم", tNuPass:"كلمة المرور", tNuRole:"الدور", nuAdd:"إضافة",
+    nuErr:"تعذّر إنشاء الحساب.", tMyPass:"كلمتي", tPwOld:"الحالية", tPwNew:"الجديدة (8+)",
+    pwChange:"تغيير", pwOk:"تم تغيير كلمة المرور.", pwErr:"تعذّر التغيير — تحقق من الحالية.",
     actAssign:"إسناد", actVerify:"تحقق", actApprove:"اعتماد الإغلاق", actVerifyEv:"تحقق بدليل",
     detUncertain:"تعذّر التحديد",
     pick:(f,k)=>f[k+"_ar"]||f[k+"_en"], sum:(r)=>r.summary_ar },
@@ -539,13 +577,14 @@ const S = {
     fine:"Built by Veebase.",
     sideMock:"Demo mode", sideLive:"Live mode",
     ctaNew:"+ New inspection",
-    pT:{overview:"Safety overview", inspect:"New inspection", live:"Live camera mode", report:"Inspection report", audit:"Audit log", login:"Sign in"},
+    pT:{overview:"Safety overview", inspect:"New inspection", live:"Live camera mode", report:"Inspection report", audit:"Audit log", login:"Sign in", users:"Users"},
     pS:{overview:"Upload photos or a short video from the worksite and Baseer turns them into a structured inspection report. Powered by Meta models — vision and reasoning.",
         inspect:"Photos or video plus the inspector's note — a full report in about 30 seconds.",
         live:"Frames arrive in sequence, violations are flagged the moment they appear, and finishing the session produces the full report.",
         report:"An evidence-grounded report — every finding tied to its frame, never closed without human approval.",
         audit:"Every case action — assign, verify, approve — recorded and protected from deletion.",
-        login:"Sign in with your account to reach the console."},
+        login:"Sign in with your account to reach the console.",
+        users:"Inspector accounts and roles — admin only."},
     files:"Site photos / video", notes:"Inspector notes (transcribed voice or written)",
     notesPh:"Example: I noticed a worker near the upper edge, and the forklift operates close to the pedestrian area...",
     micRec:"Record voice note", micStop:"Stop recording", micListening:"Listening… speak now.",
@@ -597,6 +636,11 @@ const S = {
     loginHint:"Your personal account — every action is recorded under your name.", loginUser:"Username",
     loginPass:"Password", loginGo:"Sign in",
     loginErr:"Sign-in failed — check your username and password.", logout:"Sign out",
+    navUsers:"Users", tUsers:"Users", tUsersHint:"Inspector accounts and roles — admin only.",
+    thUName:"User", thURole:"Role", thUCreated:"Created",
+    tNewUser:"New account", tNuName:"Name", tNuPass:"Password", tNuRole:"Role", nuAdd:"Add",
+    nuErr:"Could not create the account.", tMyPass:"My password", tPwOld:"Current", tPwNew:"New (8+)",
+    pwChange:"Change", pwOk:"Password changed.", pwErr:"Change failed — check the current one.",
     actAssign:"Assign", actVerify:"Verify", actApprove:"Approve closure", actVerifyEv:"Verify with evidence",
     detUncertain:"Unable to determine",
     pick:(f,k)=>f[k+"_en"]||f[k+"_ar"], sum:(r)=>r.summary_en }
@@ -651,16 +695,34 @@ function paintUser() {
   $("navUser").textContent = session ? `${session.username} · ${session.role}` : "—";
   if (session) { actor = sessionActor(); }
   if (typeof paintActorSel === "function" && $("actorSel")) paintActorSel();
+  $("navUsers").classList.toggle("hidden", !(session && session.role === "Admin"));
+}
+async function loadUsers() {
+  const tb = $("userRows");
+  try {
+    const u = await (await fetch("/auth/users")).json();
+    tb.innerHTML = u.users.map(x =>
+      `<tr><td style="font-weight:700">${esc(x.username)}</td><td>${esc(x.role)}</td>` +
+      `<td class="meta">${esc((x.created_at || "").slice(0, 16).replace("T", " "))}</td>` +
+      `<td>${x.username === (session && session.username) ? "" :
+        `<button type="button" class="btn ghost small" onclick="deleteUser('${esc(x.username)}')">✕</button>`}</td></tr>`).join("");
+  } catch (e) { /* layer only */ }
+}
+async function deleteUser(name) {
+  await fetch("/auth/users/" + encodeURIComponent(name), {method: "DELETE"});
+  loadUsers();
 }
 function showView(name) {
   currentView = name;
   const s = S[lang];
-  for (const v of ["overview","inspect","live","report","audit","login"]) $("view-" + v).classList.toggle("hidden", v !== name);
-  for (const k of ["navOverview","navInspect","navLive","navReport","navAudit"])
+  for (const v of ["overview","inspect","live","report","audit","login","users"]) $("view-" + v).classList.toggle("hidden", v !== name);
+  if (name === "users" && !(session && session.role === "Admin")) name = "overview";
+  for (const k of ["navOverview","navInspect","navLive","navReport","navAudit","navUsers"])
     $(k).classList.toggle("active", k.toLowerCase().includes(name));
   $("pageTitle").textContent = s.pT[name];
   $("pageSub").textContent = s.pS[name];
   if (name === "audit") loadAudit();
+  if (name === "users") loadUsers();
 }
 function paintSideMode() {
   const s = S[lang];
@@ -721,6 +783,14 @@ function applyLang() {
   $("tLogin").textContent = s.loginT; $("tLoginHint").textContent = s.loginHint;
   $("tLoginUser").textContent = s.loginUser; $("tLoginPass").textContent = s.loginPass;
   $("loginBtn").textContent = s.loginGo; $("navLogoutT").textContent = s.logout;
+  $("navUsersT").textContent = s.navUsers;
+  $("tUsers").textContent = s.tUsers; $("tUsersHint").textContent = s.tUsersHint;
+  $("thUName").textContent = s.thUName; $("thURole").textContent = s.thURole; $("thUCreated").textContent = s.thUCreated;
+  $("tNewUser").textContent = s.tNewUser; $("tNuName").textContent = s.tNuName;
+  $("tNuPass").textContent = s.tNuPass; $("tNuRole").textContent = s.tNuRole; $("nuBtn").textContent = s.nuAdd;
+  $("tMyPass").textContent = s.tMyPass; $("tPwOld").textContent = s.tPwOld;
+  $("tPwNew").textContent = s.tPwNew; $("pwBtn").textContent = s.pwChange;
+  $("nuRole").innerHTML = ["Safety Supervisor","Site Manager","Contractor"].map(r => `<option>${r}</option>`).join("");
   paintUser();
   paintActorSel(); paintSiteFilter();
   if (currentView === "audit") loadAudit();
@@ -1173,6 +1243,29 @@ $("actorSel").addEventListener("change", (e)=>{ actor = e.target.value; });
 $("loginBtn").addEventListener("click", doLogin);
 $("loginPass").addEventListener("keydown", (e)=>{ if (e.key === "Enter") { e.preventDefault(); doLogin(); } });
 $("navLogout").addEventListener("click", doLogout);
+$("navUsers").addEventListener("click", ()=>showView("users"));
+$("nuBtn").addEventListener("click", async ()=>{
+  const s = S[lang], err = $("nuErr");
+  err.classList.add("hidden");
+  const res = await fetch("/auth/users", {method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({username: $("nuName").value.trim(),
+      password: $("nuPass").value, role: $("nuRole").value})});
+  if (!res.ok) { err.textContent = s.nuErr; err.classList.remove("hidden"); return; }
+  $("nuName").value = ""; $("nuPass").value = "";
+  loadUsers();
+});
+$("pwBtn").addEventListener("click", async ()=>{
+  const s = S[lang], msg = $("pwMsg");
+  msg.classList.add("hidden");
+  const res = await fetch("/auth/password", {method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({old_password: $("pwOld").value, new_password: $("pwNew").value})});
+  msg.textContent = res.ok ? s.pwOk : s.pwErr;
+  msg.style.color = res.ok ? "var(--low)" : "var(--high)";
+  msg.classList.remove("hidden");
+  $("pwOld").value = ""; $("pwNew").value = "";
+});
 $("csvBtn").addEventListener("click", async ()=>{
   try {
     const res = await fetch("/audit?format=csv");
