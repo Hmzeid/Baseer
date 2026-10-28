@@ -57,6 +57,18 @@ Mock mode runs the full pipeline with synthetic segmentation/reasoning
 outputs — no API key needed. For live mode, copy `.env.example` to `.env`,
 set `BASEER_MODE=live`, and fill the Meta Model API values.
 
+## Production (on-site deployment)
+Sign-in is required: accounts carry one of the Safety Supervisor, Site
+Manager, Contractor, or Admin roles, and every case action is stamped
+`username (role)` in the audit log. State is durable — inspections, cases,
+users, and the audit trail live in `data/baseer.db` (SQLite, git-ignored)
+with original uploads under `data/evidence/`; only in-flight live-camera
+sessions are lost on a restart. First boot creates the `admin` user (set
+`BASEER_ADMIN_PASSWORD`, otherwise a one-time password prints to the
+server log). Run it as a service with `ops/com.veebase.baseer.plist`
+(launchd, auto-restart, never port 8000), back up with `sh ops/backup.sh`,
+and follow `ops/RUNBOOK.md` for restarts, key rotation, and staff changes.
+
 ## Scope
 Core = the inspection (capture → structured report in ~30 seconds).
 Two layers hang off the completed report, never before it:

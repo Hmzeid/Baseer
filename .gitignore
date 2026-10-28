@@ -6,3 +6,5 @@ __pycache__/
 # Eval/demo binaries are re-fetched via eval/fetch_media.py, never committed.
 demo/footage/
 demo/photos/
+# Production runtime data: SQLite DB, token secret, stored evidence.
+data/

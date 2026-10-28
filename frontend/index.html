@@ -116,7 +116,7 @@
   .hidden { display:none !important; }
   /* ---- Forms ---- */
   label { display:block; font-weight:700; margin:14px 0 6px; font-size:13.5px; }
-  input[type=text], textarea, select { width:100%; padding:10px 12px; border:1px solid var(--line);
+  input[type=text], input[type=password], textarea, select { width:100%; padding:10px 12px; border:1px solid var(--line);
     border-radius:10px; font-size:14px; background:#fff; color:var(--ink); }
   textarea { min-height:84px; resize:vertical; }
   .drop { border:1.5px dashed #CFC8B4; border-radius:14px; padding:26px 22px; text-align:center;
@@ -237,6 +237,8 @@
       <button type="button" id="navLive"><span class="glyph">◉</span><span id="navLiveT">كاميرا مباشرة</span></button>
       <button type="button" id="navReport"><span class="glyph">▤</span><span id="navReportT">تقرير الفحص</span></button>
       <button type="button" id="navAudit"><span class="glyph">≡</span><span id="navAuditT">سجل التدقيق</span></button>
+      <div class="navlabel" id="navUser" style="margin-top:14px">—</div>
+      <button type="button" id="navLogout"><span class="glyph">⏻</span><span id="navLogoutT">خروج</span></button>
     </nav>
     <div class="sidefoot">
       <div class="sidestat"><b id="sideModeT">وضع تجريبي</b><span id="sideFoot">Baseer turns a short site video — or a live camera feed — and an Arabic voice note into an evidence-grounded safety inspection, then tracks corrective actions until a human verifies the resolution.</span></div>
@@ -426,6 +428,20 @@
         </div>
       </section>
 
+      <!-- ============ LOGIN ============ -->
+      <section id="view-login" class="hidden">
+        <div class="card" style="max-width:460px;margin:8vh auto">
+          <h2 id="tLogin">تسجيل الدخول</h2>
+          <p class="hint" id="tLoginHint">حسابك الشخصي — كل إجراء يُسجَّل باسمك.</p>
+          <div style="margin:12px 0"><label for="loginUser" id="tLoginUser">اسم المستخدم</label>
+            <input id="loginUser" type="text" autocomplete="username"></div>
+          <div style="margin:12px 0"><label for="loginPass" id="tLoginPass">كلمة المرور</label>
+            <input id="loginPass" type="password" autocomplete="current-password"></div>
+          <p class="meta hidden" id="loginErr" style="color:var(--high)"></p>
+          <button id="loginBtn" class="btn gold" type="button" style="width:100%">دخول</button>
+        </div>
+      </section>
+
       <!-- ============ AUDIT LOG ============ -->
       <section id="view-audit" class="hidden">
         <div class="card">
@@ -455,12 +471,13 @@ const S = {
     fine:"صُنع بواسطة Veebase.",
     sideMock:"وضع تجريبي", sideLive:"وضع مباشر",
     ctaNew:"+ فحص جديد",
-    pT:{overview:"نظرة السلامة العامة", inspect:"فحص جديد", live:"وضع الكاميرا المباشرة", report:"تقرير الفحص", audit:"سجل التدقيق"},
+    pT:{overview:"نظرة السلامة العامة", inspect:"فحص جديد", live:"وضع الكاميرا المباشرة", report:"تقرير الفحص", audit:"سجل التدقيق", login:"تسجيل الدخول"},
     pS:{overview:"ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta — الرؤية والاستدلال.",
         inspect:"صور أو فيديو مع ملاحظة المفتش — والنتيجة تقرير كامل في نحو 30 ثانية.",
         live:"إطارات تصل تباعًا، ومخالفات تُرصد لحظة ظهورها، وتقرير كامل عند إنهاء الجلسة.",
         report:"تقرير مبني على الأدلة — كل ملاحظة مرتبطة بإطارها، ولا تُغلق إلا باعتماد بشري.",
-        audit:"كل إجراء على الحالات — إسنادًا وتحققًا واعتمادًا — مسجل ومحمي من الحذف."},
+        audit:"كل إجراء على الحالات — إسنادًا وتحققًا واعتمادًا — مسجل ومحمي من الحذف.",
+        login:"سجّل الدخول بحسابك للوصول إلى وحدة التحكم."},
     files:"صور / فيديو من الموقع", notes:"ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)",
     notesPh:"مثال: لاحظت عاملًا عند الحافة العلوية، والرافعة تعمل قرب منطقة المشاة...",
     micRec:"تسجيل ملاحظة صوتية", micStop:"إيقاف التسجيل", micListening:"يستمع… تحدث الآن.",
@@ -508,7 +525,10 @@ const S = {
     tAudit:"سجل التدقيق", tAuditHint:"كل إجراء على الحالات — إسنادًا وتحققًا واعتمادًا — مسجل هنا ولا يُحذف.",
     csvBtn:"تنزيل CSV", thTime:"الوقت", thAuditId:"الفحص", thSite:"الموقع", thFindingN:"ملاحظة #",
     thAction:"الإجراء", thActor:"الفاعل", thDetail:"التفاصيل", auditEmpty:"لا إجراءات مسجلة بعد.",
-    siteAll:"كل المواقع", actAs:"أتصرف بصفة",
+    siteAll:"كل المواقع", actAs:"أتصرف بصفة", loginT:"تسجيل الدخول",
+    loginHint:"حسابك الشخصي — كل إجراء يُسجَّل باسمك.", loginUser:"اسم المستخدم",
+    loginPass:"كلمة المرور", loginGo:"دخول",
+    loginErr:"تعذّر الدخول — تحقق من الاسم وكلمة المرور.", logout:"خروج",
     actAssign:"إسناد", actVerify:"تحقق", actApprove:"اعتماد الإغلاق", actVerifyEv:"تحقق بدليل",
     detUncertain:"تعذّر التحديد",
     pick:(f,k)=>f[k+"_ar"]||f[k+"_en"], sum:(r)=>r.summary_ar },
@@ -519,12 +539,13 @@ const S = {
     fine:"Built by Veebase.",
     sideMock:"Demo mode", sideLive:"Live mode",
     ctaNew:"+ New inspection",
-    pT:{overview:"Safety overview", inspect:"New inspection", live:"Live camera mode", report:"Inspection report", audit:"Audit log"},
+    pT:{overview:"Safety overview", inspect:"New inspection", live:"Live camera mode", report:"Inspection report", audit:"Audit log", login:"Sign in"},
     pS:{overview:"Upload photos or a short video from the worksite and Baseer turns them into a structured inspection report. Powered by Meta models — vision and reasoning.",
         inspect:"Photos or video plus the inspector's note — a full report in about 30 seconds.",
         live:"Frames arrive in sequence, violations are flagged the moment they appear, and finishing the session produces the full report.",
         report:"An evidence-grounded report — every finding tied to its frame, never closed without human approval.",
-        audit:"Every case action — assign, verify, approve — recorded and protected from deletion."},
+        audit:"Every case action — assign, verify, approve — recorded and protected from deletion.",
+        login:"Sign in with your account to reach the console."},
     files:"Site photos / video", notes:"Inspector notes (transcribed voice or written)",
     notesPh:"Example: I noticed a worker near the upper edge, and the forklift operates close to the pedestrian area...",
     micRec:"Record voice note", micStop:"Stop recording", micListening:"Listening… speak now.",
@@ -572,7 +593,10 @@ const S = {
     tAudit:"Audit log", tAuditHint:"Every case action — assignment, verification, approval — is recorded here and never deleted.",
     csvBtn:"Download CSV", thTime:"Time", thAuditId:"Inspection", thSite:"Site", thFindingN:"Finding #",
     thAction:"Action", thActor:"Actor", thDetail:"Detail", auditEmpty:"No recorded actions yet.",
-    siteAll:"All sites", actAs:"Acting as",
+    siteAll:"All sites", actAs:"Acting as", loginT:"Sign in",
+    loginHint:"Your personal account — every action is recorded under your name.", loginUser:"Username",
+    loginPass:"Password", loginGo:"Sign in",
+    loginErr:"Sign-in failed — check your username and password.", logout:"Sign out",
     actAssign:"Assign", actVerify:"Verify", actApprove:"Approve closure", actVerifyEv:"Verify with evidence",
     detUncertain:"Unable to determine",
     pick:(f,k)=>f[k+"_en"]||f[k+"_ar"], sum:(r)=>r.summary_en }
@@ -581,10 +605,57 @@ let lang = "ar", lastReport = null, currentView = "overview", serverMode = "mock
 let currentSite = "", actor = "";
 let liveState = {active:false, frames:0, alerts:0};
 const $ = (id) => document.getElementById(id);
+let session = null;
+try { session = JSON.parse(localStorage.getItem("baseer_session") || "null"); } catch (e) { session = null; }
+const _fetch = window.fetch.bind(window);
+window.fetch = (url, opts = {}) => {
+  if (typeof url === "string" && !url.includes("/auth/login") && session && session.token) {
+    opts = Object.assign({}, opts);
+    opts.headers = Object.assign({}, opts.headers, {Authorization: "Bearer " + session.token});
+  }
+  return _fetch(url, opts).then((res) => {
+    if (res.status === 401 && session && typeof url === "string" && !url.includes("/auth/")) {
+      doLogout();
+    }
+    return res;
+  });
+};
+function sessionActor() {
+  return session ? `${session.username} (${session.role})` : actor;
+}
+async function doLogin() {
+  const s = S[lang], err = $("loginErr");
+  err.classList.add("hidden");
+  try {
+    const res = await _fetch("/auth/login", {method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({username: $("loginUser").value.trim(), password: $("loginPass").value})});
+    if (!res.ok) {
+      err.textContent = s.loginErr; err.classList.remove("hidden"); return;
+    }
+    session = await res.json();
+    localStorage.setItem("baseer_session", JSON.stringify(session));
+    $("loginPass").value = "";
+    paintUser();
+    showView("overview");
+    loadAnalytics();
+  } catch (e) { err.textContent = s.loginErr; err.classList.remove("hidden"); }
+}
+function doLogout() {
+  session = null;
+  try { localStorage.removeItem("baseer_session"); } catch (e) {}
+  paintUser();
+  showView("login");
+}
+function paintUser() {
+  $("navUser").textContent = session ? `${session.username} · ${session.role}` : "—";
+  if (session) { actor = sessionActor(); }
+  if (typeof paintActorSel === "function" && $("actorSel")) paintActorSel();
+}
 function showView(name) {
   currentView = name;
   const s = S[lang];
-  for (const v of ["overview","inspect","live","report","audit"]) $("view-" + v).classList.toggle("hidden", v !== name);
+  for (const v of ["overview","inspect","live","report","audit","login"]) $("view-" + v).classList.toggle("hidden", v !== name);
   for (const k of ["navOverview","navInspect","navLive","navReport","navAudit"])
     $(k).classList.toggle("active", k.toLowerCase().includes(name));
   $("pageTitle").textContent = s.pT[name];
@@ -647,6 +718,10 @@ function applyLang() {
   $("thFindingN").textContent = s.thFindingN; $("thAction").textContent = s.thAction;
   $("thActor").textContent = s.thActor; $("thDetail").textContent = s.thDetail;
   $("auditEmpty").textContent = s.auditEmpty;
+  $("tLogin").textContent = s.loginT; $("tLoginHint").textContent = s.loginHint;
+  $("tLoginUser").textContent = s.loginUser; $("tLoginPass").textContent = s.loginPass;
+  $("loginBtn").textContent = s.loginGo; $("navLogoutT").textContent = s.logout;
+  paintUser();
   paintActorSel(); paintSiteFilter();
   if (currentView === "audit") loadAudit();
   loadAnalytics();
@@ -845,6 +920,11 @@ function paintActorSel() {
   const s = S[lang], sel = $("actorSel");
   if (!sel) return;
   sel.title = s.actAs;
+  if (session) {
+    sel.innerHTML = `<option selected>${esc(session.username)} (${esc(session.role)})</option>`;
+    actor = sessionActor();
+    return;
+  }
   const keep = s.roles.includes(actor) ? actor : s.roles[0];
   sel.innerHTML = s.roles.map(r => `<option${r === keep ? " selected" : ""}>${r}</option>`).join("");
   actor = sel.value;
@@ -1041,7 +1121,7 @@ $("micBtn").addEventListener("click", async () => {
     $("micStatus").textContent = s.micErr; return;
   }
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
-  micWS = new WebSocket(proto + "//" + location.host + "/voice/transcribe");
+  micWS = new WebSocket(proto + "//" + location.host + "/voice/transcribe?token=" + encodeURIComponent(session ? session.token : ""));
   micWS.onmessage = (ev) => {
     try {
       const m = JSON.parse(ev.data);
@@ -1090,6 +1170,9 @@ $("navReport").addEventListener("click", ()=>showView("report"));
 $("navAudit").addEventListener("click", ()=>showView("audit"));
 $("siteFilter").addEventListener("change", (e)=>{ currentSite = e.target.value; loadAnalytics(); });
 $("actorSel").addEventListener("change", (e)=>{ actor = e.target.value; });
+$("loginBtn").addEventListener("click", doLogin);
+$("loginPass").addEventListener("keydown", (e)=>{ if (e.key === "Enter") { e.preventDefault(); doLogin(); } });
+$("navLogout").addEventListener("click", doLogout);
 $("csvBtn").addEventListener("click", async ()=>{
   try {
     const res = await fetch("/audit?format=csv");
@@ -1166,6 +1249,20 @@ if (q.get("lang") === "en") lang = "en";
 paintLiveStats();
 applyLang();
 loadHealth();
+if (session && session.token) {
+  _fetch("/auth/me", {}).then((r) => {
+    if (!r.ok) { doLogout(); return; }
+    r.json().then((me) => {
+      session.username = me.username; session.role = me.role;
+      try { localStorage.setItem("baseer_session", JSON.stringify(session)); } catch (e) {}
+      paintUser();
+      showView("overview");
+      loadAnalytics();
+    });
+  }).catch(() => {});
+} else {
+  showView("login");
+}
 </script>
 </body>
 </html>

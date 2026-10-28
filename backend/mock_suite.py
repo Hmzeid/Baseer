@@ -17,6 +17,10 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 os.environ["BASEER_MODE"] = "mock"
+# Isolated runtime data: the suite must not touch the real ./data dir.
+import tempfile as _tempfile
+os.environ["BASEER_DATA_DIR"] = _tempfile.mkdtemp(prefix="baseer-suite-")
+os.environ["BASEER_ADMIN_PASSWORD"] = "suite-admin-pw"
 
 from PIL import Image  # noqa: E402
 
@@ -48,7 +52,29 @@ def main() -> int:
     from fastapi.testclient import TestClient
     import app
 
-    c = TestClient(app.app)
+    anon = TestClient(app.app)
+    r = anon.get("/analytics")
+    check("auth required", r.status_code == 401, r.text[:120])
+    r = anon.post("/auth/login",
+                  json={"username": "admin", "password": "wrong"})
+    check("login rejects bad password", r.status_code == 401, r.text[:120])
+    r = anon.post("/auth/login",
+                  json={"username": "admin", "password": "suite-admin-pw"})
+    check("admin login", r.status_code == 200, r.text[:200])
+    admin_tok = r.json()["token"]
+    admin = TestClient(app.app,
+                       headers={"Authorization": f"Bearer {admin_tok}"})
+    r = admin.post("/auth/users",
+                   json={"username": "layla", "password": "field-pw-1",
+                         "role": "Safety Supervisor"})
+    check("admin creates user", r.status_code == 200, r.text[:200])
+    r = anon.post("/auth/login",
+                  json={"username": "layla", "password": "field-pw-1"})
+    check("user login + role", r.json().get("role") == "Safety Supervisor",
+          r.text[:200])
+    layla_tok = r.json()["token"]
+    c = TestClient(app.app,
+                   headers={"Authorization": f"Bearer {layla_tok}"})
     jpg = solid_jpeg()
     solid_mp4("/tmp/mock-suite-video.mp4")
     mp4 = open("/tmp/mock-suite-video.mp4", "rb").read()
@@ -116,8 +142,9 @@ def main() -> int:
           ve2["case"]["verification"]["suggested_resolved"] is False,
           str(ve2["case"]["verification"])[:150])
 
-    # 3. voice fallback (unconfigured upstream answers cleanly)
-    with c.websocket_connect("/voice/transcribe") as ws:
+    # 3. voice fallback (unconfigured upstream answers cleanly;
+    # authed via ?token= since browsers cannot set WS headers)
+    with c.websocket_connect(f"/voice/transcribe?token={layla_tok}") as ws:
         import json as _json
         msg = _json.loads(ws.receive_text())
     check("voice fallback frame", msg.get("type") == "error", str(msg)[:150])
@@ -167,6 +194,28 @@ def main() -> int:
           and "FINDING ECONOMY" in _prompts.VISION_SYSTEM_PROMPT
           and "empty findings array" in _prompts.VISION_SYSTEM_PROMPT,
           _prompts.PROMPT_VERSION)
+
+    # 8. production durability: evidence on disk, audit stamped with the
+    # signed-in identity, reports reloadable from SQLite after a restart.
+    import store as _store
+    ev_dir = os.path.join(os.environ["BASEER_DATA_DIR"], "evidence", iid)
+    check("evidence stored",
+          bool(rep.get("evidence_files"))
+          and all(os.path.isfile(os.path.join(ev_dir, n))
+                  for n in rep["evidence_files"]),
+          ev_dir)
+    au = c.get("/audit").json()
+    check("audit stamped identity",
+          any(e["actor"] == "layla (Safety Supervisor)" for e in au["entries"]),
+          str([e["actor"] for e in au["entries"]])[:150])
+    app.REPORTS.clear()
+    app.REPORTS.update(_store.load_reports())
+    check("restart reloads reports",
+          iid in app.REPORTS
+          and app.REPORTS[iid]["findings"][0]["case"]["status"] == "closed",
+          f"{len(app.REPORTS)} reports reloaded")
+    check("audit survives restart", len(_store.read_audit()) >= 3,
+          f"{len(_store.read_audit())} entries")
 
     print(f"mock suite: GREEN ({an['total_inspections']} inspections, {an['total_findings']} findings)")
     return 0
