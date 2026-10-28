@@ -28,8 +28,9 @@ def _api_key() -> str:
     return os.getenv("MODEL_API_KEY", "") or os.getenv("META_API_KEY", "")
 
 
-async def proxy(client_ws) -> None:
-    await client_ws.accept()
+async def proxy(client_ws, accepted: bool = False) -> None:
+    if not accepted:
+        await client_ws.accept()
     if not TRANSCRIBE_URL:
         await client_ws.send_text(json.dumps({
             "type": "error",
