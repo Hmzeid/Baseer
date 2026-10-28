@@ -217,6 +217,26 @@ def main() -> int:
     check("audit survives restart", len(_store.read_audit()) >= 3,
           f"{len(_store.read_audit())} entries")
 
+    # 9. RBAC + password lifecycle.
+    r = c.post("/auth/users",
+               json={"username": "intruder", "password": "x" * 9,
+                     "role": "Contractor"})
+    check("non-admin cannot create users", r.status_code == 403, r.text[:120])
+    r = c.post("/auth/password",
+               json={"old_password": "wrong", "new_password": "new-field-pw-2"})
+    check("password change needs current", r.status_code == 401, r.text[:120])
+    r = c.post("/auth/password",
+               json={"old_password": "field-pw-1", "new_password": "new-field-pw-2"})
+    check("password change works", r.status_code == 200, r.text[:120])
+    r = anon.post("/auth/login",
+                  json={"username": "layla", "password": "new-field-pw-2"})
+    check("login with new password", r.status_code == 200, r.text[:120])
+    r = admin.delete("/auth/users/layla")
+    check("admin deletes user", r.status_code == 200, r.text[:120])
+    r = anon.post("/auth/login",
+                  json={"username": "layla", "password": "new-field-pw-2"})
+    check("deleted user locked out", r.status_code == 401, r.text[:120])
+
     print(f"mock suite: GREEN ({an['total_inspections']} inspections, {an['total_findings']} findings)")
     return 0
 

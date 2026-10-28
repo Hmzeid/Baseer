@@ -326,6 +326,11 @@ class UserCreateRequest(BaseModel):
     role: str
 
 
+class PasswordChangeRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+
 @app.post("/auth/login")
 def login(req: LoginRequest):
     user = auth.get_user(store._conn(), req.username.strip())
@@ -354,6 +359,31 @@ def create_user_api(req: UserCreateRequest, admin: dict = Depends(require_admin)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return {"username": req.username.strip(), "role": req.role}
+
+
+@app.delete("/auth/users/{username}")
+def delete_user_api(username: str, admin: dict = Depends(require_admin)):
+    if username == admin["username"]:
+        raise HTTPException(status_code=400, detail="cannot delete your own admin account")
+    cur = store._conn().execute("DELETE FROM users WHERE username = ?", (username,))
+    store._conn().commit()
+    if cur.rowcount == 0:
+        raise HTTPException(status_code=404, detail="user not found")
+    return {"deleted": username}
+
+
+@app.post("/auth/password")
+def change_password_api(req: PasswordChangeRequest, user: dict = Depends(current_user)):
+    if len(req.new_password) < 8:
+        raise HTTPException(status_code=400, detail="new password must be at least 8 characters")
+    row = auth.get_user(store._conn(), user["username"])
+    if not row or not auth.verify_password(req.old_password, row["pw_hash"], row["salt"]):
+        raise HTTPException(status_code=401, detail="current password is wrong")
+    pw_hash, salt = auth.hash_password(req.new_password)
+    store._conn().execute("UPDATE users SET pw_hash = ?, salt = ? WHERE username = ?",
+                          (pw_hash, salt, user["username"]))
+    store._conn().commit()
+    return {"username": user["username"]}
 
 
 @app.websocket("/voice/transcribe")
