@@ -238,6 +238,18 @@ def live_start(req: LiveStartRequest, user: dict = Depends(current_user)):
     return live.start_session(req.site_context)
 
 
+@app.get("/live/sessions")
+def live_list(user: dict = Depends(current_user)):
+    """Open (incl. restored-after-restart) live sessions, for resume."""
+    return {"sessions": [
+        {"session_id": sid,
+         "site_context": s.get("site_context", ""),
+         "frames_received": s.get("frames_received", 0),
+         "alerts_total": len(s.get("alerts", [])),
+         "started_at": s.get("started_at", "")}
+        for sid, s in live.SESSIONS.items()]}
+
+
 @app.post("/live/sessions/{session_id}/frames")
 async def live_frames(session_id: str, files: list[UploadFile] = File(default=[]),
                       user: dict = Depends(current_user)):
@@ -336,11 +348,26 @@ class PasswordChangeRequest(BaseModel):
     new_password: str
 
 
+_login_failures: dict[str, list[float]] = {}
+
+
+def _login_allowed(username: str) -> bool:
+    now = time.time()
+    hits = [t for t in _login_failures.get(username, []) if now - t < 300]
+    _login_failures[username] = hits
+    return len(hits) < 6
+
+
 @app.post("/auth/login")
 def login(req: LoginRequest):
-    user = auth.get_user(store._conn(), req.username.strip())
+    username = req.username.strip()
+    if not _login_allowed(username):
+        raise HTTPException(status_code=429, detail="too many failed attempts — wait 5 minutes")
+    user = auth.get_user(store._conn(), username)
     if not user or not auth.verify_password(req.password, user["pw_hash"], user["salt"]):
+        _login_failures.setdefault(username, []).append(time.time())
         raise HTTPException(status_code=401, detail="invalid username or password")
+    _login_failures.pop(username, None)
     return {"token": auth.mint_token(user["username"]),
             "username": user["username"], "role": user["role"]}
 

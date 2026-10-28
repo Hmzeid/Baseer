@@ -370,6 +370,10 @@
               <button id="liveStart" class="btn" type="button">بدء جلسة مباشرة</button>
               <button id="liveCam" class="btn ghost" type="button">استخدام الكاميرا</button>
             </div>
+            <div class="btnrow hidden" id="resumeRow" style="margin-top:8px">
+              <select id="resumeSel" style="max-width:260px"></select>
+              <button id="resumeBtn" class="btn ghost" type="button">استئناف</button>
+            </div>
             <video id="camPreview" class="hidden" muted playsinline></video>
             <p class="meta hidden" id="camNote" style="margin-top:8px"></p>
             <div id="liveBody" class="hidden" style="margin-top:18px">
@@ -567,6 +571,7 @@ const S = {
     tNewUser:"حساب جديد", tNuName:"الاسم", tNuPass:"كلمة المرور", tNuRole:"الدور", nuAdd:"إضافة",
     nuErr:"تعذّر إنشاء الحساب.", tMyPass:"كلمتي", tPwOld:"الحالية", tPwNew:"الجديدة (8+)",
     pwChange:"تغيير", pwOk:"تم تغيير كلمة المرور.", pwErr:"تعذّر التغيير — تحقق من الحالية.",
+    resume:"استئناف",
     actAssign:"إسناد", actVerify:"تحقق", actApprove:"اعتماد الإغلاق", actVerifyEv:"تحقق بدليل",
     detUncertain:"تعذّر التحديد",
     pick:(f,k)=>f[k+"_ar"]||f[k+"_en"], sum:(r)=>r.summary_ar },
@@ -641,6 +646,7 @@ const S = {
     tNewUser:"New account", tNuName:"Name", tNuPass:"Password", tNuRole:"Role", nuAdd:"Add",
     nuErr:"Could not create the account.", tMyPass:"My password", tPwOld:"Current", tPwNew:"New (8+)",
     pwChange:"Change", pwOk:"Password changed.", pwErr:"Change failed — check the current one.",
+    resume:"Resume",
     actAssign:"Assign", actVerify:"Verify", actApprove:"Approve closure", actVerifyEv:"Verify with evidence",
     detUncertain:"Unable to determine",
     pick:(f,k)=>f[k+"_en"]||f[k+"_ar"], sum:(r)=>r.summary_en }
@@ -723,6 +729,7 @@ function showView(name) {
   $("pageSub").textContent = s.pS[name];
   if (name === "audit") loadAudit();
   if (name === "users") loadUsers();
+  if (name === "live" && typeof liveSessionId !== "undefined" && !liveSessionId) paintResumeRow();
 }
 function paintSideMode() {
   const s = S[lang];
@@ -790,6 +797,7 @@ function applyLang() {
   $("tNuPass").textContent = s.tNuPass; $("tNuRole").textContent = s.tNuRole; $("nuBtn").textContent = s.nuAdd;
   $("tMyPass").textContent = s.tMyPass; $("tPwOld").textContent = s.tPwOld;
   $("tPwNew").textContent = s.tPwNew; $("pwBtn").textContent = s.pwChange;
+  $("resumeBtn").textContent = s.resume;
   $("nuRole").innerHTML = ["Safety Supervisor","Site Manager","Contractor"].map(r => `<option>${r}</option>`).join("");
   paintUser();
   paintActorSel(); paintSiteFilter();
@@ -1083,6 +1091,30 @@ async function ensureLiveSession() {
   return liveSessionId;
 }
 $("liveStart").addEventListener("click", ensureLiveSession);
+async function paintResumeRow() {
+  const row = $("resumeRow");
+  if (liveSessionId || !session) { row.classList.add("hidden"); return; }
+  try {
+    const l = await (await fetch("/live/sessions")).json();
+    const opts = l.sessions || [];
+    if (!opts.length) { row.classList.add("hidden"); return; }
+    row.classList.remove("hidden");
+    $("resumeSel").innerHTML = opts.map(s =>
+      `<option value="${esc(s.session_id)}">${esc(s.session_id.slice(0, 8))} · ${esc(s.site_context || "")} · ${s.frames_received}f</option>`).join("");
+  } catch (e) { row.classList.add("hidden"); }
+}
+$("resumeBtn").addEventListener("click", async ()=>{
+  const id = $("resumeSel").value;
+  if (!id) return;
+  liveSessionId = id;
+  liveAlerts = [];
+  paintLiveStats();
+  paintAlertsList(liveAlerts);
+  $("liveBody").classList.remove("hidden");
+  $("liveStart").disabled = true;
+  $("liveStatus").textContent = S[lang].liveOn + " · " + id;
+  $("resumeRow").classList.add("hidden");
+});
 async function updateLiveResult(data) {
   liveState.frames = data.frames_received;
   liveState.alerts = data.alerts_total;

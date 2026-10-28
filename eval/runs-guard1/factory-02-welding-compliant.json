@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-02-welding-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: 0 high, 0 medium, and 0 low severity. No visually confirmed safety violation was observed in the frames provided, and there is no urgent item. No work stoppage is required in any area based on this evidence.",
+ "segmentation_source": "sam"
+}

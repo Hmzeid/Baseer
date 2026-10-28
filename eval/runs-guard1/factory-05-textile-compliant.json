@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-05-textile-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: 0 — high 0, medium 0, and low 0. The inspected area shows no visually confirmed safety violations based on the evidence provided. There is no urgent item, and no area requires work to stop.",
+ "segmentation_source": "sam"
+}

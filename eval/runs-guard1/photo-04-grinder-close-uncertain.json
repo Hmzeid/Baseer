@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-04-grinder-close-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings are zero: zero high, zero medium, and zero low. There is no urgent item, and no confirmed safety violation is visible in the frame provided, where only one person appears clipped at the frame edge. Work stoppage is not required based on this evidence.",
+ "segmentation_source": "sam"
+}

@@ -1,0 +1,17 @@
+{
+ "scene_id": "construction-02-crew-compliant",
+ "labels": [
+  "worker_without_helmet"
+ ],
+ "uncertain": true,
+ "findings": [
+  {
+   "title_en": "Unable to verify hard hats for some workers",
+   "severity": "low",
+   "determination": "uncertain",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "There is one low-severity uncertain finding and no confirmed high- or medium-severity findings. The most urgent item is the on-site verification of hard hats for workers whose segments were clipped at the frame edge. Work does not need to stop based on this evidence alone.",
+ "segmentation_source": "sam"
+}

@@ -78,6 +78,8 @@ def create_user(conn: sqlite3.Connection, username: str, password: str, role: st
     username = username.strip()
     if not username or not password:
         raise ValueError("username and password are required")
+    if len(password) < 8:
+        raise ValueError("password must be at least 8 characters")
     if role not in ROLES:
         raise ValueError(f"role must be one of {', '.join(ROLES)}")
     if get_user(conn, username):

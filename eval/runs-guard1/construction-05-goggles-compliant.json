@@ -1,0 +1,8 @@
+{
+ "scene_id": "construction-05-goggles-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: zero — 0 high, 0 medium, and 0 low. There is no urgent item; the persons appear wearing hard hats in all frames. Work does not need to stop in any area based on this evidence.",
+ "segmentation_source": "sam"
+}

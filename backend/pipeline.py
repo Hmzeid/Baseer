@@ -99,52 +99,6 @@ def with_cases(finding_dicts: list[dict]) -> list[dict]:
     return finding_dicts
 
 
-def _missing_ppe_concept(text: str) -> str | None:
-    """Map a finding title to the SAM PPE concept it claims is missing."""
-    t = (text or "").lower()
-    if "helmet" in t or "hard hat" in t or "خوذة" in t:
-        return "hard hat"
-    if "vest" in t or "سترة" in t:
-        return "safety vest"
-    return None
-
-
-def _overlap_ratio(a: list[float], b: list[float]) -> float:
-    """Intersection over the smaller box. Boxes are [x, y, w, h], normalized."""
-    ix = max(0.0, min(a[0] + a[2], b[0] + b[2]) - max(a[0], b[0]))
-    iy = max(0.0, min(a[1] + a[3], b[1] + b[3]) - max(a[1], b[1]))
-    inter = ix * iy
-    smaller = min(a[2] * a[3], b[2] * b[3])
-    return inter / smaller if smaller > 0 else 0.0
-
-
-def drop_covered_ppe_findings(finding_dicts: list[dict], segments: list) -> list[dict]:
-    """Deterministic guard against missing-PPE over-flags (code-side; the
-    prompt is frozen). A missing-helmet/vest finding survives only if some
-    person box has NO overlapping box of that PPE concept. When every
-    worker overlaps PPE (the compliant-crew case), the finding is dropped.
-    Findings about other violations pass through untouched."""
-    persons = [s for s in segments if (s.label or "").lower() == "person"]
-    if not persons:
-        return finding_dicts
-    ppe: dict[str, list] = {}
-    for s in segments:
-        ppe.setdefault((s.label or "").lower(), []).append(s.bbox)
-    kept = []
-    for f in finding_dicts:
-        concept = _missing_ppe_concept(
-            f.get("title_en", "") + " " + f.get("title_ar", ""))
-        if concept is None:
-            kept.append(f)
-            continue
-        boxes = ppe.get(concept, [])
-        uncovered = [p for p in persons
-                     if not any(_overlap_ratio(p.bbox, b) > 0.25 for b in boxes)]
-        if uncovered:
-            kept.append(f)
-    return kept
-
-
 def log_case_action(case: dict, action: str, actor: str, detail: str = "") -> None:
     """Append one entry to a case's audit history. History is append-only:
     entries are never edited or removed, only added."""
@@ -197,10 +151,6 @@ def run_inspection(files: list[tuple[str, bytes]], inspector_notes: str,
         # final word is "mock" regardless of the SEGMENTATION setting.
         segmentation_source = "mock"
     finding_dicts = with_cases([asdict(f) for f in findings])
-    if segmentation_source == "sam" and segments:
-        # Code-side overlap guard (prompts frozen): drop missing-PPE
-        # findings when every worker overlaps that PPE in SAM boxes.
-        finding_dicts = drop_covered_ppe_findings(finding_dicts, segments)
     return InspectionReport(
         inspection_id=uuid.uuid4().hex[:12],
         created_at=datetime.now(timezone.utc).isoformat(),

@@ -8,3 +8,5 @@ demo/footage/
 demo/photos/
 # Production runtime data: SQLite DB, token secret, stored evidence.
 data/
+# Local backup snapshots (see ops/backup.sh).
+backups/

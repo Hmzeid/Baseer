@@ -35,8 +35,14 @@
   next sign-in at the latest).
 - Rotate the Meta key: edit `.env`, `launchctl kickstart -k` the service.
 
+## LAN HTTPS (optional)
+- `sh ops/tls.sh [hostname]` mints a self-signed cert into `data/tls/`;
+  launch uvicorn with `--ssl-certfile/--ssl-keyfile` (command is printed
+  by the script). Expect a one-time browser trust warning; for access
+  outside the site LAN prefer the site VPN.
+
 ## What is NOT production here
-- Single on-site server, no TLS termination (serve behind the site VPN or
-  a reverse proxy for remote access), backups are local copies.
+- Single on-site server, backups are local copies (copy `backups/`
+  off the machine weekly).
 - The fixed 24-scene eval set and mock fixtures are dev/test tools only
   and are never presented as live results (badges stay honest).

@@ -1,0 +1,8 @@
+{
+ "scene_id": "factory-04-grinder-uncertain",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "Total findings: one low-severity finding, with no high- or medium-severity findings. The most urgent item is the on-site verification of hard hat use in frame 0, which cannot be determined from the available evidence. Work need not stop in any area based on this evidence alone.",
+ "segmentation_source": "sam"
+}

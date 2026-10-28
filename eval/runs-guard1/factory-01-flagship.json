@@ -1,0 +1,17 @@
+{
+ "scene_id": "factory-01-flagship",
+ "labels": [
+  "worker_without_helmet"
+ ],
+ "uncertain": false,
+ "findings": [
+  {
+   "title_en": "Worker without a hard hat in the forklift path",
+   "severity": "high",
+   "determination": "confirmed",
+   "frame_index": 0
+  }
+ ],
+ "summary_en": "Total findings: one high-severity finding, with no medium- or low-severity findings. The most urgent item is a worker without a hard hat in the forklift path. Forklift movement in the area must stop until the situation is corrected.",
+ "segmentation_source": "sam"
+}

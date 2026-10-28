@@ -1,0 +1,8 @@
+{
+ "scene_id": "photo-10-glove-mask-compliant",
+ "labels": [],
+ "uncertain": false,
+ "findings": [],
+ "summary_en": "No findings were identified: 0 high, 0 medium, and 0 low severity. There is no urgent item, as the person appears with a hard hat in frame 0. No work stoppage is required in any area.",
+ "segmentation_source": "sam"
+}
