@@ -11,6 +11,7 @@ import os
 import secrets
 import time
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile, WebSocket
@@ -141,6 +142,10 @@ class CaseRequest(BaseModel):
     actor: str = ""  # declared role identity, stored verbatim in the audit trail
 
 
+class NoteRequest(BaseModel):
+    text: str = ""
+
+
 @app.post("/inspections/{inspection_id}/findings/{index}/case")
 def update_case(inspection_id: str, index: int, req: CaseRequest,
                 user: dict = Depends(current_user)):
@@ -231,6 +236,39 @@ async def verify_with_evidence(
 
 class LiveStartRequest(BaseModel):
     site_context: str = ""
+
+
+@app.post("/inspections/{inspection_id}/findings/{index}/case/notes")
+def add_case_note(inspection_id: str, index: int, req: NoteRequest,
+                  user: dict = Depends(current_user)):
+    """Append-only investigator note on a case (contractor dialogue).
+    Stamped with the signed-in user and written to the audit trail."""
+    report = REPORTS.get(inspection_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="inspection not found")
+    if index < 0 or index >= len(report["findings"]):
+        raise HTTPException(status_code=404, detail="finding not found")
+    text = req.text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="note text required")
+    if len(text) > 2000:
+        raise HTTPException(status_code=400, detail="note too long (max 2000)")
+    finding = report["findings"][index]
+    case = finding.setdefault("case", {"status": "open", "assignee": "",
+                                       "verification": None, "history": []})
+    actor = f"{user['username']} ({user['role']})"
+    case.setdefault("notes", []).append({
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "actor": actor, "text": text,
+    })
+    store.save_report(report)
+    store.log_audit({
+        "ts": case["notes"][-1]["ts"], "inspection_id": inspection_id,
+        "site": (report.get("site_context") or "").strip() or "general",
+        "finding_index": index, "action": "note", "actor": actor,
+        "detail": text[:200], "finding": finding.get("title_en", ""),
+    })
+    return finding
 
 
 @app.post("/live/sessions")

@@ -178,6 +178,9 @@
   .evcard .evi b { display:block; color:var(--ink2); font-size:12.5px; word-break:break-all; }
   .fthumb { width:100%; max-height:220px; object-fit:cover; border-radius:10px; margin:10px 0 2px; border:1px solid var(--line2); }
   .vnote { color:var(--muted); font-size:12.5px; flex-basis:100%; }
+  .notefrm { display:flex; gap:8px; flex-basis:100%; margin-top:6px; }
+  .notefrm textarea { flex:1; background:#0F1B2E; border:1px solid #26344D; color:var(--ink); border-radius:8px; padding:6px 8px; font:inherit; resize:vertical; }
+  .notefrm button { white-space:nowrap; }
   /* ---- Live ---- */
   .livestats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
   .alert { border:1px solid var(--line); border-inline-start:4px solid var(--high); border-radius:11px;
@@ -304,6 +307,19 @@
             <div class="panelhead"><h2 id="tPipe">من الجولة الميدانية إلى الإغلاق الموثّق</h2></div>
             <p class="hint" id="tPipeHint">كل فحص يمر بالحلقة نفسها — والملاحظة لا تُغلق أبدًا إلا باعتماد بشري.</p>
             <div class="pipe" id="pipeSteps"></div>
+          </div>
+        </div>
+        <div class="grid2 even">
+          <div class="card" style="margin-bottom:18px">
+            <div class="panelhead"><h2 id="tTrend">النشاط اليومي</h2><span class="tag" id="trendTotal"></span></div>
+            <div id="trendChart"></div>
+          </div>
+          <div class="card" style="margin-bottom:18px">
+            <div class="panelhead"><h2 id="tAging">حالات تحتاج متابعة</h2><span class="tag" id="agingCount"></span></div>
+            <table>
+              <thead><tr><th id="thCase">الحالة</th><th id="thCaseSev">الخطورة</th><th id="thAge">العمر</th></tr></thead>
+              <tbody id="agingRows"></tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -532,6 +548,9 @@ const S = {
     sevMix:"توزيع الخطورة", sevTotal:(n)=>`المجموع: ${n}`, topHazards:"أكثر المخاطر تكرارًا", recent:"أحدث الفحوصات",
     colHazard:"الخطر", colCount:"التكرار", colId:"رقم الفحص", colDate:"التاريخ", colFindings:"الملاحظات", colHigh:"عالية الخطورة",
     times:"مرة", seedNote:"تتضمن هذه الأرقام بيانات تجريبية للعرض، وتُستبدل تلقائيًا مع تراكم الفحوصات الحقيقية.",
+    trendT:"النشاط اليومي", trendN:(n)=>`${n} فحصًا في ١٤ يومًا`, agingT:"حالات تحتاج متابعة", agingN:(n)=>`${n} حالة مفتوحة`,
+    colCase:"الحالة", colCaseSev:"الخطورة", colAge:"العمر", ageDays:(n)=>`منذ ${n} يوم`,
+    noData:"لا بيانات بعد.", notePh:"أضف ملاحظة للسجل…", noteAdd:"إضافة ملاحظة",
     pipeT:"من الجولة الميدانية إلى الإغلاق الموثّق", pipeHint:"كل فحص يمر بالحلقة نفسها — والملاحظة لا تُغلق أبدًا إلا باعتماد بشري.",
     pipe:["رصد","فهم","شرح","إجراء","تحقق","تعلّم"],
     chat:"اسأل بصير عن هذا الفحص", chatPh:"مثال: لماذا الملاحظة الأولى عالية الخطورة؟ أو: صِغ إشعارًا للمقاول",
@@ -607,6 +626,9 @@ const S = {
     sevMix:"Severity mix", sevTotal:(n)=>`Total: ${n}`, topHazards:"Most frequent hazards", recent:"Recent inspections",
     colHazard:"Hazard", colCount:"Count", colId:"Inspection ID", colDate:"Date", colFindings:"Findings", colHigh:"High severity",
     times:"times", seedNote:"These figures include demo seed data; real inspections replace it automatically as they accumulate.",
+    trendT:"Daily activity", trendN:(n)=>`${n} inspections in 14 days`, agingT:"Cases needing follow-up", agingN:(n)=>`${n} open cases`,
+    colCase:"Case", colCaseSev:"Severity", colAge:"Age", ageDays:(n)=>`${n}d ago`,
+    noData:"No data yet.", notePh:"Add a log note…", noteAdd:"Add note",
     pipeT:"From walkthrough to verified closure", pipeHint:"Every inspection runs the same loop — and a finding is never closed without human approval.",
     pipe:["Observe","Understand","Explain","Act","Verify","Learn"],
     chat:"Ask Baseer about this inspection", chatPh:"Example: Why is finding 1 high severity? Or: draft a notice to the contractor",
@@ -755,6 +777,8 @@ function applyLang() {
   $("tSevMix").textContent = s.sevMix; $("tTopHazards").textContent = s.topHazards; $("tRecent").textContent = s.recent;
   $("thHazard").textContent = s.colHazard; $("thCount").textContent = s.colCount;
   $("thId").textContent = s.colId; $("thDate").textContent = s.colDate; $("thFindings").textContent = s.colFindings; $("thHigh").textContent = s.colHigh;
+  $("tTrend").textContent = s.trendT; $("tAging").textContent = s.agingT;
+  $("thCase").textContent = s.colCase; $("thCaseSev").textContent = s.colCaseSev; $("thAge").textContent = s.colAge;
   $("tPipe").textContent = s.pipeT; $("tPipeHint").textContent = s.pipeHint;
   $("pipeSteps").innerHTML = s.pipe.map((p, i) => `<div class="step"><b>0${i+1}</b><span>${p}</span></div>`).join("");
   $("tNewInspect").textContent = s.newInspect; $("tNewHint").textContent = s.newHint;
@@ -892,6 +916,8 @@ function caseRowHTML(f, i) {
   const vtxt = c.verification ? ((lang === "ar" ? c.verification.note_ar : c.verification.note_en) || c.verification.note || "") : "";
   const vnote = vtxt ? `<div class="vnote">${vtxt}</div>` : "";
   const asg = c.assignee ? `<span class="meta">${s.to} ${c.assignee}</span>` : "";
+  const notes = (c.notes || []).map(n =>
+    `<div class="vnote"><b>${noteBadge(n)}</b><br>${esc(n.text)}</div>`).join("");
   return `<div class="caserow">
     <span class="ct">${s.caseT}</span>
     <span class="tchip ${chipCls}">${label}</span> ${asg}
@@ -901,7 +927,9 @@ function caseRowHTML(f, i) {
     <button type="button" onclick="document.getElementById('ver-${i}').click()" ${dis}>${s.verPhoto}</button>
     <input type="file" id="ver-${i}" accept="image/*,video/*" class="hidden" onchange="verifyWithEvidence(${i})">
     <button type="button" onclick="caseAction(${i},'approve')" ${canApprove ? "" : "disabled"}>${s.approve}</button>
-    ${vnote}</div>`;
+    ${vnote}${notes}
+    <div class="notefrm"><textarea id="note-${i}" rows="1" maxlength="2000" placeholder="${s.notePh}"></textarea>
+    <button type="button" onclick="addNote(lastReport.inspection_id,${i},'note-${i}')">${s.noteAdd}</button></div></div>`;
 }
 async function caseAction(i, action) {
   if (!lastReport) return;
@@ -918,6 +946,25 @@ async function caseAction(i, action) {
     lastReport.findings[i] = await res.json();
     renderReport(lastReport);
   } catch (e) { /* layer only — never break the report */ }
+}
+function noteBadge(n) {
+  return `${esc(n.actor || "")} · ${fmtTime(n.ts)}`;
+}
+async function addNote(inspId, idx, taId) {
+  const ta = $(taId);
+  const text = (ta.value || "").trim();
+  if (!text) return;
+  ta.disabled = true;
+  try {
+    const r = await fetch(`/inspections/${inspId}/findings/${idx}/case/notes`,
+      {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({text})});
+    if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.detail || "error"); return; }
+    const data = await r.json();
+    if (lastReport && lastReport.findings[idx])
+      lastReport.findings[idx] = data;
+    renderReport(lastReport);
+  } catch (e) { /* layer only — never break the report */ }
+  finally { ta.disabled = false; }
 }
 function renderReport(r) {
   const s = S[lang];
@@ -979,6 +1026,21 @@ async function loadAnalytics() {
       `<tr><td>${lang==="ar"?h.title_ar:h.title_en}</td><td class="meta">${h.count} ${s.times}</td></tr>`).join("");
     $("recentRows").innerHTML = (a.recent || []).map(r =>
       `<tr><td style="font-weight:700">${r.inspection_id}</td><td class="meta">${(r.created_at||"").slice(0,16).replace("T"," ")}</td><td>${r.findings}</td><td style="color:var(--high);font-weight:700">${r.high}</td></tr>`).join("");
+    const days = (a.trend || []).slice(-14);
+    const mx = Math.max(1, ...days.map(d => d.findings));
+    $("trendTotal").textContent = s.trendN(days.reduce((n, d) => n + d.inspections, 0));
+    $("trendChart").innerHTML = days.length ? `<div style="display:flex;align-items:flex-end;gap:4px;height:120px">` +
+      days.map(d => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0" title="${d.day}: ${d.findings}">` +
+        `<div style="width:100%;background:var(--gold);border-radius:3px 3px 0 0;height:${Math.max(3, 100 * d.findings / mx)}px"></div>` +
+        `<span class="meta" style="font-size:10px">${d.day.slice(5)}</span></div>`).join("") + `</div>`
+      : `<p class="meta">${s.noData}</p>`;
+    const oc = a.open_cases || [];
+    $("agingCount").textContent = s.agingN(oc.length);
+    $("agingRows").innerHTML = oc.slice(0, 8).map(c =>
+      `<tr><td>${lang === "ar" ? c.title_ar : c.title_en}<br><span class="meta">${esc(c.inspection_id)}${c.assignee ? " · " + esc(c.assignee) : ""}</span></td>` +
+      `<td><span class="chip ${c.severity}">${s.sev[c.severity] || c.severity}</span></td>` +
+      `<td class="meta">${s.ageDays(c.age_days)}</td></tr>`).join("") ||
+      `<tr><td colspan="3" class="meta">${s.noData}</td></tr>`;
   } catch (e) { /* analytics is a layer; never block the core flow */ }
   paintSiteFilter();
 }
