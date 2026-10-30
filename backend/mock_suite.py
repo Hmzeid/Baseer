@@ -142,6 +142,28 @@ def main() -> int:
           ve2["case"]["verification"]["suggested_resolved"] is False,
           str(ve2["case"]["verification"])[:150])
 
+    # 4b. case notes: append-only, stamped, audited; caps enforced
+    n1 = c.post(f"/inspections/{iid}/findings/1/case/notes",
+                json={"text": "contractor called — 24h to fix"})
+    check("case note appended",
+          n1.status_code == 200
+          and len(n1.json()["case"]["notes"]) == 1
+          and n1.json()["case"]["notes"][0]["actor"] == "layla (Safety Supervisor)"
+          and n1.json()["case"]["notes"][0]["text"] == "contractor called — 24h to fix",
+          n1.text[:200])
+    n_empty = c.post(f"/inspections/{iid}/findings/1/case/notes",
+                     json={"text": "   "})
+    check("case note rejects empty", n_empty.status_code == 400, n_empty.text[:120])
+    n_long = c.post(f"/inspections/{iid}/findings/1/case/notes",
+                    json={"text": "x" * 2001})
+    check("case note rejects overlong", n_long.status_code == 400, n_long.text[:120])
+    n_bad = c.post(f"/inspections/{iid}/findings/9/case/notes",
+                   json={"text": "hi"})
+    check("case note rejects bad index", n_bad.status_code == 404, n_bad.text[:120])
+    n_anon = anon.post(f"/inspections/{iid}/findings/1/case/notes",
+                       json={"text": "hi"})
+    check("case note requires login", n_anon.status_code == 401, n_anon.text[:120])
+
     # 3. voice fallback (unconfigured upstream answers cleanly;
     # authed via ?token= since browsers cannot set WS headers)
     with c.websocket_connect(f"/voice/transcribe?token={layla_tok}") as ws:
@@ -153,6 +175,13 @@ def main() -> int:
     an = c.get("/analytics").json()
     check("analytics merges", an["total_inspections"] == 3 + 3 and an["total_findings"] == 7 + 9,
           f"{an['total_inspections']} inspections, {an['total_findings']} findings")
+    check("analytics trend", len(an["trend"]) >= 1
+          and all(set(d) == {"day", "inspections", "findings"} for d in an["trend"])
+          and sum(d["inspections"] for d in an["trend"]) == an["total_inspections"],
+          str(an["trend"])[:200])
+    check("analytics open cases", all(c["age_days"] >= 0 and c["status"] != "closed"
+                                      for c in an["open_cases"]),
+          f"{len(an['open_cases'])} open")
 
     # 6. multi-site slicing + formal audit log (all suite posts use factory)
     sl = c.get("/sites").json()

@@ -9,6 +9,7 @@ before real inspections accumulate; live reports are merged on top.
 from __future__ import annotations
 
 from collections import Counter
+from datetime import datetime, timezone
 
 SEED_REPORTS: list[dict] = [
     {"inspection_id": "seed-1041", "created_at": "2026-10-26T09:12:00Z", "frames_processed": 6,
@@ -54,6 +55,39 @@ def compute(live_reports: list[dict], site: str = "") -> dict:
          "high": sum(1 for f in r.get("findings", []) if f.get("severity") == "high")}
         for r in reports[-5:][::-1]
     ]
+    now = datetime.now(timezone.utc)
+    daily: dict[str, dict] = {}
+    for r in reports:
+        try:
+            day = datetime.fromisoformat(
+                r.get("created_at", "").replace("Z", "+00:00")).date().isoformat()
+        except (ValueError, TypeError):
+            continue
+        d = daily.setdefault(day, {"day": day, "inspections": 0, "findings": 0})
+        d["inspections"] += 1
+        d["findings"] += len(r.get("findings", []))
+    trend = sorted(daily.values(), key=lambda d: d["day"])[-30:]
+    open_cases = []
+    for r in reports:
+        try:
+            age_days = max(0, (now - datetime.fromisoformat(
+                r.get("created_at", "").replace("Z", "+00:00"))).days)
+        except (ValueError, TypeError):
+            age_days = 0
+        for i, f in enumerate(r.get("findings", [])):
+            case = f.get("case") or {}
+            if case and case.get("status", "open") != "closed":
+                open_cases.append({
+                    "inspection_id": r["inspection_id"],
+                    "finding_index": i,
+                    "title_en": f.get("title_en", ""),
+                    "title_ar": f.get("title_ar", f.get("title_en", "")),
+                    "severity": f.get("severity", "low"),
+                    "assignee": case.get("assignee", ""),
+                    "status": case.get("status", "open"),
+                    "age_days": age_days,
+                })
+    open_cases.sort(key=lambda c: (c["age_days"], c["severity"] == "high"), reverse=True)
     return {
         "demo_seed_included": True,
         "total_inspections": len(reports),
@@ -62,4 +96,6 @@ def compute(live_reports: list[dict], site: str = "") -> dict:
                         "low": by_severity["low"]},
         "top_hazards": top_hazards,
         "recent": recent,
+        "trend": trend,
+        "open_cases": open_cases[:20],
     }
