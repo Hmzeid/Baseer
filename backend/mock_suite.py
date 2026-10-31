@@ -114,6 +114,28 @@ def main() -> int:
     ch = c.post(f"/inspections/{iid}/chat",
                 json={"question": "Why is finding 1 high?", "history": []}).json()
     check("evidence chat answers", bool(ch.get("answer")), str(ch)[:150])
+    ch_empty = c.post(f"/inspections/{iid}/chat",
+                      json={"question": "   ", "history": []})
+    check("chat rejects empty", ch_empty.status_code == 400, ch_empty.text[:120])
+    ch_long = c.post(f"/inspections/{iid}/chat",
+                     json={"question": "x" * 2001, "history": []})
+    check("chat rejects overlong", ch_long.status_code == 400, ch_long.text[:120])
+
+    # production input guards: oversized notes + upload budget
+    r_big_notes = c.post("/inspections",
+                         files={"files": ("site.jpg", jpg, "image/jpeg")},
+                         data={"notes": "x" * 5001, "site_context": "factory"})
+    check("inspection rejects overlong notes",
+          r_big_notes.status_code == 400, r_big_notes.text[:120])
+    _old_budget = app.MAX_UPLOAD_BYTES
+    app.MAX_UPLOAD_BYTES = 10
+    try:
+        r_over = c.post(f"/inspections/{iid}/findings/0/verify-evidence",
+                        files={"files": ("after.jpg", jpg, "image/jpeg")})
+        check("upload budget enforced",
+              r_over.status_code == 413, r_over.text[:120])
+    finally:
+        app.MAX_UPLOAD_BYTES = _old_budget
 
     # 4. case lifecycle on finding 0 (mock staged: resolves)
     a = c.post(f"/inspections/{iid}/findings/0/case",

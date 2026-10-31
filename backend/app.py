@@ -31,6 +31,30 @@ app = FastAPI(title="Baseer — Arabic Field Inspection Copilot", version="0.3.0
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
 DATA_DIR = Path(os.getenv("BASEER_DATA_DIR", str(Path(__file__).resolve().parent.parent / "data")))
 
+# Production guard: a single request (photos + video) may not exceed this.
+# Videos are sampled to a few frames, so anything above the cap can never be
+# a legitimate inspection — reject it before it fills server memory/disk.
+MAX_UPLOAD_BYTES = 150 * 1024 * 1024
+MAX_TEXT_CHARS = 5000
+
+
+async def _read_uploads(files: list[UploadFile], default_name: str) -> list[tuple[str, bytes]]:
+    """Read uploads with a per-request byte budget (413 past the cap)."""
+    payload: list[tuple[str, bytes]] = []
+    total = 0
+    for f in files:
+        chunks = []
+        while True:
+            chunk = await f.read(1024 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > MAX_UPLOAD_BYTES:
+                raise HTTPException(status_code=413, detail="upload too large (max 150 MB per request)")
+            chunks.append(chunk)
+        payload.append((f.filename or default_name, b"".join(chunks)))
+    return payload
+
 # Durable store (production): REPORTS is a write-through cache over SQLite.
 REPORTS: dict[str, dict] = {}
 
@@ -113,7 +137,9 @@ async def create_inspection(
     files: list[UploadFile] = File(default=[]),
     user: dict = Depends(current_user),
 ):
-    payload = [(f.filename or "upload", await f.read()) for f in files]
+    if len(notes) > MAX_TEXT_CHARS:
+        raise HTTPException(status_code=400, detail="notes too long (max 5000 characters)")
+    payload = await _read_uploads(files, "upload")
     report = pipeline.run_inspection(payload, notes, site_context)
     data = asdict(report)
     data["evidence_files"] = _save_evidence(report.inspection_id, payload)
@@ -132,6 +158,10 @@ def chat(inspection_id: str, req: ChatRequest, user: dict = Depends(current_user
     report = REPORTS.get(inspection_id)
     if report is None:
         raise HTTPException(status_code=404, detail="inspection not found")
+    if not req.question.strip():
+        raise HTTPException(status_code=400, detail="question required")
+    if len(req.question) > 2000:
+        raise HTTPException(status_code=400, detail="question too long (max 2000 characters)")
     answer = meta_client.chat_with_inspection(report, req.history, req.question)
     return {"answer": answer}
 
@@ -213,7 +243,7 @@ async def verify_with_evidence(
     case = finding.setdefault("case", {"status": "open", "assignee": "", "verification": None})
     if case["status"] == "closed":
         raise HTTPException(status_code=400, detail="case already closed")
-    payload = [(f.filename or "after", await f.read()) for f in files]
+    payload = await _read_uploads(files, "after")
     frames = pipeline.extract_frames(payload)
     case["verification"] = meta_client.compare_for_verification(finding, frames)
     actor = f"{user['username']} ({user['role']})"
@@ -291,7 +321,7 @@ def live_list(user: dict = Depends(current_user)):
 @app.post("/live/sessions/{session_id}/frames")
 async def live_frames(session_id: str, files: list[UploadFile] = File(default=[]),
                       user: dict = Depends(current_user)):
-    payload = [(f.filename or "frame", await f.read()) for f in files]
+    payload = await _read_uploads(files, "frame")
     if session_id not in live.SESSIONS:
         raise HTTPException(status_code=404, detail="live session not found")
     _dest = DATA_DIR / "evidence" / session_id
@@ -314,6 +344,8 @@ class LiveFinishRequest(BaseModel):
 @app.post("/live/sessions/{session_id}/finish")
 def live_finish(session_id: str, req: LiveFinishRequest,
                 user: dict = Depends(current_user)):
+    if len(req.notes) > MAX_TEXT_CHARS:
+        raise HTTPException(status_code=400, detail="notes too long (max 5000 characters)")
     try:
         data = live.finish_session(session_id, req.notes)
     except KeyError:
