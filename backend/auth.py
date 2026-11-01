@@ -99,7 +99,11 @@ def ensure_admin(conn: sqlite3.Connection) -> tuple[str, str] | None:
         return None
     user = os.getenv("BASEER_ADMIN_USER", "admin")
     password = os.getenv("BASEER_ADMIN_PASSWORD", "")
-    if not password:
+    if not password or password == "CHANGE-ME-ON-INSTALL":
+        # The plist ships with a placeholder password (the repo may be public).
+        # Never bootstrap an admin account with a publicly known password:
+        # fall back to a random one, printed once into the server log.
+        password = secrets.token_urlsafe(16)
         password = secrets.token_urlsafe(16)
         created_default = True
     else:
