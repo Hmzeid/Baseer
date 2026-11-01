@@ -20,5 +20,12 @@ fi
 if [ -d "$ROOT/data/evidence" ]; then
   cp -R "$ROOT/data/evidence" "$OUT/evidence"
 fi
+# Token secret + TLS identity: needed for a full restore onto another machine
+# (keeps existing logins valid and HTTPS working after migration).
+for f in "$ROOT/data/.secret" "$ROOT/data/tls"; do
+  if [ -e "$f" ]; then
+    cp -R "$f" "$OUT/"
+  fi
+done
 ls -la "$OUT"
 echo "backup done: $OUT"
