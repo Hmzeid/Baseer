@@ -181,6 +181,28 @@
   .notefrm { display:flex; gap:8px; flex-basis:100%; margin-top:6px; }
   .notefrm textarea { flex:1; background:#0F1B2E; border:1px solid #26344D; color:var(--ink); border-radius:8px; padding:6px 8px; font:inherit; resize:vertical; }
   .notefrm button { white-space:nowrap; }
+  /* Auth gate: logged out sees NOTHING but the sign-in screen. */
+  body.gated .sidebar, body.gated .topbar { display:none; }
+  body.gated .main { max-width:none; padding:0; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  body.gated .main > main { width:100%; }
+  .loginwrap { width:100%; display:flex; justify-content:center; padding:24px;
+    background:radial-gradient(1200px 500px at 50% -10%, #E9DDBE 0%, transparent 60%), var(--paper); }
+  body.gated .loginwrap { min-height:100vh; align-items:center; }
+  .logincard { background:#fff; border:1px solid var(--line); border-radius:18px;
+    padding:34px 36px 28px; width:100%; max-width:440px; box-shadow:0 18px 50px rgba(10,37,64,.14); }
+  .loginbrand { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .loginbrand .logomark { width:46px; height:46px; border-radius:13px; background:#fff;
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center; flex:none; }
+  .loginbrand b { display:block; font-size:19px; }
+  .loginbrand span { display:block; font-size:11px; letter-spacing:.14em; color:var(--muted); }
+  .logincard h2 { margin:0 0 4px; font-size:24px; }
+  .loginfield { margin:14px 0; }
+  .loginfield label { display:block; font-size:13px; font-weight:700; margin-bottom:6px; color:var(--muted); }
+  .loginfield input { width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; font:inherit; background:#FBFAF7; }
+  .loginfield input:focus { outline:2px solid var(--gold); border-color:var(--gold); background:#fff; }
+  .loginrow { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:16px 0 4px; }
+  .loginlang { display:flex; justify-content:center; margin-top:18px; }
   /* ---- Live ---- */
   .livestats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
   .alert { border:1px solid var(--line); border-inline-start:4px solid var(--high); border-radius:11px;
@@ -223,7 +245,7 @@
   }
 </style>
 </head>
-<body>
+<body class="gated">
 <div class="shell">
   <aside class="sidebar">
     <div class="brand">
@@ -451,15 +473,26 @@
 
       <!-- ============ LOGIN ============ -->
       <section id="view-login" class="hidden">
-        <div class="card" style="max-width:460px;margin:8vh auto">
+        <div class="loginwrap">
+        <div class="logincard">
+          <div class="loginbrand">
+            <div class="logomark" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="#0A2540" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="#C9A94E"/></svg></div>
+            <div><b>Baseer · بصير</b><span>FIELD INSPECTION CONSOLE</span></div>
+          </div>
           <h2 id="tLogin">تسجيل الدخول</h2>
           <p class="hint" id="tLoginHint">حسابك الشخصي — كل إجراء يُسجَّل باسمك.</p>
-          <div style="margin:12px 0"><label for="loginUser" id="tLoginUser">اسم المستخدم</label>
+          <div class="loginrow"><span id="loginMode" class="badge mock">تجريبي</span></div>
+          <div class="loginfield"><label for="loginUser" id="tLoginUser">اسم المستخدم</label>
             <input id="loginUser" type="text" autocomplete="username"></div>
-          <div style="margin:12px 0"><label for="loginPass" id="tLoginPass">كلمة المرور</label>
+          <div class="loginfield"><label for="loginPass" id="tLoginPass">كلمة المرور</label>
             <input id="loginPass" type="password" autocomplete="current-password"></div>
           <p class="meta hidden" id="loginErr" style="color:var(--high)"></p>
           <button id="loginBtn" class="btn gold" type="button" style="width:100%">دخول</button>
+          <div class="loginlang"><div class="langtoggle" role="group" aria-label="Language">
+            <button id="btnArL" class="active" type="button">عربي</button>
+            <button id="btnEnL" type="button">EN</button>
+          </div></div>
+        </div>
         </div>
       </section>
 
@@ -720,6 +753,8 @@ function doLogout() {
   showView("login");
 }
 function paintUser() {
+  // Auth gate: without a session the shell stays hidden — login is the only view.
+  document.body.classList.toggle("gated", !session);
   $("navUser").textContent = session ? `${session.username} · ${session.role}` : "—";
   if (session) { actor = sessionActor(); }
   if (typeof paintActorSel === "function" && $("actorSel")) paintActorSel();
@@ -741,6 +776,7 @@ async function deleteUser(name) {
   loadUsers();
 }
 function showView(name) {
+  if (!session) name = "login";
   currentView = name;
   const s = S[lang];
   for (const v of ["overview","inspect","live","report","audit","login","users"]) $("view-" + v).classList.toggle("hidden", v !== name);
@@ -762,6 +798,8 @@ function applyLang() {
   document.documentElement.lang = s.lang; document.documentElement.dir = s.dir;
   $("btnAr").classList.toggle("active", lang === "ar");
   $("btnEn").classList.toggle("active", lang === "en");
+  if ($("btnArL")) $("btnArL").classList.toggle("active", lang === "ar");
+  if ($("btnEnL")) $("btnEnL").classList.toggle("active", lang === "en");
   $("crumb").textContent = s.crumb;
   $("navLabel").textContent = s.navLabel;
   $("navOverviewT").textContent = s.navOverview; $("navInspectT").textContent = s.navInspect;
@@ -1098,6 +1136,8 @@ async function loadHealth() {
     badge.classList.remove("hidden");
     if (h.mode === "live") { badge.className = "badge live"; badge.textContent = s.modeLive; }
     else { badge.className = "badge mock"; badge.textContent = s.modeMock; }
+    const lm = $("loginMode");
+    if (lm) { lm.className = badge.className; lm.textContent = badge.textContent; }
     paintSideMode();
   } catch (e) { /* badge stays hidden without a server */ }
 }
@@ -1327,6 +1367,8 @@ $("chatSend").addEventListener("click", sendChat);
 $("chatInput").addEventListener("keydown", (e)=>{ if (e.key === "Enter") { e.preventDefault(); sendChat(); } });
 $("btnAr").addEventListener("click", ()=>{ lang="ar"; applyLang(); });
 $("btnEn").addEventListener("click", ()=>{ lang="en"; applyLang(); });
+$("btnArL").addEventListener("click", ()=>{ lang="ar"; applyLang(); });
+$("btnEnL").addEventListener("click", ()=>{ lang="en"; applyLang(); });
 $("navOverview").addEventListener("click", ()=>showView("overview"));
 $("navInspect").addEventListener("click", ()=>showView("inspect"));
 $("navLive").addEventListener("click", ()=>showView("live"));
