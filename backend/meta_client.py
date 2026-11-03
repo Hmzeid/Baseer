@@ -147,6 +147,34 @@ CONCEPT_AR = {
 }
 
 
+def _post_with_retry(client: "httpx.Client", url: str, payload: dict,
+                     headers: dict, what: str = "analysis"):
+    """POST with backoff on 429/5xx. Video uploads fire dozens of calls in
+    a burst; without this the provider throttles us and the user gets a 500
+    after half a minute of silence. Honors Retry-After when present."""
+    import time as _time
+    import httpx as _httpx
+    delay = 2.0
+    for attempt in range(5):
+        resp = client.post(url, json=payload, headers=headers)
+        if resp.status_code == 404:
+            return resp  # enablement signal — callers translate it, never retry
+        if resp.status_code != 429 and resp.status_code < 500:
+            return resp
+        retry_after = resp.headers.get("retry-after")
+        try:
+            wait = float(retry_after) if retry_after else delay
+        except ValueError:
+            wait = delay
+        if attempt == 4:
+            raise _httpx.HTTPStatusError(
+                f"{what} is rate-limited right now (429 after retries) — "
+                "try again in a minute", request=resp.request, response=resp)
+        _time.sleep(min(wait, 30))
+        delay *= 2
+    raise RuntimeError(f"{what} failed after retries")  # unreachable
+
+
 def _responses_text(resp_json: dict) -> str:
     """Extract SAM's special-token lane from a Responses API object.
 
@@ -193,8 +221,10 @@ def segment_frames(frames: list[bytes]) -> list[Segment]:
                         ],
                     }],
                 }
-                resp = client.post(f"{BASE_URL}/responses",
-                                   json=payload, headers=_headers())
+                import time as _t
+                _t.sleep(0.4)  # stagger the concept x frame burst
+                resp = _post_with_retry(client, f"{BASE_URL}/responses",
+                                        payload, _headers(), "segmentation")
                 if resp.status_code == 404:
                     raise RuntimeError(
                         "SAM 3.1 returned 404 model_not_found — the model is "
@@ -230,7 +260,7 @@ def reason_findings(segments: list[Segment], inspector_notes: str,
         "response_format": {"type": "json_object"},
     }
     with httpx.Client(timeout=180) as client:
-        resp = client.post(f"{BASE_URL}/chat/completions", json=payload, headers=_headers())
+        resp = _post_with_retry(client, f"{BASE_URL}/chat/completions", payload, _headers())
         resp.raise_for_status()
         data = resp.json()
     content = data["choices"][0]["message"]["content"]
@@ -279,7 +309,7 @@ def reason_from_frames(frames: list[bytes], inspector_notes: str,
         "response_format": {"type": "json_object"},
     }
     with httpx.Client(timeout=180) as client:
-        resp = client.post(f"{BASE_URL}/chat/completions", json=payload, headers=_headers())
+        resp = _post_with_retry(client, f"{BASE_URL}/chat/completions", payload, _headers())
         resp.raise_for_status()
         data = resp.json()
     content_text = data["choices"][0]["message"]["content"]
@@ -353,7 +383,7 @@ def compare_for_verification(finding: dict, after_frames: list[bytes]) -> dict:
         "response_format": {"type": "json_object"},
     }
     with httpx.Client(timeout=180) as client:
-        resp = client.post(f"{BASE_URL}/chat/completions", json=payload, headers=_headers())
+        resp = _post_with_retry(client, f"{BASE_URL}/chat/completions", payload, _headers())
         resp.raise_for_status()
         data = resp.json()
     import json
@@ -387,7 +417,7 @@ def chat_with_inspection(report: dict, history: list[dict], question: str) -> st
     messages.append({"role": "user", "content": question})
     payload = {"model": MUSE_MODEL, "messages": messages}
     with httpx.Client(timeout=120) as client:
-        resp = client.post(f"{BASE_URL}/chat/completions", json=payload, headers=_headers())
+        resp = _post_with_retry(client, f"{BASE_URL}/chat/completions", payload, _headers())
         resp.raise_for_status()
         data = resp.json()
     return data["choices"][0]["message"]["content"]
