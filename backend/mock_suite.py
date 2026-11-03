@@ -127,6 +127,41 @@ def main() -> int:
                          data={"notes": "x" * 5001, "site_context": "factory"})
     check("inspection rejects overlong notes",
           r_big_notes.status_code == 400, r_big_notes.text[:120])
+    # 7b. YOLO seam: unconfigured by default (no weights/torch here), and the
+    # mapping is a pure function testable without a model.
+    import yolo as _yolo
+    import os as _os
+    check("yolo unconfigured without weights",
+          _yolo.is_configured() is False
+          and _yolo.status()["configured"] is False, str(_yolo.status()))
+    _os.environ["BASEER_YOLO_WEIGHTS"] = "/nonexistent/best.pt"
+    try:
+        check("yolo rejects missing weights file",
+              _yolo.is_configured() is False)
+        try:
+            _yolo.detect(b"fake")
+            check("yolo detect raises without backend", False)
+        except RuntimeError as e:
+            check("yolo detect raises without backend",
+                  "weights" in str(e).lower(), str(e)[:150])
+    finally:
+        del _os.environ["BASEER_YOLO_WEIGHTS"]
+    mapped = _yolo.map_detections([
+        {"label": "No Helmet", "confidence": 0.9, "bbox": [0.5, 0.5, 0.2, 0.3]},
+        {"label": "person", "confidence": 0.99, "bbox": [0.5, 0.5, 0.4, 0.6]},
+        {"label": "no vest", "confidence": 0.1, "bbox": [0.5, 0.5, 0.2, 0.3]},
+        {"label": "helmet", "confidence": 0.9, "bbox": [0.5, 0.2, 0.1, 0.1]},
+    ])
+    check("yolo maps violations only",
+          len(mapped) == 1 and mapped[0]["severity"] == "high"
+          and mapped[0]["key"] == "worker without a safety helmet",
+          str(mapped)[:200])
+    ys = c.get("/live/yolo-status")
+    check("yolo status endpoint",
+          ys.status_code == 200 and ys.json()["configured"] is False,
+          ys.text[:150])
+    ys_anon = anon.get("/live/yolo-status")
+    check("yolo status requires login", ys_anon.status_code == 401)
     _old_budget = app.MAX_UPLOAD_BYTES
     app.MAX_UPLOAD_BYTES = 10
     try:
@@ -401,6 +436,34 @@ def main() -> int:
     r = ops.get("/live/sessions")
     check("session list", r.status_code == 200 and r.json()["sessions"] == [],
           r.text[:120])
+
+    # 14. YOLO live branch with a stubbed detector (no torch, no network):
+    # alerts come from YOLO, frames still accumulate for the Meta report.
+    import live as _live
+    import meta_client as _meta
+    _old_mode, _old_cfg, _old_det = (_meta.MODE, _yolo.is_configured,
+                                     _yolo.detect)
+    _meta.MODE = "live"
+    _yolo.is_configured = lambda: True
+    _yolo.detect = lambda jpg: [{"label": "No Helmet", "confidence": 0.9,
+                                 "bbox": [0.5, 0.5, 0.2, 0.3]}]
+    try:
+        sid = _live.start_session("yard")["session_id"]
+        out = _live.add_frames(sid, [jpg])
+        check("yolo live alerts",
+              len(out["new_alerts"]) == 1
+              and out["new_alerts"][0].get("source") == "yolo"
+              and out["frames_received"] == 1, str(out)[:200])
+        out2 = _live.add_frames(sid, [jpg])
+        check("yolo alerts dedupe", out2["new_alerts"] == []
+              and out2["alerts_total"] == 1, str(out2)[:200])
+        check("yolo frames accumulate for report",
+              len(_live.SESSIONS[sid]["frames"]) == 2)
+    finally:
+        _live.SESSIONS.pop(sid, None)
+        _meta.MODE = _old_mode
+        _yolo.is_configured = _old_cfg
+        _yolo.detect = _old_det
 
     print(f"mock suite: GREEN ({an['total_inspections']} inspections, {an['total_findings']} findings)")
     return 0
