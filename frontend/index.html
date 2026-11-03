@@ -594,7 +594,8 @@ const S = {
     liveHint:"كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة. التحليل قريب من الزمن الحقيقي — إطار كل بضع ثوانٍ، لا إطارًا إطارًا.",
     liveStart:"بدء جلسة مباشرة", liveFrame:"إطار من الكاميرا", liveSend:"إرسال الإطار",
     liveFinish:"إنهاء الجلسة وإنتاج التقرير", liveOn:"الجلسة مباشرة الآن", liveIdle:"خاملة",
-    liveCamT:"استخدام الكاميرا", camOn:"الكاميرا تعمل — لقطة كل ٣ ثوانٍ.",
+    liveCamT:"استخدام الكاميرا", camStop:"إيقاف الكاميرا", camOn:"الكاميرا تعمل — لقطة كل ٣ ثوانٍ.",
+    camProg:(n)=>`الكاميرا تعمل — أُرسلت ${n} لقطة حتى الآن.`,
     camDenied:"تعذّرت الكاميرا — أرسل إطارًا من ملف بدلًا من ذلك.", camAlt:"أو أرسل إطارًا من ملف.",
     liveFrames:"إطارات مستلمة", liveAlertsT:"تنبيهات",
     dLiveState:"بانتظار بدء الجلسة", dLiveFrames:"إطارات محللة", dLiveAlerts:"مخالفات مرصودة",
@@ -672,7 +673,8 @@ const S = {
     liveHint:"A camera connected to the system: frames arrive, Baseer flags violations the moment they appear, and finishing the session produces the full report. Analysis is sampled near-real-time — a frame every few seconds, not frame-by-frame.",
     liveStart:"Start live session", liveFrame:"Camera frame", liveSend:"Send frame",
     liveFinish:"Finish session & generate report", liveOn:"Session is live", liveIdle:"Idle",
-    liveCamT:"Use camera", camOn:"Camera on — a snapshot every 3 seconds.",
+    liveCamT:"Use camera", camStop:"Stop camera", camOn:"Camera on — a snapshot every 3 seconds.",
+    camProg:(n)=>`Camera on — ${n} snapshots sent so far.`,
     camDenied:"Camera unavailable — send a frame from a file instead.", camAlt:"Or send a frame from a file.",
     liveFrames:"Frames received", liveAlertsT:"Alerts",
     dLiveState:"Waiting for a session", dLiveFrames:"Frames analyzed", dLiveAlerts:"Violations flagged",
@@ -834,7 +836,8 @@ function applyLang() {
   $("tLive").textContent = s.liveT; $("tLiveHint").textContent = s.liveHint;
   $("liveStart").textContent = s.liveStart; $("tLiveFrame").textContent = s.liveFrame;
   $("liveSend").textContent = s.liveSend; $("liveFinish").textContent = s.liveFinish;
-  $("liveCam").textContent = s.liveCamT; $("tLiveAlt").textContent = s.camAlt;
+  if (typeof paintCamBtn === "function") paintCamBtn(); else $("liveCam").textContent = s.liveCamT;
+  $("tLiveAlt").textContent = s.camAlt;
   paintLiveStats();
   $("tAlerts").textContent = s.alertsT;
   if (!$("liveAlerts").querySelector(".alert")) $("noAlerts") && ($("liveAlerts").innerHTML = `<p class="meta" id="noAlerts">${s.noAlerts}</p>`);
@@ -1225,6 +1228,10 @@ async function updateLiveResult(data) {
   for (const a of data.new_alerts) liveAlerts.push(a);
   paintLiveStats();
   paintAlertsList(liveAlerts);
+  if (camStream) {
+    $("camNote").textContent = S[lang].camProg(data.frames_received);
+    $("camNote").classList.remove("hidden");
+  }
   $("liveStatus").textContent =
     `${S[lang].liveOn} · ${data.frames_received} ${S[lang].liveFrames} · ${data.segments_total} segments`;
 }
@@ -1236,12 +1243,18 @@ $("liveSend").addEventListener("click", async () => {
   updateLiveResult(await res.json());
 });
 let camStream = null, camTimer = null;
+function paintCamBtn() {
+  const s = S[lang];
+  $("liveCam").textContent = camStream ? s.camStop : s.liveCamT;
+  $("liveCam").disabled = false;
+}
 function stopCamera() {
   if (camTimer) { clearInterval(camTimer); camTimer = null; }
-  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  if (camStream) { try { camStream.getTracks().forEach(t => t.stop()); } catch (e) {} camStream = null; }
+  try { $("camPreview").srcObject = null; } catch (e) {}
   $("camPreview").classList.add("hidden");
   $("camNote").classList.add("hidden");
-  $("liveCam").disabled = false;
+  paintCamBtn();
 }
 function captureSnapshot() {
   const v = $("camPreview");
@@ -1259,6 +1272,8 @@ function captureSnapshot() {
 }
 $("liveCam").addEventListener("click", async () => {
   const s = S[lang];
+  // Toggle: the camera is on or off purely by the user's selection.
+  if (camStream || camTimer) { stopCamera(); return; }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     $("camNote").textContent = s.camDenied; $("camNote").classList.remove("hidden"); return;
   }
@@ -1270,9 +1285,10 @@ $("liveCam").addEventListener("click", async () => {
     await v.play();
     v.classList.remove("hidden");
     $("camNote").textContent = s.camOn; $("camNote").classList.remove("hidden");
-    $("liveCam").disabled = true;
+    paintCamBtn();
     camTimer = setInterval(captureSnapshot, 3000);
   } catch (e) {
+    stopCamera();
     $("camNote").textContent = s.camDenied; $("camNote").classList.remove("hidden");
   }
 });
