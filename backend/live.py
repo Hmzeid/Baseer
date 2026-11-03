@@ -24,6 +24,7 @@ from datetime import datetime, timezone
 import meta_client
 import pipeline
 import store
+import yolo
 
 SESSIONS: dict[str, dict] = {}
 
@@ -131,11 +132,40 @@ def _vision_alerts(session: dict, findings: list, frame_index: int) -> list[dict
     return new_alerts
 
 
+def _yolo_alerts(session: dict, alerts: list[dict], frame_index: int) -> list[dict]:
+    """First-appearance YOLO alerts. Same shape as the other alert paths,
+    plus source + confidence so the UI can show what watched the stream."""
+    new_alerts: list[dict] = []
+    for a in alerts:
+        key = a.get("key", "")
+        if not key or a.get("severity") not in ("high", "medium"):
+            continue
+        if key in session["alerted_labels"]:
+            continue
+        session["alerted_labels"].add(key)
+        alert = {
+            "label": a["title_en"],
+            "label_ar": a["title_ar"],
+            "frame_index": frame_index,
+            "message_en": f"Live alert: {a['title_en']} detected",
+            "message_ar": f"تنبيه مباشر: تم رصد {a['title_ar']}",
+            "source": "yolo",
+            "confidence": a.get("confidence"),
+        }
+        session["alerts"].append(alert)
+        new_alerts.append(alert)
+    return new_alerts
+
+
 def add_frames(session_id: str, frames: list[bytes]) -> dict:
     """Analyze each frame as it arrives. Mock mode keeps the synthetic
     segment path. Live mode uses the session's pinned path: SAM segments
     where enabled, otherwise one vision call per frame (auto mode pins
-    "vision" for the session after the first SAM 404)."""
+    "vision" for the session after the first SAM 404).
+
+    When a local YOLO model is configured (BASEER_YOLO_WEIGHTS), the YOLO
+    path alerts on PPE detections directly; frames still accumulate so the
+    Meta report at finish is unchanged."""
     session = SESSIONS.get(session_id)
     if session is None:
         raise KeyError("session not found")
@@ -144,8 +174,21 @@ def add_frames(session_id: str, frames: list[bytes]) -> dict:
         meta_client.MODE == "live"
         and _decide_path(session) == "vision"
     )
+    yolo_active = meta_client.MODE == "live" and yolo.is_configured()
     for frame in frames:
         base_index = session["frames_received"]
+        if yolo_active and frame:
+            session["frames"].append(frame)
+            try:
+                dets = yolo.detect(frame)
+            except Exception:
+                dets = None  # never break the loop; fall back below
+            if dets is not None:
+                new_alerts.extend(
+                    _yolo_alerts(session, yolo.map_detections(dets),
+                                 base_index))
+                session["frames_received"] += 1
+                continue
         if use_vision:
             session["frames"].append(frame)
             if frame:

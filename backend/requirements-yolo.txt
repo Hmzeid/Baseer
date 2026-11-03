@@ -1,0 +1,4 @@
+# YOLO runtime (optional, CPU/GPU local inference for the live stream).
+# The base server runs without these; install only where the camera runs.
+ultralytics>=8.0
+torch>=2.0

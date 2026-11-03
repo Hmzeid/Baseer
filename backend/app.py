@@ -313,6 +313,13 @@ def live_start(req: LiveStartRequest, user: dict = Depends(current_user)):
     return live.start_session(req.site_context)
 
 
+@app.get("/live/yolo-status")
+def yolo_status(user: dict = Depends(current_user)):
+    """Ops visibility: is the local YOLO stream watcher active?"""
+    import yolo as _yolo
+    return _yolo.status()
+
+
 @app.get("/live/sessions")
 def live_list(user: dict = Depends(current_user)):
     """Open (incl. restored-after-restart) live sessions, for resume."""

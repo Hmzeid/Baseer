@@ -35,6 +35,25 @@
   next sign-in at the latest).
 - Rotate the Meta key: edit `.env`, `launchctl kickstart -k` the service.
 
+## YOLO stream watcher (real-life camera path)
+- In production the live stream goes to a local YOLO PPE model: it fires
+  live alerts on the spot (fast, works offline, no per-frame API cost).
+  The Meta API still writes the final grounded report at session finish.
+- Install once: `../.venv/bin/pip install -r backend/requirements-yolo.txt`
+  (torch + ultralytics, ~2 GB; Apple Silicon uses MPS automatically).
+- Place the trained weights at `data/yolo/best.pt` (git-ignored, like the
+  DB) and set `BASEER_YOLO_WEIGHTS=/Users/husseinabdelwahab/Ai/Baseer/data/yolo/best.pt`
+  in the launchd plist (or export it), then reload the service.
+- Tune: `BASEER_YOLO_CONF` (default 0.5). If your model's class names
+  differ, map them with `BASEER_YOLO_MAP` JSON, e.g.
+  `{"no_helmet": ["Worker without a safety helmet", "عامل بدون خوذة حماية", "high"]}`.
+- Verify: sign in, open `GET /live/yolo-status` — `configured` must be
+  true and list the model's classes. Without weights (or without torch)
+  the server logs nothing and keeps the SAM/vision path, so a missing
+  model file can never break the camera.
+- YOLO alerts carry `"source": "yolo"`; severities on live alerts are
+  preliminary — the finished report is authoritative.
+
 ## LAN HTTPS (optional)
 - `sh ops/tls.sh [hostname]` mints a self-signed cert into `data/tls/`;
   launch uvicorn with `--ssl-certfile/--ssl-keyfile` (command is printed
