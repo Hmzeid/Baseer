@@ -10,6 +10,8 @@ from __future__ import annotations
 import os
 import secrets
 import time
+
+import httpx
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -140,7 +142,12 @@ async def create_inspection(
     if len(notes) > MAX_TEXT_CHARS:
         raise HTTPException(status_code=400, detail="notes too long (max 5000 characters)")
     payload = await _read_uploads(files, "upload")
-    report = pipeline.run_inspection(payload, notes, site_context)
+    try:
+        report = pipeline.run_inspection(payload, notes, site_context)
+    except httpx.HTTPStatusError as exc:
+        # Provider throttled us mid-analysis (video = dozens of frame
+        # calls). Tell the user to retry instead of dying with a 500.
+        raise HTTPException(status_code=503, detail=str(exc)[:200])
     data = asdict(report)
     data["evidence_files"] = _save_evidence(report.inspection_id, payload)
     REPORTS[report.inspection_id] = data
@@ -350,6 +357,8 @@ def live_finish(session_id: str, req: LiveFinishRequest,
         data = live.finish_session(session_id, req.notes)
     except KeyError:
         raise HTTPException(status_code=404, detail="live session not found")
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)[:200])
     _live_dir = DATA_DIR / "evidence" / session_id
     data["evidence_files"] = sorted(p.name for p in _live_dir.glob("*")) if _live_dir.exists() else []
     REPORTS[data["inspection_id"]] = data
