@@ -449,6 +449,7 @@
               <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                 <span id="pipeBadge" class="badge vision"></span>
                 <button id="printBtn" class="btn ghost small" type="button">طباعة التقرير</button>
+                <button id="pdfBtn" class="btn ghost small" type="button">تنزيل PDF</button>
                 <button id="waBtn" class="btn ghost small" type="button">مشاركة واتساب</button>
                 <select id="actorSel" class="btn ghost small" style="width:auto" title="acting"></select>
               </div>
@@ -610,7 +611,7 @@ const S = {
     noReport:"لا يوجد تقرير بعد", noReportHint:"شغّل فحصًا جديدًا أو أنهِ جلسة كاميرا مباشرة، وسيظهر التقرير هنا.",
     modeLive:"مباشر", modeMock:"تجريبي",
     pipeBadgeMock:"بيانات تجريبية", pipeBadgeLiveCam:"كاميرا مباشرة", pipeBadgeVision:"رؤية Muse", pipeBadgeSam:"SAM 3.1",
-    printRep:"طباعة التقرير", shareWa:"مشاركة واتساب",
+    printRep:"طباعة التقرير", pdfRep:"تنزيل PDF", shareWa:"مشاركة واتساب",
     tAudit:"سجل التدقيق", tAuditHint:"كل إجراء على الحالات — إسنادًا وتحققًا واعتمادًا — مسجل هنا ولا يُحذف.",
     csvBtn:"تنزيل CSV", thTime:"الوقت", thAuditId:"الفحص", thSite:"الموقع", thFindingN:"ملاحظة #",
     thAction:"الإجراء", thActor:"الفاعل", thDetail:"التفاصيل", auditEmpty:"لا إجراءات مسجلة بعد.",
@@ -688,7 +689,7 @@ const S = {
     noReport:"No report yet", noReportHint:"Run a new inspection or finish a live camera session, and the report will appear here.",
     modeLive:"LIVE", modeMock:"MOCK",
     pipeBadgeMock:"Demo data", pipeBadgeLiveCam:"Live camera", pipeBadgeVision:"Muse vision", pipeBadgeSam:"SAM 3.1",
-    printRep:"Print report", shareWa:"Share via WhatsApp",
+    printRep:"Print report", pdfRep:"Download PDF", shareWa:"Share via WhatsApp",
     tAudit:"Audit log", tAuditHint:"Every case action — assignment, verification, approval — is recorded here and never deleted.",
     csvBtn:"Download CSV", thTime:"Time", thAuditId:"Inspection", thSite:"Site", thFindingN:"Finding #",
     thAction:"Action", thActor:"Actor", thDetail:"Detail", auditEmpty:"No recorded actions yet.",
@@ -842,6 +843,7 @@ function applyLang() {
   $("tChat").textContent = s.chat; $("chatInput").placeholder = s.chatPh; $("chatSend").textContent = s.send;
   $("tEvidence").textContent = s.tEvidence;
   $("printBtn").textContent = s.printRep;
+  $("pdfBtn").textContent = s.pdfRep;
   $("waBtn").textContent = s.shareWa;
   $("tAudit").textContent = s.tAudit; $("tAuditHint").textContent = s.tAuditHint;
   $("csvBtn").textContent = s.csvBtn;
@@ -1415,6 +1417,19 @@ $("csvBtn").addEventListener("click", async ()=>{
 $("ctaInspect").addEventListener("click", ()=>showView("inspect"));
 $("goInspect").addEventListener("click", ()=>showView("inspect"));
 $("printBtn").addEventListener("click", ()=>window.print());
+$("pdfBtn").addEventListener("click", async ()=>{
+  if (!lastReport) return;
+  try {
+    const res = await fetch(`/inspections/${lastReport.inspection_id}/report.pdf`);
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `baseer-${lastReport.inspection_id}.pdf`;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+  } catch (e) { /* layer only */ }
+});
 $("waBtn").addEventListener("click", ()=>{
   if (!lastReport) return;
   const s = S[lang];

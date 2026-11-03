@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile, WebSocket
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -400,6 +400,22 @@ def get_evidence(inspection_id: str, filename: str, user: dict = Depends(current
     if not safe_id or not safe_name or not path.is_file():
         raise HTTPException(status_code=404, detail="evidence not found")
     return FileResponse(path)
+
+
+@app.get("/inspections/{inspection_id}/report.pdf")
+def inspection_pdf(inspection_id: str, user: dict = Depends(current_user)):
+    """Structured Arabic PDF report (server-rendered, not an app printout)."""
+    import report_pdf
+    report = REPORTS.get(inspection_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="inspection not found")
+    entries = [e for e in store.read_audit()
+               if e.get("inspection_id") == inspection_id]
+    pdf = report_pdf.build_pdf(report, entries,
+                               DATA_DIR / "evidence" / inspection_id)
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition":
+                             f'attachment; filename="baseer-{inspection_id}.pdf"'})
 
 
 class LoginRequest(BaseModel):

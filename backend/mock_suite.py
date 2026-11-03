@@ -164,6 +164,17 @@ def main() -> int:
           ve2["case"]["verification"]["suggested_resolved"] is False,
           str(ve2["case"]["verification"])[:150])
 
+    # 4a. structured PDF report (server-rendered, Arabic RTL)
+    pdf = c.get(f"/inspections/{iid}/report.pdf")
+    check("pdf report 200", pdf.status_code == 200
+          and pdf.headers.get("content-type", "").startswith("application/pdf")
+          and pdf.content[:5] == b"%PDF-", pdf.text[:120])
+    pdf_anon = anon.get(f"/inspections/{iid}/report.pdf")
+    check("pdf requires login", pdf_anon.status_code == 401, pdf_anon.text[:120])
+    pdf_bad = c.get("/inspections/does-not-exist/report.pdf")
+    check("pdf 404 unknown inspection",
+          pdf_bad.status_code == 404, pdf_bad.text[:120])
+
     # 4b. case notes: append-only, stamped, audited; caps enforced
     n1 = c.post(f"/inspections/{iid}/findings/1/case/notes",
                 json={"text": "contractor called — 24h to fix"})
