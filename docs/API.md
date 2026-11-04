@@ -28,7 +28,8 @@ Errors are JSON `{"detail": "..."}` with these status codes:
 ### `GET /health`
 ```json
 {"status": "ok", "mode": "mock", "version": "0.4.0",
- "segmentation": "auto", "sla_days": {"high": 1, "medium": 7, "low": 30}}
+ "segmentation": "auto", "sla_days": {"high": 1, "medium": 7, "low": 30},
+ "product": "Baseer by Veebase", "briefing_languages": {"ur": {"name": "Urdu", "native": "اردو", "rtl": true}, …}}
 ```
 
 ## Inspections
@@ -87,6 +88,18 @@ The original upload bytes. Filenames come from `evidence_files`.
 `{"question": "…", "history": [{"role": "user|assistant", "content": "…"}]}`
 → `{"answer": "…"}`. The question must be 1–2000 characters. Answers are
 grounded in the report only.
+
+### `POST /inspections/{id}/briefing` — crew briefing
+`{"language": "ur", "refresh": false}`. Languages: `ar en ur hi bn ne tl ml` (also
+listed with native names and text direction in `/health` → `briefing_languages`).
+Returns `{language, name, native, rtl, text, generated_at, actor, cached}`. Cached per
+language on the report under `briefings`; `refresh: true` regenerates. `400` for an
+unknown language or a report with no findings, `503` if the model provider throttles.
+
+### Segments
+SAM-path reports carry `segments: [{label, label_ar, confidence, frame_index, bbox}]`
+with `bbox` normalized `[x, y, w, h]` on the extracted frame. The console and the PDF
+draw them only when `segmentation_source == "sam"`.
 
 ## Corrective-action cases
 

@@ -46,6 +46,9 @@ const ICONS = {
   "check-shield": '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
   wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
   activity: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  scan: '<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1.5"/>',
+  volume: '<path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
+  refresh: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
   file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
 };
 function icon(name) {
@@ -149,6 +152,10 @@ const S = {
     activity: (n) => `النشاط (${n})`, notePh: "أضف ملاحظة إلى سجل الحالة…", noteAdd: "إضافة",
     act: { assign: "إسناد", verify: "تحقق", approve: "اعتماد الإغلاق", verify_evidence: "تحقق بدليل", note: "ملاحظة" },
     assigned: "أُسندت الحالة.", verified: "اكتمل التحقق.", closed: "أُغلقت الحالة.", noteSaved: "أُضيفت الملاحظة.",
+    briefT: "إحاطة الطاقم", briefHint: "حديث سلامة قصير من هذا التقرير، بلغة الطاقم، للقراءة بصوت عالٍ",
+    briefPick: "اختر لغة الطاقم لإنشاء الإحاطة.", briefCopy: "نسخ", briefRead: "قراءة بصوت", briefRedo: "إعادة الإنشاء",
+    briefCopied: "نُسخت الإحاطة.", briefNoVoice: (n) => `لا يتوفر صوت ${n} على هذا الجهاز.`, briefWorking: "يكتب بصير الإحاطة…",
+    segToggle: (src, n, on) => `مقاطع SAM 3.1 (${n}) · ${on ? "إخفاء" : "إظهار"}`,
     chat: "اسأل بصير", chatHint: "إجابات مستندة إلى أدلة هذا الفحص فقط.", chatPh: "اسأل عن أي ملاحظة أو اطلب مسودة إشعار…",
     send: "إرسال", chatErr: "تعذّرت الإجابة الآن.",
     chips: (f) => [f ? `لماذا «${f.title_ar || f.title_en}» ${S.ar.sev[f.severity] || ""} الخطورة؟` : "ما أخطر ملاحظة؟",
@@ -262,6 +269,10 @@ const S = {
     activity: (n) => `Activity (${n})`, notePh: "Add a note to the case log…", noteAdd: "Add",
     act: { assign: "Assign", verify: "Verify", approve: "Approve closure", verify_evidence: "Verify with evidence", note: "Note" },
     assigned: "Case assigned.", verified: "Verification complete.", closed: "Case closed.", noteSaved: "Note added.",
+    briefT: "Crew briefing", briefHint: "A short toolbox talk from this report, in the crew's language, to read aloud",
+    briefPick: "Pick the crew's language to write the briefing.", briefCopy: "Copy", briefRead: "Read aloud", briefRedo: "Regenerate",
+    briefCopied: "Briefing copied.", briefNoVoice: (n) => `No ${n} voice on this device.`, briefWorking: "Baseer is writing the briefing…",
+    segToggle: (src, n, on) => `SAM 3.1 segments (${n}) · ${on ? "hide" : "show"}`,
     chat: "Ask Baseer", chatHint: "Answers grounded strictly in this inspection's evidence.", chatPh: "Ask about a finding or request a draft notice…",
     send: "Send", chatErr: "Couldn't answer just now.",
     chips: (f) => [f ? `Why is "${f.title_en || f.title_ar}" ${(S.en.sev[f.severity] || "").toLowerCase()} severity?` : "What is the most serious finding?",
@@ -383,7 +394,28 @@ function modal({ title, body = "", ok, danger = false, input = false }) {
     if (input) inp.focus();
   });
 }
-function lightbox(src) { $("lightboxImg").src = src; $("lightbox").classList.remove("hidden"); }
+function lightbox(src, segs = []) {
+  $("lightboxImg").src = src;
+  $("lightboxSegs").innerHTML = segLayer(segs);
+  $("lightbox").classList.remove("hidden");
+}
+// SAM 3.1 segments: normalized [x, y, w, h] boxes per extracted frame.
+const HAZARD_HINTS = ["without", "missing", "no_", "_no"];
+let showSegs = store.get("baseer_segs", true);
+// Only real SAM output is drawn: demo-mode segments are synthetic boxes that
+// would land on real photos as nonsense.
+function samSegments(r) { return r.segmentation_source === "sam" ? (r.segments || []) : []; }
+function segsFor(r, frameIdx) {
+  return samSegments(r).filter((sg) => sg.frame_index === frameIdx && (sg.bbox || []).length === 4);
+}
+function segLayer(segs) {
+  return segs.map((sg) => {
+    const [x, y, w, h] = sg.bbox.map((v) => Math.max(0, Math.min(1, v)) * 100);
+    const hazard = HAZARD_HINTS.some((k) => String(sg.label).toLowerCase().includes(k));
+    const label = lang === "ar" ? (sg.label_ar || humanize(sg.label)) : humanize(sg.label);
+    return `<div class="seg-box${hazard ? " hazard" : ""}${y < 6 ? " low" : ""}" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%"><span>${esc(label)}</span></div>`;
+  }).join("");
+}
 $("lightbox").addEventListener("click", () => $("lightbox").classList.add("hidden"));
 $("modalCancel").addEventListener("click", () => $("modal").close("cancel"));
 
@@ -989,22 +1021,93 @@ function renderReport() {
   $("findingsCount").textContent = s.findingsN(r.findings.length);
   renderEvidence();
   renderFindings();
+  renderBriefing();
   renderChat();
 }
+
+/* ---- crew briefing (toolbox talk in the crew's language) */
+const BRIEF_FALLBACK = { ar: ["Arabic", "العربية", true], en: ["English", "English", false], ur: ["Urdu", "اردو", true],
+  hi: ["Hindi", "हिन्दी", false], bn: ["Bengali", "বাংলা", false], ne: ["Nepali", "नेपाली", false],
+  tl: ["Tagalog", "Tagalog", false], ml: ["Malayalam", "മലയാളം", false] };
+const SPEECH_LANG = { ar: "ar", en: "en", ur: "ur", hi: "hi", bn: "bn", ne: "ne", tl: "fil", ml: "ml" };
+let briefLang = null, briefFor = null;
+function briefLangs() {
+  const h = health.briefing_languages;
+  return h ? Object.fromEntries(Object.entries(h).map(([k, v]) => [k, [v.name, v.native, v.rtl]])) : BRIEF_FALLBACK;
+}
+function renderBriefing() {
+  const r = report, s = T(), langs = briefLangs(), done = r.briefings || {};
+  if (briefFor !== r.inspection_id) { briefFor = r.inspection_id; briefLang = null; }
+  $("briefCard").classList.toggle("hidden", !r.findings.length);
+  $("briefLangs").innerHTML = Object.entries(langs).map(([k, v]) =>
+    `<button type="button" data-brief="${k}" class="${k === briefLang ? "active" : ""}" lang="${k}">${esc(v[1])}${done[k] ? '<span class="done"></span>' : ""}</button>`).join("");
+  const entry = briefLang && done[briefLang];
+  const out = $("briefOut");
+  out.className = "brief-out";
+  out.dir = briefLang && langs[briefLang] && langs[briefLang][2] ? "rtl" : "auto";
+  out.lang = briefLang || "";
+  out.textContent = entry ? entry.text : (briefLang ? "" : s.briefPick);
+  $("briefActions").classList.toggle("hidden", !entry);
+  $("briefMeta").textContent = entry ? `${entry.actor || ""} · ${fmtTime(entry.generated_at)}` : "";
+}
+async function makeBriefing(code, refresh = false) {
+  if (!report) return;
+  const id = report.inspection_id;
+  briefLang = code;
+  renderBriefing();
+  if ((report.briefings || {})[code] && !refresh) return;
+  const out = $("briefOut");
+  out.className = "brief-out loading"; out.textContent = T().briefWorking;
+  $("briefActions").classList.add("hidden");
+  try {
+    const d = await api(`/inspections/${id}/briefing`, { method: "POST", json: { language: code, refresh } });
+    if (report && report.inspection_id === id) {
+      report.briefings = report.briefings || {};
+      report.briefings[code] = { text: d.text, generated_at: d.generated_at, actor: d.actor };
+    }
+  } catch (e) { toast(e.message, "err"); }
+  if (report && report.inspection_id === id) renderBriefing();
+}
+$("briefLangs").addEventListener("click", (e) => { const b = e.target.closest("[data-brief]"); if (b) makeBriefing(b.dataset.brief); });
+$("briefRedo").addEventListener("click", () => briefLang && makeBriefing(briefLang, true));
+$("briefCopy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("briefOut").textContent); toast(T().briefCopied); } catch (e) { toast(e.message, "err"); }
+});
+$("briefWa").addEventListener("click", () => {
+  window.open("https://wa.me/?text=" + encodeURIComponent($("briefOut").textContent), "_blank", "noopener");
+});
+$("briefSpeak").addEventListener("click", () => {
+  const code = SPEECH_LANG[briefLang] || briefLang, name = (briefLangs()[briefLang] || [briefLang])[0];
+  const voice = ("speechSynthesis" in window) && speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(code));
+  if (!voice) return toast(T().briefNoVoice(name), "info");
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance($("briefOut").textContent);
+  u.voice = voice; u.lang = voice.lang; u.rate = 0.95;
+  speechSynthesis.speak(u);
+});
 function renderEvidence() {
   const r = report, s = T(), media = mediaFor(r);
   $("evStamp").textContent = media.length ? `${media.length} · ${fmtTime(r.created_at)}` : "";
   if (!media.length) { $("rEvidence").innerHTML = `<p class="muted small">${esc(s.noEvidence)}</p>`; return; }
   const shown = media.slice(0, EVIDENCE_VISIBLE);
+  const nSegs = samSegments(r).filter((sg) => (sg.bbox || []).length === 4).length;
+  // Images before the first video map one-to-one onto extracted frames.
+  const firstVideo = media.findIndex((m) => m.kind === "video");
+  $("segToggle").classList.toggle("hidden", !nSegs);
+  $("segToggleLabel").textContent = s.segToggle(r.segmentation_source, nSegs, showSegs);
   $("rEvidence").innerHTML = shown.map((m, i) => {
     let visual;
+    const fi = m.kind === "image" && (firstVideo < 0 || i < firstVideo) ? i : -1, segs = fi >= 0 ? segsFor(r, fi) : [];
     if (m.kind === "video") visual = m.url ? `<video src="${m.url}" controls preload="metadata"></video>` : `<button type="button" class="icon-btn" data-play="${i}" title="${esc(s.loadVideo)}">${ic("play")}</button>`;
-    else visual = m.url ? `<img src="${m.url}" alt="" data-zoom="${m.url}">` : `<div class="skeleton" style="width:60%"></div>`;
+    else visual = m.url ? `<img src="${m.url}" alt="" data-zoom="${m.url}" data-frame="${fi}">` : `<div class="skeleton" style="width:60%"></div>`;
+    if (segs.length && showSegs) visual += `<span class="seg-badge">SAM · ${segs.length}</span>`;
     return `<div class="ev"><div class="ev-media">${visual}</div><div class="ev-info"><b>${esc(m.name.replace(/^\d+-(\d+-)?/, ""))}</b>${m.size ? fmtSize(m.size) : esc(m.kind)}</div></div>`;
   }).join("") + (media.length > shown.length ? `<div class="ev more">${esc(s.more(media.length - shown.length))}</div>` : "");
 }
+function zoom(z) { const fi = +(z.dataset.frame ?? -1); return lightbox(z.dataset.zoom, report && fi >= 0 && showSegs ? segsFor(report, fi) : []); }
+$("segToggle").addEventListener("click", () => { showSegs = !showSegs; store.set("baseer_segs", showSegs); renderEvidence(); renderFindings(); });
 $("rEvidence").addEventListener("click", async (e) => {
-  const z = e.target.closest("[data-zoom]"); if (z) return lightbox(z.dataset.zoom);
+  const z = e.target.closest("[data-zoom]"); if (z) return zoom(z);
   const p = e.target.closest("[data-play]"); if (!p || !report) return;
   const m = mediaFor(report)[+p.dataset.play];
   try {
@@ -1042,7 +1145,7 @@ function renderFindings() {
           ${pick(f, "action") ? `<div class="action-box">${ic("wrench")}<div><b>${esc(s.action)}</b>${esc(pick(f, "action"))}</div></div>` : ""}
           <div class="fmeta"><span class="badge badge-soft">${ic("image")} ${esc(s.frame(f.frame_index))}</span><span class="badge badge-soft">${ic("sparkles")} ${esc(srcLabel(f))}</span></div>
         </div>
-        ${shot && shot.url ? `<img class="fthumb" src="${shot.url}" alt="" data-zoom="${shot.url}">` : ""}
+        ${shot && shot.url ? `<div class="frame" data-zoom="${shot.url}" data-frame="${f.frame_index}"><img src="${shot.url}" alt="">${showSegs ? `<div class="seg-layer">${segLayer(segsFor(r, f.frame_index))}</div>` : ""}</div>` : ""}
       </div>
       ${caseHTML(f, i)}
     </article>`;
@@ -1102,7 +1205,7 @@ async function caseUpdate(i, promise, okMsg) {
   } catch (e) { toast(e.message, "err"); }
 }
 $("rFindings").addEventListener("click", async (e) => {
-  const z = e.target.closest("[data-zoom]"); if (z) return lightbox(z.dataset.zoom);
+  const z = e.target.closest("[data-zoom]"); if (z) return zoom(z);
   const b = e.target.closest("[data-case]"); if (!b || !report) return;
   const i = +b.dataset.i, s = T(), base = `/inspections/${report.inspection_id}/findings/${i}`;
   const action = b.dataset.case;

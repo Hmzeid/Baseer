@@ -135,6 +135,47 @@ def main() -> int:
                      json={"question": "x" * 2001, "history": []})
     check("chat rejects overlong", ch_long.status_code == 400, ch_long.text[:120])
 
+    # crew briefing: the report rewritten for the crew, in the crew's language
+    hl = c.get("/health").json().get("briefing_languages", {})
+    check("briefing languages listed", {"ar", "en", "ur", "hi", "bn", "ne", "tl", "ml"} <= set(hl)
+          and hl["ur"]["rtl"] is True and hl["hi"]["rtl"] is False, str(hl)[:150])
+    b_ar = c.post(f"/inspections/{iid}/briefing", json={"language": "ar"})
+    check("briefing arabic", b_ar.status_code == 200 and b_ar.json()["rtl"] is True
+          and rep["findings"][0]["title_ar"] in b_ar.json()["text"] and not b_ar.json()["cached"], b_ar.text[:160])
+    b_ur = c.post(f"/inspections/{iid}/briefing", json={"language": "ur"}).json()
+    check("briefing urdu header + honest demo note", b_ur["text"].startswith("عملے کے لیے") and "Demo mode" in b_ur["text"], b_ur["text"][:120])
+    b_again = c.post(f"/inspections/{iid}/briefing", json={"language": "ar"}).json()
+    check("briefing cached per language", b_again["cached"] is True and b_again["text"] == b_ar.json()["text"])
+    check("briefing stamped + persisted", "layla" in b_again["actor"]
+          and set(c.get(f"/inspections/{iid}").json().get("briefings", {})) >= {"ar", "ur"})
+    check("briefing rejects unknown language",
+          c.post(f"/inspections/{iid}/briefing", json={"language": "xx"}).status_code == 400)
+    check("briefing 404 unknown inspection",
+          c.post("/inspections/nope/briefing", json={"language": "ar"}).status_code == 404)
+    check("briefing requires login",
+          anon.post(f"/inspections/{iid}/briefing", json={"language": "ar"}).status_code == 401)
+
+    # SAM overlays: segments carry normalized boxes; the PDF draws them on evidence
+    import report_pdf as _rp2
+    segs0 = [sg for sg in rep["segments"] if sg["frame_index"] == 0]
+    check("segments have normalized boxes", segs0 and all(len(sg["bbox"]) == 4 and all(0 <= v <= 1 for v in sg["bbox"])
+                                                           for sg in segs0), str(segs0[:1]))
+    _ann = _rp2.annotate_frame(jpg, segs0)
+    check("frame annotation draws", _ann != jpg and _ann[:2] == b"\xff\xd8" and _rp2.annotate_frame(jpg, []) == jpg)
+    from pathlib import Path as _P
+    _calls, _orig = [], _rp2.annotate_frame
+    _rp2.annotate_frame = lambda blob, sg: (_calls.append(len(sg)), _orig(blob, sg))[1]
+    try:
+        _evd = _P(os.environ["BASEER_DATA_DIR"]) / "evidence" / iid
+        _rp2.build_pdf(rep, [], _evd)
+        _demo_calls = len(_calls)
+        _rp2.build_pdf({**rep, "segmentation_source": "sam"}, [], _evd)
+    finally:
+        _rp2.annotate_frame = _orig
+    check("demo segments never drawn; SAM segments drawn", _demo_calls == 0 and len(_calls) > 0, str(_calls))
+    _pdf = c.get(f"/inspections/{iid}/report.pdf")
+    check("pdf with annotated evidence", _pdf.status_code == 200 and len(_pdf.content) > 10000, str(len(_pdf.content)))
+
     # production input guards: oversized notes + upload budget
     r_big_notes = c.post("/inspections",
                          files={"files": ("site.jpg", jpg, "image/jpeg")},

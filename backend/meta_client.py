@@ -424,6 +424,30 @@ def chat_with_inspection(report: dict, history: list[dict], question: str) -> st
     return data["choices"][0]["message"]["content"]
 
 
+def crew_briefing(report: dict, language: str) -> str:
+    """A read-aloud toolbox talk for the crew, from this report only, in the
+    crew's own language (prompts.BRIEFING_LANGUAGES)."""
+    import prompts
+    name, native, _rtl = prompts.BRIEFING_LANGUAGES[language]
+    if MODE != "live":
+        return _mock_briefing(report, language, name)
+    if not API_KEY:
+        raise RuntimeError("live mode requires MODEL_API_KEY (create one at dev.meta.ai)")
+    if MUSE_MODEL.endswith("-contributor"):
+        raise RuntimeError("Refusing Contributor-tier model for briefings.")
+    messages = [
+        {"role": "system", "content": prompts.BRIEFING_SYSTEM_PROMPT.format(language=name, native=native)},
+        {"role": "user", "content": "INSPECTION REPORT:\n" + prompts.build_chat_context(report)
+         + f"\n\nWrite the crew briefing in {name} ({native})."},
+    ]
+    payload = {"model": MUSE_MODEL, "messages": messages}
+    with httpx.Client(timeout=120) as client:
+        resp = _post_with_retry(client, f"{BASE_URL}/chat/completions", payload, _headers())
+        resp.raise_for_status()
+        data = resp.json()
+    return data["choices"][0]["message"]["content"].strip()
+
+
 # ---------------------------------------------------------------------------
 # Mock mode — deterministic, clearly synthetic. Mirrors the shape of the real
 # outputs so the UI and report layers develop against the true contract.
@@ -638,3 +662,30 @@ def _mock_chat(report: dict, question: str) -> str:
     listing = ", ".join(f"{f.get('title_en', '').lower()} ({f.get('severity', '')})" for f in findings)
     return (f"I can answer from this inspection's evidence only: {len(findings)} findings — {listing}. "
             "Ask me about any finding, or ask for a draft notice to the contractor.")
+
+
+_BRIEFING_HEADER = {
+    "ar": "إحاطة السلامة للطاقم", "en": "Crew safety briefing", "ur": "عملے کے لیے حفاظتی بریفنگ",
+    "hi": "टीम के लिए सुरक्षा ब्रीफिंग", "bn": "দলের জন্য নিরাপত্তা ব্রিফিং", "ne": "टोलीका लागि सुरक्षा ब्रिफिङ",
+    "tl": "Paalala sa kaligtasan para sa crew", "ml": "ടീമിനുള്ള സുരക്ഷാ ബ്രീഫിംഗ്",
+}
+
+
+def _mock_briefing(report: dict, language: str, name: str) -> str:
+    """Demo-mode briefing built only from the report's own text. Arabic and
+    English use the report's bilingual fields; other languages get a header
+    in that language plus the English items, and say so — never a fake
+    translation."""
+    rank = {"high": 0, "medium": 1, "low": 2}
+    findings = sorted(report.get("findings", []), key=lambda f: rank.get(f.get("severity"), 3))
+    key = "ar" if language == "ar" else "en"
+    lines = [_BRIEFING_HEADER.get(language, "Crew safety briefing")]
+    for i, f in enumerate(findings, 1):
+        lines.append(f"{i}. {f.get('title_' + key, '')}: {f.get('action_' + key, '')}")
+    if language == "ar":
+        lines.append("إذا لم تكن متأكدًا، توقف عن العمل وأبلغ المشرف.")
+    else:
+        lines.append("If you are unsure, stop work and tell the supervisor.")
+    if language not in ("ar", "en"):
+        lines.append(f"(Demo mode: live mode writes the whole briefing in {name}.)")
+    return "\n".join(lines)
