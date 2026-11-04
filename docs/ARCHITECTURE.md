@@ -44,6 +44,19 @@
    signed-in human. Every step appends to `case.history` and to the
    durable audit table.
 
+## Segment overlays and crew briefings
+
+- **Overlays**: `report.segments` (SAM path) hold normalized boxes per extracted frame.
+  The console maps a frame to an evidence image by upload order (images before the first
+  video map one-to-one) and draws an absolutely positioned layer over the image;
+  `report_pdf.annotate_frame` draws the same boxes with PIL for the PDF appendix. Only
+  `segmentation_source == "sam"` is drawn.
+- **Crew briefing**: `meta_client.crew_briefing` sends the report context with
+  `prompts.BRIEFING_SYSTEM_PROMPT` (one language, findings only, ~1 minute read-aloud) to
+  Muse; results are cached on the report under `briefings[lang]`. Mock mode builds a
+  briefing from the report's own bilingual text and labels non-Arabic/English output as
+  demo instead of faking a translation.
+
 ## Data model
 
 Reports are stored as JSON documents (`inspections.data`), so the schema

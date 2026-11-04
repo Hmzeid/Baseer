@@ -66,6 +66,43 @@ def ar(text: object) -> str:
     return "".join(out)
 
 
+_HAZARD_HINTS = ("without", "missing", "no_", "_no")
+
+
+def annotate_frame(blob: bytes, segments: list[dict]) -> bytes:
+    """Draw SAM 3.1 segment boxes + labels on one evidence frame (JPEG out).
+
+    Boxes are normalized [x, y, w, h]; hazard-type labels draw red, objects
+    blue. Returns the original bytes untouched when nothing is drawable.
+    """
+    from PIL import Image as PILImage, ImageDraw, ImageFont
+    boxes = [s for s in segments if len(s.get("bbox") or []) == 4]
+    if not boxes:
+        return blob
+    img = PILImage.open(io.BytesIO(blob)).convert("RGB")
+    W, H = img.size
+    draw = ImageDraw.Draw(img)
+    stroke = max(2, round(min(W, H) / 220))
+    try:
+        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", max(14, round(min(W, H) / 32)))
+    except Exception:
+        font = ImageFont.load_default()
+    for seg in boxes:
+        x, y, w, h = seg["bbox"]
+        x0, y0, x1, y1 = x * W, y * H, (x + w) * W, (y + h) * H
+        label = str(seg.get("label", "")).replace("_", " ")
+        color = (210, 59, 44) if any(k in str(seg.get("label", "")).lower() for k in _HAZARD_HINTS) else (47, 111, 228)
+        draw.rectangle([x0, y0, x1, y1], outline=color, width=stroke)
+        tb = draw.textbbox((0, 0), label, font=font)
+        tw, th = tb[2] - tb[0], tb[3] - tb[1]
+        ty = y0 - th - 2 * stroke if y0 - th - 2 * stroke > 0 else y0
+        draw.rectangle([x0, ty, x0 + tw + 4 * stroke, ty + th + 2 * stroke], fill=color)
+        draw.text((x0 + 2 * stroke, ty + stroke - tb[1]), label, fill=(255, 255, 255), font=font)
+    out = io.BytesIO()
+    img.save(out, format="JPEG", quality=88)
+    return out.getvalue()
+
+
 BODY_W = 16.4 * cm  # A4 minus the 2 cm margins, with a little slack
 
 
@@ -256,18 +293,37 @@ def build_pdf(report: dict, audit_entries: list[dict],
                f"{(e.get('detail') or '')[:140]}"), st["muted"]))
 
     if evidence_dir and evidence_dir.exists():
-        imgs = sorted(p for p in evidence_dir.iterdir()
-                      if p.suffix.lower() in (".jpg", ".jpeg", ".png"))[:6]
+        files = sorted(p for p in evidence_dir.iterdir() if p.is_file())
+        # Frame index -> image: extract_frames emits one frame per image in
+        # upload order, but a video emits several, so mapping stops there.
+        frame_of, idx = {}, 0
+        for p in files:
+            if p.suffix.lower() not in (".jpg", ".jpeg", ".png", ".webp"):
+                break
+            frame_of[p] = idx
+            idx += 1
+        imgs = [p for p in files if p.suffix.lower() in (".jpg", ".jpeg", ".png")][:6]
+        segs = report.get("segments") or []
+        src = report.get("segmentation_source", "")
+        # Only real SAM output is drawn; demo segments are synthetic boxes.
+        seg_caption = "مقاطع SAM 3.1" if src == "sam" else ""
         if imgs:
             story.append(Paragraph(ar("الأدلة المصورة"), st["h2"]))
             row = []
             rows = []
             for p in imgs:
                 try:
-                    im = Image(str(p), width=7.5 * cm, height=5.5 * cm)
+                    frame_segs = [sg for sg in segs if p in frame_of and sg.get("frame_index") == frame_of[p]]
+                    caption = p.name
+                    if frame_segs and seg_caption:
+                        im = Image(io.BytesIO(annotate_frame(p.read_bytes(), frame_segs)),
+                                   width=7.5 * cm, height=5.5 * cm)
+                        caption = f"{p.name} · {seg_caption} ({len(frame_segs)})"
+                    else:
+                        im = Image(str(p), width=7.5 * cm, height=5.5 * cm)
                     im._restrictSize(7.5 * cm, 5.5 * cm)
                     im.hAlign = "CENTER"
-                    row.append([im, Paragraph(ar(p.name), st["muted"])])
+                    row.append([im, Paragraph(ar(caption), st["muted"])])
                     if len(row) == 2:
                         rows.append(row)
                         row = []

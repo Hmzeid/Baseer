@@ -308,8 +308,20 @@
               <div class="sev-strip" id="sevStrip"></div>
               <div class="summary"><i data-icon="sparkles"></i><p id="rSummary"></p></div>
             </div>
+            <div class="card" id="briefCard">
+              <div class="card-head"><h2><i data-icon="users"></i> <span data-i18n="briefT"></span></h2><span class="tag" data-i18n="briefHint"></span></div>
+              <div class="lang-chips" id="briefLangs" role="group"></div>
+              <div class="brief-out" id="briefOut"></div>
+              <div class="row gap wrap mt hidden" id="briefActions">
+                <button type="button" class="btn btn-ghost btn-sm" id="briefCopy"><i data-icon="clipboard"></i><span data-i18n="briefCopy"></span></button>
+                <button type="button" class="btn btn-ghost btn-sm" id="briefWa"><i data-icon="share"></i><span data-i18n="shareWa"></span></button>
+                <button type="button" class="btn btn-ghost btn-sm" id="briefSpeak"><i data-icon="volume"></i><span data-i18n="briefRead"></span></button>
+                <button type="button" class="btn btn-ghost btn-sm" id="briefRedo"><i data-icon="refresh"></i><span data-i18n="briefRedo"></span></button>
+                <span class="spacer"></span><small class="muted" id="briefMeta"></small>
+              </div>
+            </div>
             <div class="card">
-              <div class="card-head"><h2 data-i18n="tEvidence"></h2><span class="tag" id="evStamp"></span></div>
+              <div class="card-head"><h2 data-i18n="tEvidence"></h2><span class="row gap"><button type="button" class="btn btn-ghost btn-sm hidden" id="segToggle"><i data-icon="scan"></i><span id="segToggleLabel"></span></button><span class="tag" id="evStamp"></span></span></div>
               <div class="gallery" id="rEvidence"></div>
             </div>
             <div class="card-head plain"><h2 data-i18n="findings"></h2><span class="tag" id="findingsCount"></span></div>
@@ -431,7 +443,7 @@
     </div>
   </form>
 </dialog>
-<div class="lightbox hidden" id="lightbox"><button type="button" class="icon-btn" id="lightboxClose" aria-label="Close"><i data-icon="x"></i></button><img id="lightboxImg" alt=""></div>
+<div class="lightbox hidden" id="lightbox"><button type="button" class="icon-btn" id="lightboxClose" aria-label="Close"><i data-icon="x"></i></button><div class="lb-frame"><img id="lightboxImg" alt=""><div class="seg-layer" id="lightboxSegs"></div></div></div>
 
 <script src="/static/app.js"></script>
 </body>
