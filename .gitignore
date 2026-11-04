@@ -28,3 +28,5 @@ video/assets/photo-scaffold.jpg
 video/assets/live/*.jpg
 video/assets/live/media/
 video/assets/live/pdf/
+# The compressed web copy is committed so GitHub can play it on its file page.
+!docs/media/baseer-walkthrough-web.mp4

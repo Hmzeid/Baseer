@@ -6,6 +6,32 @@
 
 *A Veebase product: designed, built and maintained by Veebase.*
 
+## ▶ Watch the demo (3 min)
+
+[![Baseer walkthrough: a real report, a verified closure and live camera alerts. Click to play the 3-minute video.](docs/media/baseer-preview.gif)](docs/media/baseer-walkthrough-web.mp4)
+
+**[▶ Play the full 3-minute walkthrough](docs/media/baseer-walkthrough-web.mp4)**: recorded live on Meta's
+Muse Spark 1.3. Every finding, chat answer, verification and camera alert in it is real model output.
+GitHub plays the video on the file page that opens.
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Safety overview dashboard](docs/screenshots/01-overview.jpg) | ![Inspection report with three high-severity findings](docs/screenshots/02-report.jpg) |
+| **Safety overview:** KPIs, 14-day trend, severity mix, overdue cases | **Inspection report:** real Muse output on a site photo, severity strip, summary |
+| ![Finding with evidence frame and corrective action](docs/screenshots/03-finding.jpg) | ![Evidence chat drafting a contractor notice](docs/screenshots/04-evidence-chat.jpg) |
+| **Finding:** evidence frame, what the model sees, the fix, and its case | **Evidence chat:** grounded answers and a drafted contractor notice |
+| ![Arabic evidence chat, right to left](docs/screenshots/05-arabic-chat.jpg) | ![Case closed after a verified after-photo](docs/screenshots/06-verified-closure.jpg) |
+| **Arabic, right to left:** the same report and chat in Arabic | **Verified closure:** wrong photo refused, real after-photo accepted, a person approves |
+| ![Live camera with real-time alerts](docs/screenshots/07-live-camera.jpg) | ![Arabic dark mode overview](docs/screenshots/08-arabic-dark.jpg) |
+| **Live camera:** alerts on first sight of each violation | **Dark mode, Arabic:** the whole console mirrors right to left |
+| ![Inspection history](docs/screenshots/09-history.jpg) | ![Arabic PDF report](docs/screenshots/11-arabic-pdf.jpg) |
+| **History:** search and filter every inspection, export CSV | **Arabic PDF:** server-rendered report with the full audit trail |
+
+![Baseer on mobile: overview, report, Arabic report](docs/screenshots/10-mobile.jpg)
+*Installable on phones for the walk itself: overview, a report, and the same report in Arabic.*
+
 Baseer turns a short phone video or photo set from a worksite into a finished
 inspection report — then opens a corrective-action case for what it found,
 and verifies the fix on re-inspection, with a human approving every closure. **SAM 3.1** segments the scene — equipment, workers, PPE,
@@ -69,8 +95,9 @@ Meta Model API values. Tests: `cd backend && ../.venv/bin/python mock_suite.py`.
 - [Architecture](docs/ARCHITECTURE.md): pipeline, data model, security, frontend
 - [Development](docs/DEVELOPMENT.md): dev server, demo seed, tests, conventions
 - [Runbook](ops/RUNBOOK.md): on-site operation, backups, YOLO, TLS
-- Walkthrough video: `docs/media/baseer-walkthrough.mp4` (2:58, narrated, recorded live on Muse
-  Spark 1.3 — the Meta submission cut; 84 MB, so not committed: rebuild it from `video/`); YouTube kit with
+- Walkthrough video: [docs/media/baseer-walkthrough-web.mp4](docs/media/baseer-walkthrough-web.mp4) (2:58,
+  narrated, recorded live on Muse Spark 1.3; 19 MB web copy. The full-quality 84 MB master is rebuilt
+  from `video/`); YouTube kit with
   title, description, chapters and tags: [docs/media/YOUTUBE.md](docs/media/YOUTUBE.md), thumbnail
   `docs/media/youtube-thumbnail.png`; video source project in [video/](video/README.md)
 
