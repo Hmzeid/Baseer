@@ -27,6 +27,7 @@ import auth
 import live
 import meta_client
 import pipeline
+import prompts
 import store
 import voice
 
@@ -132,7 +133,9 @@ def require_admin(user: dict = Depends(current_user)) -> dict:
 @app.get("/health")
 def health():
     return {"status": "ok", "product": "Baseer by Veebase", "mode": meta_client.MODE, "version": app.version,
-            "segmentation": meta_client.SEGMENTATION, "sla_days": analytics.SLA_DAYS}
+            "segmentation": meta_client.SEGMENTATION, "sla_days": analytics.SLA_DAYS,
+            "briefing_languages": {k: {"name": v[0], "native": v[1], "rtl": v[2]}
+                                   for k, v in prompts.BRIEFING_LANGUAGES.items()}}
 
 
 def _save_evidence(inspection_id: str, payload: list[tuple[str, bytes]]) -> list[str]:
@@ -254,6 +257,37 @@ def chat(inspection_id: str, req: ChatRequest, user: dict = Depends(current_user
         raise HTTPException(status_code=400, detail="question too long (max 2000 characters)")
     answer = meta_client.chat_with_inspection(report, req.history, req.question)
     return {"answer": answer}
+
+
+class BriefingRequest(BaseModel):
+    language: str = "ar"
+    refresh: bool = False
+
+
+@app.post("/inspections/{inspection_id}/briefing")
+def crew_briefing(inspection_id: str, req: BriefingRequest, user: dict = Depends(current_user)):
+    """Read-aloud toolbox talk for the crew, from this report only, in the
+    crew's language. Cached per language on the report (refresh=true redoes it)."""
+    report = REPORTS.get(inspection_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="inspection not found")
+    if req.language not in prompts.BRIEFING_LANGUAGES:
+        raise HTTPException(status_code=400, detail="language must be one of " + ", ".join(prompts.BRIEFING_LANGUAGES))
+    if not report.get("findings"):
+        raise HTTPException(status_code=400, detail="no findings to brief the crew on")
+    name, native, rtl = prompts.BRIEFING_LANGUAGES[req.language]
+    cached = (report.get("briefings") or {}).get(req.language)
+    if cached and not req.refresh:
+        return {**cached, "language": req.language, "name": name, "native": native, "rtl": rtl, "cached": True}
+    try:
+        text = meta_client.crew_briefing(report, req.language)
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)[:200])
+    entry = {"text": text, "generated_at": datetime.now(timezone.utc).isoformat(),
+             "actor": f"{user['username']} ({user['role']})"}
+    report.setdefault("briefings", {})[req.language] = entry
+    store.save_report(report)
+    return {**entry, "language": req.language, "name": name, "native": native, "rtl": rtl, "cached": False}
 
 
 class CaseRequest(BaseModel):

@@ -122,6 +122,29 @@ suggestion chips, or ask things like:
 - *Draft a notice to the contractor*
 - *Summarize for the site manager*
 
+### SAM 3.1 segments on the evidence
+
+When a report was produced on the SAM 3.1 path (its badge reads **SAM 3.1**), the
+objects SAM found (people, hard hats, vests, ladders, scaffolding, forklifts…) are
+drawn as labelled boxes on the evidence: on each finding's frame, and in the
+full-size viewer when you click a photo. Gallery tiles show a **SAM · n** badge.
+Hazard-type labels draw in red; ordinary objects in blue. Use **SAM 3.1 segments ·
+hide/show** above the gallery to toggle them; the PDF's evidence appendix carries the
+same boxes. Reports made on Muse's vision path, and demo-mode reports, have no boxes
+(demo segments are synthetic, so they are never drawn).
+
+### Crew briefing
+
+The **Crew briefing** card turns the report into a short toolbox talk to read aloud
+to the people on site, in their language: العربية, English, اردو (Urdu), हिन्दी (Hindi),
+বাংলা (Bengali), नेपाली (Nepali), Tagalog or മലയാളം (Malayalam). Pick a language; Baseer
+writes about a minute of plain speech from **this report's findings only**, most
+serious first, ending with "stop and tell the supervisor if unsure". A green dot marks
+languages already generated; they are saved on the report with who made them and when.
+**Copy**, **WhatsApp**, **Read aloud** (uses the device's voice for that language, when
+one is installed) and **Regenerate** sit under the text. Have a native speaker check
+important briefings before relying on them.
+
 ## 7. Corrective-action cases
 
 Every finding opens a case, shown under its finding card with a stepper:

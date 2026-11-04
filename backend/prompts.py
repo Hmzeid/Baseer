@@ -187,6 +187,30 @@ Rules:
 6. STYLE. Short, direct answers. Lists only when the user asks for one. Arabic replies in Modern Standard Arabic."""
 
 
+# Crew briefing (toolbox talk): the report's findings rewritten for the people
+# on site, in the language the crew actually speaks. Gulf crews are largely
+# South and Southeast Asian, so the list goes well beyond Arabic and English.
+# code -> (English name, native name, right-to-left script)
+BRIEFING_LANGUAGES = {
+    "ar": ("Arabic", "العربية", True),
+    "en": ("English", "English", False),
+    "ur": ("Urdu", "اردو", True),
+    "hi": ("Hindi", "हिन्दी", False),
+    "bn": ("Bengali", "বাংলা", False),
+    "ne": ("Nepali", "नेपाली", False),
+    "tl": ("Tagalog", "Tagalog", False),
+    "ml": ("Malayalam", "മലയാളം", False),
+}
+
+BRIEFING_SYSTEM_PROMPT = """You are Baseer, writing a short spoken safety briefing (a toolbox talk) for the work crew, from ONE completed inspection.
+
+Rules:
+1. LANGUAGE. Write ONLY in {language} ({native}), in its own script. Use simple everyday words a site worker uses and short sentences that can be read aloud in under one minute (about 90-130 words).
+2. SCOPE. Use ONLY this inspection's findings and corrective actions. Do not add hazards, rules, regulations, deadlines or numbers that are not in the report, and do not change severities.
+3. ORDER. One line on what was found today; then each hazard with what the crew must do now, most serious first; end with one line telling workers to stop and tell the supervisor if they are unsure.
+4. FORMAT. Plain lines only: no markdown, no headings, no emojis. Keep equipment names understandable; you may add a common English term in brackets once if it helps."""
+
+
 def build_chat_context(report: dict) -> str:
     lines = [
         f"Inspection {report.get('inspection_id')} · frames processed: {report.get('frames_processed')}",

@@ -26,6 +26,8 @@ GitHub plays the video on the file page that opens.
 | **Arabic, right to left:** the same report and chat in Arabic | **Verified closure:** wrong photo refused, real after-photo accepted, a person approves |
 | ![Live camera with real-time alerts](docs/screenshots/07-live-camera.jpg) | ![Arabic dark mode overview](docs/screenshots/08-arabic-dark.jpg) |
 | **Live camera:** alerts on first sight of each violation | **Dark mode, Arabic:** the whole console mirrors right to left |
+| ![Real SAM 3.1 segments drawn on the evidence](docs/screenshots/12-sam-overlay.jpg) | ![Crew briefing in Urdu, written by Muse](docs/screenshots/13-crew-briefing-urdu.jpg) |
+| **SAM 3.1 on the evidence:** real segments (people, ladder) drawn where SAM found them | **Crew briefing:** a read-aloud toolbox talk in the crew's language, shown here in Urdu |
 | ![Inspection history](docs/screenshots/09-history.jpg) | ![Arabic PDF report](docs/screenshots/11-arabic-pdf.jpg) |
 | **History:** search and filter every inspection, export CSV | **Arabic PDF:** server-rendered report with the full audit trail |
 
@@ -130,6 +132,14 @@ Meta Model API values. Tests: `cd backend && ../.venv/bin/python mock_suite.py`.
   framing, same-origin referrer, camera and microphone for this origin only).
 - **CI**: the mock suite runs on every push and pull request (GitHub Actions).
 - **Veebase branding** across the console, the PDF report, the API and the docs.
+- **SAM 3.1 on the evidence**: real SAM segments are drawn as labelled boxes on the
+  finding thumbnail, in the image viewer and in the PDF's evidence appendix (hazard-type labels
+  in red), with a show/hide toggle. Only genuine SAM output is drawn, never demo boxes.
+- **Crew briefing in the crew's language**: one tap turns a report into a short read-aloud
+  toolbox talk in Arabic, English, Urdu, Hindi, Bengali, Nepali, Tagalog or Malayalam, the
+  languages Gulf site crews actually speak. Muse writes it strictly from the report's findings;
+  briefings are cached per language and stamped with who generated them; copy, WhatsApp and
+  read-aloud (where the device has a voice) are built in.
 
 ## Production (on-site deployment)
 Sign-in is required: accounts carry one of the Safety Supervisor, Site
