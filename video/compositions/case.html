@@ -1,0 +1,94 @@
+<template>
+  <style>
+    #root { position:absolute; inset:0; overflow:hidden; background:#F3F5F8; font-family:Inter, sans-serif; }
+    #root .cam { position:absolute; left:0; top:0; width:1920px; height:1080px; transform-origin:0 0; }
+    #root .shot { position:absolute; left:0; top:0; width:1920px; height:1080px; background-size:1920px 1080px; background-repeat:no-repeat; }
+    #root .cursor { position:absolute; left:0; top:0; width:30px; height:30px; z-index:40; }
+    #root .cursor svg { width:30px; height:30px; transform-origin:4px 3px; filter:drop-shadow(0 3px 5px rgba(0,0,0,.35)); }
+    #root .cap { position:absolute; left:0; right:0; bottom:110px; margin:0 auto; width:fit-content; max-width:1400px;
+      background:rgba(10,37,64,.96); color:#fff; font-weight:700; font-size:40px; line-height:1.25; letter-spacing:-.01em;
+      padding:20px 36px; border-radius:16px; box-shadow:0 18px 50px rgba(10,37,64,.28); z-index:50; text-align:center; }
+    #root .cap.left { left:110px; right:auto; margin:0; bottom:140px; max-width:780px; text-align:left; }
+    #root .cap .w { display:inline-block; }
+    #root .cap .acc { color:#E0C26A; }
+
+  </style>
+  <div id="root" data-composition-id="case" data-width="1920" data-height="1080">
+
+    <div class="cam"><div class="shot" id="case-c07-case-open" style="background-image:url(assets/shots/c07-case-open.jpg);z-index:1;"></div><div class="shot" id="case-c07b-case-typed" style="background-image:url(assets/shots/c07b-case-typed.jpg);z-index:2;opacity:0;"></div><div class="shot" id="case-c08-assigned" style="background-image:url(assets/shots/c08-assigned.jpg);z-index:3;opacity:0;"></div>
+      <div class="shot" id="case-c09-verified" style="background-image:url(assets/shots/c09-verified.jpg);z-index:4;opacity:0;"></div><div class="shot" id="case-c10-modal" style="background-image:url(assets/shots/c10-modal.jpg);z-index:5;opacity:0;"></div><div class="shot" id="case-c11-closed" style="background-image:url(assets/shots/c11-closed.jpg);z-index:6;opacity:0;"></div><div class="cursor" id="case-cur"><svg viewBox="0 0 24 24"><path d="M4 3l15 8.5-6.6 1.6L9.6 20z" fill="#fff" stroke="#0A2540" stroke-width="1.6" stroke-linejoin="round"/></svg></div></div>
+    <div class="cap" id="case-c1">Every finding opens a corrective-action <b class="acc">case</b></div>
+    <div class="cap" id="case-c2">Assign it, then verify with an <b class="acc">after-photo</b></div>
+    <div class="cap" id="case-c3">Only a <b class="acc">person</b> can approve the closure</div>
+    <div class="cap" id="case-c4">Every step is signed into the <b class="acc">audit trail</b></div>
+
+  </div>
+  <script>
+    const W = 1920, H = 1080, S = "#case";
+    const tl = gsap.timeline({ paused: true });
+    // Split caption text into word spans (accent <b class="acc"> kept as one word).
+    document.querySelectorAll(S + " .cap").forEach((cap) => {
+      const out = [];
+      cap.childNodes.forEach((n) => {
+        if (n.nodeType === 3) n.textContent.split(/\s+/).filter(Boolean).forEach((w) => out.push(`<span class="w">${w}</span>`));
+        else { n.classList.add("w"); out.push(n.outerHTML); }
+      });
+      cap.innerHTML = out.join(" ");
+    });
+    // Camera: frame box [x,y,w,h] (UI px) at scale s, box centre at (fx*W, fy*H), clamped to the shot.
+    function cam(box, s, t, d = 1.2, fx = 0.5, fy = 0.44, ease = "power2.inOut") {
+      const cx = box[0] + box[2] / 2, cy = box[1] + box[3] / 2;
+      const x = Math.min(0, Math.max(W - W * s, W * fx - s * cx));
+      const y = Math.min(0, Math.max(H - H * s, H * fy - s * cy));
+      if (d === 0) tl.set(S + " .cam", { x, y, scale: s }, t);
+      else tl.to(S + " .cam", { x, y, scale: s, duration: d, ease }, t);
+    }
+    // Blur swap: the next screen sharpens in over the current one.
+    function swap(sel, t) {
+      tl.fromTo(sel, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.22, ease: "power2.out" }, t);
+    }
+    function cap(sel, tin, tout) {
+      tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "power2.out" }, tin);
+      tl.fromTo(sel + " .w", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.13, stagger: 0.07, ease: "power2.out" }, tin + 0.05);
+      if (tout !== undefined) tl.to(sel, { opacity: 0, filter: "blur(6px)", duration: 0.22, ease: "power3.in" }, tout);
+    }
+    // Cursor tip to point (UI px); click dips the arrow.
+    function move(pt, t, d = 0.8) { tl.to(S + " .cursor", { x: pt[0], y: pt[1], duration: d, ease: "power2.inOut" }, t); }
+    function click(t) {
+      tl.to(S + " .cursor svg", { scale: 0.82, duration: 0.08, ease: "power2.in" }, t);
+      tl.to(S + " .cursor svg", { scale: 1, duration: 0.14, ease: "power2.out" }, t + 0.08);
+    }
+    const mid = (b) => [b[0] + b[2] / 2 - 4, b[1] + b[3] / 2 - 3];
+
+    tl.fromTo(S + " .cam", { filter: "blur(10px)" }, { filter: "blur(0px)", duration: 0.3, ease: "power2.out" }, 0);
+    cam([383, 26, 1016, 440], 1.0, 0, 0);
+    cam([383, 26, 1016, 440], 1.45, 0.2, 1.2, 0.5, 0.42);
+    tl.set(S + " .cursor", { x: 760, y: 560 }, 0);
+    cap(S + " #case-c1", 0.3, 3.4);
+    cam([383, 282, 1016, 200], 1.7, 1.5, 1.1, 0.5, 0.42);
+    move(mid([403, 369, 200, 34]), 1.3, 0.8);
+    click(2.15);
+    swap(S + " #case-c07b-case-typed", 2.4);
+    move(mid([611, 371, 95, 31]), 2.7, 0.6);
+    click(3.35);
+    swap(S + " #case-c08-assigned", 3.55);
+    cap(S + " #case-c2", 3.8, 8.4);
+    move(mid([827, 371, 201, 31]), 4.3, 0.8);
+    click(5.2);
+    swap(S + " #case-c09-verified", 6.0);
+    cam([383, 282, 1016, 380], 1.6, 6.0, 1.0, 0.5, 0.42);
+    move(mid([1036, 371, 155, 31]), 6.9, 0.8);
+    click(7.8);
+    swap(S + " #case-c10-modal", 8.05);
+    cam([740, 445, 440, 190], 1.7, 8.1, 0.9, 0.5, 0.45);
+    cap(S + " #case-c3", 8.6, 12.9);
+    move(mid([1010, 573, 146, 38]), 8.9, 0.9);
+    click(10.0);
+    tl.to(S + " .cursor", { opacity: 0, duration: 0.2 }, 10.3);
+    swap(S + " #case-c11-closed", 10.25);
+    cam([383, 282, 1016, 520], 1.5, 10.3, 1.2, 0.5, 0.44);
+    cap(S + " #case-c4", 13.1, 15.8);
+
+    window.__timelines["case"] = tl;
+  </script>
+</template>

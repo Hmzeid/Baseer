@@ -1,6 +1,10 @@
-# Baseer — بصير · Arabic Field Inspection Copilot
+# Baseer · بصير by Veebase
 
-**The AI that sees, understands, and acts — in Arabic.**
+[![Mock suite](https://github.com/Hmzeid/Baseer/actions/workflows/tests.yml/badge.svg)](https://github.com/Hmzeid/Baseer/actions/workflows/tests.yml)
+
+**Arabic field inspection copilot: the AI that sees, understands, and acts, in Arabic.**
+
+*A Veebase product: designed, built and maintained by Veebase.*
 
 Baseer turns a short phone video or photo set from a worksite into a finished
 inspection report — then opens a corrective-action case for what it found,
@@ -46,16 +50,59 @@ handwritten Arabic notes, then typed up hours later — slow, inconsistent, and
 easy to miss a missing guard rail or a worker without PPE. Baseer makes the
 report a by-product of the walkthrough itself.
 
-## Run it (prep build — mock mode)
+## Run it (mock mode — no API key needed)
 ```bash
+python3 -m venv .venv && .venv/bin/pip install -r backend/requirements.txt
 cd backend
-pip install -r requirements.txt
-uvicorn app:app --reload --port 8000
-# open http://localhost:8000
+export BASEER_DATA_DIR=/tmp/baseer-demo && ../.venv/bin/python demo_seed.py   # optional demo data
+BASEER_MODE=mock ../.venv/bin/uvicorn app:app --reload --port 8010
+# open http://127.0.0.1:8010   (8001 = the on-site service, 8000 = reserved)
 ```
-Mock mode runs the full pipeline with synthetic segmentation/reasoning
-outputs — no API key needed. For live mode, copy `.env.example` to `.env`,
-set `BASEER_MODE=live`, and fill the Meta Model API values.
+Mock mode runs the full pipeline with synthetic, site-aware outputs
+(factory, construction, farm), always badged **Demo data**. For live mode,
+copy `.env.example` to `.env`, set `BASEER_MODE=live`, and fill in the
+Meta Model API values. Tests: `cd backend && ../.venv/bin/python mock_suite.py`.
+
+## Documentation
+- [User guide](docs/USER_GUIDE.md): every screen and workflow, by role
+- [API reference](docs/API.md): all endpoints, payloads and errors
+- [Architecture](docs/ARCHITECTURE.md): pipeline, data model, security, frontend
+- [Development](docs/DEVELOPMENT.md): dev server, demo seed, tests, conventions
+- [Runbook](ops/RUNBOOK.md): on-site operation, backups, YOLO, TLS
+- Walkthrough video: `docs/media/baseer-walkthrough.mp4` (90 s, narrated; 53 MB, so it is
+  not committed: rebuild it from `video/`, or get it from the release/YouTube upload); YouTube kit with
+  title, description, chapters and tags: [docs/media/YOUTUBE.md](docs/media/YOUTUBE.md), thumbnail
+  `docs/media/youtube-thumbnail.png`; video source project in [video/](video/README.md)
+
+## What's new in 0.4 (console redesign)
+- **Modern bilingual console**: rebuilt UI with light and dark themes,
+  full RTL/LTR mirroring, mobile layout with a drawer menu, global search
+  (<kbd>/</kbd>), toasts and confirm dialogs, and deep links to any
+  report or finding (`#/report/<id>?f=<n>`).
+- **Inspection history**: search and filter every past report, reopen
+  it with its server-stored evidence, export CSV.
+- **Cases board**: every corrective action across inspections, with
+  severity-based deadlines (high 1 day, medium 7, low 30), **overdue**
+  tracking, status tabs and CSV.
+- **Report workspace**: severity strip, evidence gallery with a viewer,
+  a case stepper (Open → Assigned → Verified → Closed) with an activity
+  timeline, and a docked evidence chat with suggested questions.
+- **Dashboard**: overdue and closure-rate KPIs, a 14-day activity chart,
+  a severity donut and hazard bars, all clickable through to records.
+- **Admin**: change roles and reset passwords in the console. Every user
+  can now change their own password (previously admin-only in the UI).
+- **Fixes**: live-camera reports keep their evidence (it was filed under
+  the session ID, so evidence downloads and the PDF appendix came back
+  empty); the analytics "recent" list is date-sorted; the trend is
+  zero-filled; network blips no longer sign users out.
+- **Demo seed** (`backend/demo_seed.py`) and site-aware mock scenes, plus
+  20+ new suite checks.
+- **Installable on phones**: a web app manifest and icons, so inspectors can add
+  Baseer to the home screen and open it full-screen on site.
+- **Hardening**: security headers on every response (no MIME sniffing, no
+  framing, same-origin referrer, camera and microphone for this origin only).
+- **CI**: the mock suite runs on every push and pull request (GitHub Actions).
+- **Veebase branding** across the console, the PDF report, the API and the docs.
 
 ## Production (on-site deployment)
 Sign-in is required: accounts carry one of the Safety Supervisor, Site
@@ -82,14 +129,20 @@ Integrations (WhatsApp/PDF share, VeeSign, VeeArchive, CMMS) are a stretch /
 roadmap item — see BUILD_PLAN.md.
 
 ## Layout
-- `backend/` — FastAPI service: pipeline (`pipeline.py`), Meta Model API
-  adapter (`meta_client.py`, mock/live), prompts (`prompts.py` — inspection
-  reasoning draft v1 + evidence-chat prompt), analytics (`analytics.py`),
-  live-camera sessions (`live.py`)
-- `frontend/` — bilingual EN/AR app (single file): capture form, report,
-  evidence chat, analytics strip
-- `BUILD_PLAN.md` — day-by-day build plan and submission checklist
-- `demo/` — demo footage plan (staged/public material only)
+- `backend/`: the FastAPI service. `app.py` (routes), `pipeline.py`
+  (ingest → frames → segmentation → reasoning → cases), `meta_client.py`
+  (Meta Model API adapter, mock/live), `prompts.py`, `live.py` (camera
+  sessions), `yolo.py` (optional local PPE detector), `analytics.py`
+  (dashboard, SLA deadlines, history, cases), `report_pdf.py`,
+  `store.py` (SQLite), `auth.py`, `voice.py`, `mock_suite.py` (tests),
+  `demo_seed.py`
+- `frontend/`: the bilingual console. `index.html` (views), `app.css`
+  (design system, light/dark, RTL), `app.js` (router, i18n, views)
+- `docs/`: user guide, API, architecture, development, walkthrough video
+- `ops/`: launchd service, backup, TLS, runbook
+- `eval/`: the fixed 24-scene benchmark and its runs
+- `demo/`: demo footage plan and sources (staged/public material only)
+- `BUILD_PLAN.md`: day-by-day build plan and submission checklist
 
 ## Evaluation benchmark (fixed 24-scene set, vision + SAM paths)
 Demo filmed on the vision path (Muse multimodal reasoning); the SAM 3.1
@@ -200,3 +253,6 @@ Verdict stands: Spark for cheap dev loops (~7x cheaper per the Day-0 A/B),
 Wonder for final reports (higher recall, richer actions); a Spark v1.3
 re-run is still open and would test whether the economy rule lifts its
 F1 0.218 the same way.
+
+---
+*Baseer is a Veebase product. © 2026 Veebase.*

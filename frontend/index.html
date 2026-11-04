@@ -3,1527 +3,436 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Baseer — Field Inspection Console</title>
-<style>
-  :root {
-    --navy:#0A2540; --navy2:#10385E; --gold:#C9A94E; --goldink:#7A5F1E;
-    --paper:#F5F3EE; --card:#FFFFFF; --soft:#FBFAF7; --line:#E3DED2; --line2:#EEE9DB;
-    --ink:#131519; --ink2:#3A3A3E; --muted:#6E6A5C;
-    --high:#B3261E; --highTint:#FDECEA; --med:#8A5A00; --medTint:#FBF0DA;
-    --low:#2F5D3A; --lowTint:#E7F2E9; --info:#0A2540; --infoTint:#E9EFFC;
-    --shadow:0 1px 2px rgba(19,21,25,.04),0 12px 32px rgba(19,21,25,.06);
-  }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family:-apple-system,"SF Pro Text","Segoe UI",Tahoma,Arial,sans-serif;
-    background:var(--paper); color:var(--ink); font-size:14.5px; line-height:1.55;
-    -webkit-font-smoothing:antialiased; }
-  button, input, textarea, select { font:inherit; }
-  .shell { display:flex; min-height:100vh; }
-  /* ---- Sidebar ---- */
-  .sidebar { width:256px; flex:none; background:var(--navy); color:#DCE4EC;
-    padding:24px 16px; display:flex; flex-direction:column; gap:24px;
-    position:sticky; top:0; height:100vh; }
-  .brand { display:flex; align-items:center; gap:12px; padding:2px 6px 0; }
-  .logomark { width:44px; height:44px; border-radius:13px; background:#FFFFFF;
-    display:flex; align-items:center; justify-content:center; flex:none; }
-  .brandname { font-size:21px; font-weight:800; color:#FFFFFF; line-height:1.1; }
-  .brandsub { font-size:11px; color:#9FB0C3; letter-spacing:.14em; font-weight:700; }
-  .nav { display:flex; flex-direction:column; gap:4px; }
-  .navlabel { font-size:11px; letter-spacing:.14em; color:#8FA3B8; padding:0 12px 6px; font-weight:700; }
-  .nav button { display:flex; align-items:center; gap:11px; width:100%; text-align:start;
-    background:transparent; border:0; border-inline-start:3px solid transparent;
-    color:#DCE4EC; padding:11px 12px; border-radius:9px; cursor:pointer;
-    font-weight:600; font-size:14.5px; }
-  .nav button .glyph { width:20px; text-align:center; font-size:15px; color:#8FA3B8; flex:none; }
-  .nav button:hover { background:rgba(255,255,255,.07); }
-  .nav button.active { background:rgba(255,255,255,.12); border-inline-start-color:var(--gold); color:#FFFFFF; }
-  .nav button.active .glyph { color:var(--gold); }
-  .sidefoot { margin-top:auto; display:flex; flex-direction:column; gap:10px; }
-  .sidestat { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.13);
-    border-radius:13px; padding:13px 14px; font-size:12.5px; color:#9FB0C3; line-height:1.6; }
-  .sidestat b { color:#fff; display:block; font-size:13px; margin-bottom:2px; }
-  .sidefoot .fine { font-size:11.5px; color:#71879F; padding:0 4px; line-height:1.6; }
-  /* ---- Main column ---- */
-  .main { flex:1; min-width:0; padding:26px 34px 60px; max-width:1460px; }
-  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:6px; }
-  .eyebrow { font-size:11px; letter-spacing:.16em; font-weight:800; color:var(--goldink); margin:0 0 6px; }
-  .topbar h1 { font-size:30px; margin:0 0 4px; letter-spacing:-.015em; font-weight:800; line-height:1.2; }
-  .topbar .sub { color:var(--muted); margin:0; max-width:76ch; line-height:1.6; font-size:14.5px; }
-  .toprow { display:flex; gap:10px; align-items:center; flex:none; flex-wrap:wrap; padding-top:4px; }
-  .badge { display:inline-block; padding:4px 12px; border-radius:99px; font-size:12px; font-weight:800; white-space:nowrap; }
-  .badge.live { background:var(--lowTint); color:var(--low); }
-  .badge.mock { background:var(--medTint); color:var(--med); }
-  .badge.vision { background:var(--infoTint); color:var(--info); }
-  .badge.sam { background:var(--infoTint); color:var(--info); }
-  .badge.demo { background:var(--medTint); color:var(--med); }
-  .badge.uncertain { background:var(--medTint); color:var(--med); }
-  .badge.notvis { background:#F1EFE9; color:var(--muted); }
-  .langtoggle { display:flex; border:1px solid var(--line); border-radius:99px; overflow:hidden; background:#fff; flex:none; }
-  .langtoggle button { border:0; background:transparent; padding:7px 16px; font-weight:700; cursor:pointer; color:var(--muted); margin:0; }
-  .langtoggle button.active { background:var(--navy); color:#fff; }
-  .headaction { margin:16px 0 20px; display:flex; gap:10px; flex-wrap:wrap; }
-  /* ---- Cards, stats, panels ---- */
-  .card { background:var(--card); border:1px solid var(--line); border-radius:16px;
-    padding:22px 24px; margin-bottom:18px; box-shadow:var(--shadow); }
-  .card h2 { margin:0 0 2px; font-size:17px; font-weight:750; }
-  .card .hint { color:var(--muted); font-size:13px; margin:0 0 16px; line-height:1.6; }
-  .panelhead { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; }
-  .panelhead h2 { margin:0; }
-  .panelhead .tag { font-size:12px; color:var(--muted); }
-  .grid2 { display:grid; grid-template-columns:1.5fr 1fr; gap:18px; align-items:stretch; }
-  .grid2.even { grid-template-columns:1fr 1fr; }
-  .grid2 > .card { margin-bottom:18px; display:flex; flex-direction:column; }
-  .sevrows { display:flex; flex-direction:column; gap:0; margin-top:14px; border-top:1px solid var(--line2); }
-  .sevrows .sr { display:flex; justify-content:space-between; align-items:center; padding:9px 2px; border-bottom:1px solid #EFEBE0; font-size:13.5px; }
-  .sevrows .sr:last-child { border-bottom:0; }
-  .sevrows .sr b { font-variant-numeric:tabular-nums; font-size:15px; }
-  .sevrows .sr .who { display:flex; align-items:center; gap:8px; font-weight:650; }
-  .sevrows .sr .dot { width:9px; height:9px; border-radius:50%; }
-  input[type=file]:not(.hidden) { font-size:13px; color:var(--muted); }
-  input[type=file]:not(.hidden)::file-selector-button { background:#fff; border:1px solid var(--line);
-    border-radius:9px; padding:9px 16px; font-weight:700; cursor:pointer; color:var(--ink);
-    margin-inline-end:12px; }
-  input[type=file]:not(.hidden)::file-selector-button:hover { border-color:var(--gold); }
-  .stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
-  .stat { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 20px; box-shadow:var(--shadow); }
-  .stat .k { color:var(--muted); font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px; }
-  .stat .dot { width:9px; height:9px; border-radius:50%; flex:none; }
-  .stat .v { font-size:32px; font-weight:800; letter-spacing:-.02em; margin-top:6px; line-height:1.05; font-variant-numeric:tabular-nums; }
-  .stat .d { font-size:12.5px; color:var(--muted); margin-top:2px; }
-  .notice { background:var(--medTint); border:1px solid #EAD9A8; color:#6B5510;
-    border-radius:11px; padding:11px 15px; font-size:13.5px; margin-bottom:18px; line-height:1.6; }
-  .notice { background:var(--medTint); border:1px solid #EAD9A8; color:#6B5510;
-    border-radius:11px; padding:11px 15px; font-size:13.5px; margin-bottom:18px; line-height:1.6; }
-  /* ---- Tables ---- */
-  table { width:100%; border-collapse:collapse; font-size:13.5px; }
-  th { color:var(--muted); font-size:11.5px; text-align:start; padding:9px 12px;
-    border-bottom:1px solid var(--line); white-space:nowrap; font-weight:700;
-    text-transform:uppercase; letter-spacing:.06em; }
-  td { padding:11px 12px; border-bottom:1px solid #EFEBE0; vertical-align:middle; }
-  tr:last-child td { border-bottom:0; }
-  tbody tr:hover td { background:#FCFBF8; }
-  .chip { display:inline-block; padding:3px 11px; border-radius:99px; font-size:12px; font-weight:800; color:#fff; white-space:nowrap; }
-  .chip.high { background:var(--high); } .chip.medium { background:#C07F10; } .chip.low { background:var(--low); }
-  .tchip { display:inline-block; padding:3px 11px; border-radius:99px; font-size:12px; font-weight:700; white-space:nowrap; }
-  .tchip.high { background:var(--highTint); color:var(--high); }
-  .tchip.med { background:var(--medTint); color:var(--med); }
-  .tchip.low { background:var(--lowTint); color:var(--low); }
-  .tchip.open { background:var(--highTint); color:var(--high); }
-  .tchip.assigned { background:var(--infoTint); color:var(--info); }
-  .tchip.closed { background:var(--lowTint); color:var(--low); }
-  .tchip.neutral { background:#F1EFE9; color:var(--muted); }
-  .meta { color:var(--muted); font-size:12.5px; }
-  .hidden { display:none !important; }
-  /* ---- Forms ---- */
-  label { display:block; font-weight:700; margin:14px 0 6px; font-size:13.5px; }
-  input[type=text], input[type=password], textarea, select { width:100%; padding:10px 12px; border:1px solid var(--line);
-    border-radius:10px; font-size:14px; background:#fff; color:var(--ink); }
-  textarea { min-height:84px; resize:vertical; }
-  .drop { border:1.5px dashed #CFC8B4; border-radius:14px; padding:26px 22px; text-align:center;
-    cursor:pointer; background:var(--soft); transition:border-color .15s; }
-  .drop:hover { border-color:var(--gold); }
-  .drop input { display:none; }
-  .drop .d1 { font-weight:750; font-size:15.5px; }
-  .drop .d2 { color:var(--muted); font-size:13px; margin-top:4px; }
-  .btn { background:var(--navy); color:#fff; border:0; border-radius:10px; padding:11px 22px;
-    font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
-  .btn.gold { background:var(--gold); color:var(--navy); }
-  .btn.ghost { background:#fff; border:1px solid var(--line); color:var(--ink); }
-  .btn.dark { background:var(--ink); color:#fff; }
-  .btn.small { padding:7px 14px; font-size:13px; }
-  .btn:disabled { opacity:.5; cursor:default; }
-  .btnrow { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; align-items:center; }
-  .guide { background:var(--soft); border:1px solid var(--line); border-radius:13px;
-    padding:18px 20px; font-size:14px; line-height:1.7; }
-  .guide h3 { margin:0 0 8px; font-size:15px; }
-  .guide ul { margin:6px 0; padding-inline-start:18px; }
-  .guide li { margin:5px 0; }
-  .steps3 { display:flex; gap:8px; margin-top:14px; }
-  .steps3 div { flex:1; background:#fff; border:1px solid var(--line); border-radius:10px;
-    padding:9px 6px; text-align:center; font-size:12px; font-weight:700; color:var(--muted); }
-  .steps3 div b { display:block; color:var(--goldink); font-size:11px; }
-  /* ---- Pipeline strip ---- */
-  .pipe { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-  .step { background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:11px 13px; }
-  .step b { display:block; color:var(--goldink); font-size:11.5px; letter-spacing:.06em; }
-  .step span { font-size:13.5px; font-weight:700; }
-  /* ---- Report: finding cards ---- */
-  .rhead { display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; align-items:flex-start; margin-bottom:4px; }
-  .rhead h2 { font-size:21px; margin:0 0 2px; }
-  .summary { border-inline-start:3px solid var(--gold); background:var(--soft);
-    border-radius:8px; padding:14px 18px; margin:14px 0 6px; font-size:15px; line-height:1.7; }
-  .finding { border:1px solid var(--line2); border-radius:15px; padding:0; margin:14px 0;
-    display:flex; gap:0; background:#fff; box-shadow:0 1px 2px rgba(19,21,25,.04); overflow:hidden; }
-  .finding .rail { flex:none; width:5px; }
-  .finding .rail.high { background:var(--high); }
-  .finding .rail.med { background:#C07F10; }
-  .finding .rail.low { background:var(--low); }
-  .finding .fbody { flex:1; min-width:0; padding:18px 20px; }
-  .finding h4 { margin:8px 0 4px; font-size:16.5px; font-weight:750; }
-  .finding .detail { color:var(--ink2); margin:0 0 4px; font-size:14.5px; }
-  .actionBox { background:var(--soft); border:1px solid var(--line2); border-radius:10px;
-    padding:10px 14px; margin-top:10px; font-size:14px; }
-  .actionBox b { color:var(--navy); }
-  .fmeta { display:flex; gap:16px; color:var(--muted); font-size:12.5px; margin-top:10px; flex-wrap:wrap; align-items:center; }
-  .caserow { background:var(--soft); border-top:1px dashed var(--line); padding:12px 20px;
-    display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:13.5px; }
-  .caserow .ct { font-weight:750; }
-  .caserow select { width:auto; padding:7px 10px; font-size:13px; }
-  .caserow button { background:#fff; border:1px solid var(--line); border-radius:8px;
-    padding:7px 14px; font-weight:650; cursor:pointer; font-size:13px; }
-  .caserow button:disabled { opacity:.45; cursor:default; }
-  .evcard { width:180px; border:1px solid var(--line2); border-radius:12px; overflow:hidden; background:var(--soft); }
-  .evcard img, .evcard video { width:100%; height:110px; object-fit:cover; display:block; background:#0A2540; }
-  .evcard .evi { padding:8px 10px; font-size:12px; color:var(--muted); line-height:1.5; }
-  .evcard .evi b { display:block; color:var(--ink2); font-size:12.5px; word-break:break-all; }
-  .fthumb { width:100%; max-height:220px; object-fit:cover; border-radius:10px; margin:10px 0 2px; border:1px solid var(--line2); }
-  .vnote { color:var(--muted); font-size:12.5px; flex-basis:100%; }
-  .notefrm { display:flex; gap:8px; flex-basis:100%; margin-top:6px; }
-  .notefrm textarea { flex:1; background:#0F1B2E; border:1px solid #26344D; color:var(--ink); border-radius:8px; padding:6px 8px; font:inherit; resize:vertical; }
-  .notefrm button { white-space:nowrap; }
-  /* Auth gate: logged out sees NOTHING but the sign-in screen. */
-  body.gated .sidebar, body.gated .topbar { display:none; }
-  body.gated .main { max-width:none; padding:0; display:flex; align-items:center; justify-content:center; min-height:100vh; }
-  body.gated .main > main { width:100%; }
-  .loginwrap { width:100%; display:flex; justify-content:center; padding:24px;
-    background:radial-gradient(1200px 500px at 50% -10%, #E9DDBE 0%, transparent 60%), var(--paper); }
-  body.gated .loginwrap { min-height:100vh; align-items:center; }
-  .logincard { background:#fff; border:1px solid var(--line); border-radius:18px;
-    padding:34px 36px 28px; width:100%; max-width:440px; box-shadow:0 18px 50px rgba(10,37,64,.14); }
-  .loginbrand { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
-  .loginbrand .logomark { width:46px; height:46px; border-radius:13px; background:#fff;
-    border:1px solid var(--line); display:flex; align-items:center; justify-content:center; flex:none; }
-  .loginbrand b { display:block; font-size:19px; }
-  .loginbrand span { display:block; font-size:11px; letter-spacing:.14em; color:var(--muted); }
-  .logincard h2 { margin:0 0 4px; font-size:24px; }
-  .loginfield { margin:14px 0; }
-  .loginfield label { display:block; font-size:13px; font-weight:700; margin-bottom:6px; color:var(--muted); }
-  .loginfield input { width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:10px;
-    padding:12px 14px; font:inherit; background:#FBFAF7; }
-  .loginfield input:focus { outline:2px solid var(--gold); border-color:var(--gold); background:#fff; }
-  .loginrow { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:16px 0 4px; }
-  .loginlang { display:flex; justify-content:center; margin-top:18px; }
-  /* ---- Live ---- */
-  .livestats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
-  .alert { border:1px solid var(--line); border-inline-start:4px solid var(--high); border-radius:11px;
-    padding:12px 16px; margin:10px 0; background:#fff; font-size:14px; }
-  /* ---- Chat ---- */
-  .chat { margin-top:20px; border-top:1px solid var(--line); padding-top:16px; }
-  .chatlog { display:flex; flex-direction:column; gap:10px; margin:12px 0; }
-  .msg { max-width:88%; padding:11px 15px; border-radius:15px; font-size:14.5px; white-space:pre-wrap; line-height:1.6; }
-  .msg.user { background:var(--navy); color:#fff; align-self:flex-end; border-end-end-radius:5px; }
-  .msg.bot { background:#F4F1E8; border:1px solid var(--line2); align-self:flex-start; border-end-start-radius:5px; }
-  .chatrow { display:flex; gap:10px; }
-  .chatrow input { flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:10px; }
-  .chatrow button { background:var(--ink); color:#fff; border:0; border-radius:10px;
-    padding:10px 22px; font-weight:700; cursor:pointer; }
-  .sevbar { display:flex; height:10px; border-radius:99px; overflow:hidden; background:#EEE9DD; margin:12px 0 8px; }
-  .sevbar div { height:100%; }
-  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--muted); }
-  .legend i { display:inline-block; width:9px; height:9px; border-radius:50%; margin-inline-end:5px; vertical-align:middle; }
-  #camPreview { width:100%; max-height:260px; border-radius:10px; background:#0A2540; margin-top:12px; }
-  @media print {
-    .sidebar, .toprow, .headaction, .btnrow, .chatrow { display:none !important; }
-    .caserow button, .caserow select, .caserow input { display:none !important; }
-    #micBtn, #liveCam, #camPreview, #camNote { display:none !important; }
-    body { background:#fff; }
-    .main { padding:0; max-width:none; }
-    .card { box-shadow:none; }
-  }
-  @media (max-width: 1100px) {
-    .grid2 { grid-template-columns:1fr; }
-    .stats { grid-template-columns:repeat(2,1fr); }
-    .livestats { grid-template-columns:repeat(3,1fr); }
-  }
-  @media (max-width: 900px) {
-    .shell { flex-direction:column; }
-    .sidebar { width:auto; height:auto; position:static; flex-direction:row; flex-wrap:wrap; align-items:center; }
-    .sidefoot { display:none; }
-    .nav { flex-direction:row; flex-wrap:wrap; }
-    .main { padding:20px 16px 40px; }
-    .topbar h1 { font-size:24px; }
-  }
-</style>
+<meta name="theme-color" content="#0A2540">
+<title>Baseer · بصير by Veebase — Field Inspection Console</title>
+<meta name="description" content="Baseer by Veebase: an Arabic-first AI field inspection console. Photos, video or a live camera become an evidence-grounded safety report, with corrective actions tracked to a human-approved closure.">
+<meta name="author" content="Veebase">
+<meta name="application-name" content="Baseer by Veebase">
+<meta property="og:title" content="Baseer · بصير by Veebase">
+<meta property="og:description" content="Arabic-first AI safety inspections: photo to report to verified closure.">
+<meta property="og:type" content="website">
+<link rel="manifest" href="/static/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Baseer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230A2540'/%3E%3Cpath d='M3.5 12S6.6 6.8 12 6.8 20.5 12 20.5 12 17.4 17.2 12 17.2 3.5 12 3.5 12Z' fill='none' stroke='white' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='12' r='2.8' fill='%23C9A94E'/%3E%3C/svg%3E">
+<script>
+  // Apply the saved theme before first paint (no light flash in dark mode).
+  try {
+    const t = localStorage.getItem("baseer_theme") ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.dataset.theme = t;
+  } catch (e) { document.documentElement.dataset.theme = "light"; }
+</script>
+<link rel="stylesheet" href="/static/app.css">
 </head>
 <body class="gated">
-<div class="shell">
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="logomark" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="#0A2540" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="#C9A94E"/></svg></div>
-      <div>
-        <div class="brandname">Baseer · بصير</div>
-        <div class="brandsub">FIELD INSPECTION CONSOLE</div>
-      </div>
+
+<!-- ================= SIGN-IN ================= -->
+<section id="view-login" class="login">
+  <div class="login-art" aria-hidden="true">
+    <div class="login-art-inner">
+      <div class="brand brand-lg"><span class="logomark"></span><div><b>Baseer · بصير</b><small data-i18n="brandSub"></small></div></div>
+      <h1 data-i18n="loginHero"></h1>
+      <p data-i18n="loginHeroSub"></p>
+      <ul class="login-points">
+        <li><i data-icon="sparkles"></i><span data-i18n="loginP1"></span></li>
+        <li><i data-icon="camera"></i><span data-i18n="loginP2"></span></li>
+        <li><i data-icon="check-shield"></i><span data-i18n="loginP3"></span></li>
+      </ul>
+      <p class="made-by made-by-art"><span data-i18n="madeBy"></span> <b>Veebase</b></p>
     </div>
-    <nav class="nav">
-      <div class="navlabel" id="navLabel">CONSOLE</div>
-      <button type="button" id="navOverview" class="active"><span class="glyph">◫</span><span id="navOverviewT">نظرة عامة</span></button>
-      <button type="button" id="navInspect"><span class="glyph">⊕</span><span id="navInspectT">فحص جديد</span></button>
-      <button type="button" id="navLive"><span class="glyph">◉</span><span id="navLiveT">كاميرا مباشرة</span></button>
-      <button type="button" id="navReport"><span class="glyph">▤</span><span id="navReportT">تقرير الفحص</span></button>
-      <button type="button" id="navAudit"><span class="glyph">≡</span><span id="navAuditT">سجل التدقيق</span></button>
-      <button type="button" id="navUsers" class="hidden"><span class="glyph">◍</span><span id="navUsersT">المستخدمون</span></button>
-      <div class="navlabel" id="navUser" style="margin-top:14px">—</div>
-      <button type="button" id="navLogout"><span class="glyph">⏻</span><span id="navLogoutT">خروج</span></button>
+  </div>
+  <div class="login-form-wrap">
+    <form class="login-card" id="loginForm" autocomplete="on">
+      <div class="brand brand-sm only-mobile"><span class="logomark"></span><div><b>Baseer · بصير</b></div></div>
+      <h2 data-i18n="loginT"></h2>
+      <p class="muted" data-i18n="loginHint"></p>
+      <label class="field"><span data-i18n="loginUser"></span>
+        <input id="loginUser" type="text" autocomplete="username" required></label>
+      <label class="field"><span data-i18n="loginPass"></span>
+        <div class="pw"><input id="loginPass" type="password" autocomplete="current-password" required>
+          <button type="button" class="icon-btn pw-eye" data-toggle-pw="loginPass" data-i18n-title="showPw"><i data-icon="eye"></i></button></div></label>
+      <p class="form-error hidden" id="loginErr" role="alert"></p>
+      <button class="btn btn-primary btn-block" id="loginBtn" type="submit" data-i18n="loginGo"></button>
+      <div class="login-foot">
+        <span class="badge" id="loginMode"></span>
+        <div class="seg" role="group" aria-label="Language">
+          <button type="button" data-lang="ar">عربي</button><button type="button" data-lang="en">EN</button>
+        </div>
+        <button type="button" class="icon-btn" data-theme-toggle data-i18n-title="theme"><i data-icon="moon"></i></button>
+      </div>
+      <p class="made-by only-mobile-block"><span data-i18n="madeBy"></span> <b>Veebase</b></p>
+    </form>
+  </div>
+</section>
+
+<!-- ================= APP SHELL ================= -->
+<div class="shell" id="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="logomark"></span><div><b>Baseer · بصير</b><small data-i18n="brandSub"></small></div></div>
+    <nav class="nav" aria-label="Main">
+      <div class="nav-label" data-i18n="navOps"></div>
+      <a href="#/overview" data-nav="overview"><i data-icon="grid"></i><span data-i18n="navOverview"></span></a>
+      <a href="#/inspect" data-nav="inspect"><i data-icon="plus-square"></i><span data-i18n="navInspect"></span></a>
+      <a href="#/live" data-nav="live"><i data-icon="camera"></i><span data-i18n="navLive"></span><span class="nav-dot hidden" id="navLiveDot"></span></a>
+      <div class="nav-label" data-i18n="navRecords"></div>
+      <a href="#/inspections" data-nav="inspections"><i data-icon="folder"></i><span data-i18n="navInspections"></span></a>
+      <a href="#/cases" data-nav="cases"><i data-icon="clipboard"></i><span data-i18n="navCases"></span><span class="nav-count hidden" id="navCasesCount"></span></a>
+      <a href="#/audit" data-nav="audit"><i data-icon="history"></i><span data-i18n="navAudit"></span></a>
+      <div class="nav-label" data-i18n="navAdmin"></div>
+      <a href="#/users" data-nav="users" id="navUsers" class="hidden"><i data-icon="users"></i><span data-i18n="navUsers"></span></a>
+      <a href="#/account" data-nav="account"><i data-icon="user"></i><span data-i18n="navAccount"></span></a>
     </nav>
-    <div class="sidefoot">
-      <div class="sidestat"><b id="sideModeT">وضع تجريبي</b><span id="sideFoot">Baseer turns a short site video — or a live camera feed — and an Arabic voice note into an evidence-grounded safety inspection, then tracks corrective actions until a human verifies the resolution.</span></div>
-      <div class="fine" id="sideFine">Built by Veebase.</div>
+    <div class="side-foot">
+      <div class="mode-card" id="modeCard">
+        <span class="pulse"></span>
+        <div><b id="modeCardT"></b><small id="modeCardS"></small></div>
+      </div>
+      <div class="user-chip">
+        <span class="avatar" id="userAvatar">—</span>
+        <div class="user-meta"><b id="userName">—</b><small id="userRole"></small></div>
+        <button type="button" class="icon-btn" id="logoutBtn" data-i18n-title="logout"><i data-icon="logout"></i></button>
+      </div>
+      <p class="made-by side-made-by"><span data-i18n="madeBy"></span> <b>Veebase</b></p>
     </div>
   </aside>
+  <div class="scrim" id="scrim"></div>
 
   <div class="main">
     <header class="topbar">
-      <div>
-        <p class="eyebrow" id="crumb">BASEER / OPERATIONS</p>
-        <h1 id="pageTitle">نظرة السلامة العامة</h1>
-        <p class="sub" id="pageSub">ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم.</p>
+      <button type="button" class="icon-btn only-mobile" id="menuBtn" aria-label="Menu"><i data-icon="menu"></i></button>
+      <div class="titles">
+        <p class="crumb" id="crumb"></p>
+        <h1 id="pageTitle"></h1>
       </div>
-      <div class="toprow">
-        <span id="modeBadge" class="badge mock hidden">تجريبي</span>
-        <div class="langtoggle" role="group" aria-label="Language">
-          <button id="btnAr" class="active" type="button">عربي</button>
-          <button id="btnEn" type="button">EN</button>
+      <form class="search" id="globalSearch" role="search">
+        <i data-icon="search"></i>
+        <input id="globalQ" type="search" data-i18n-ph="searchPh" autocomplete="off">
+        <kbd>/</kbd>
+      </form>
+      <div class="top-actions">
+        <span class="badge" id="modeBadge"></span>
+        <div class="seg" role="group" aria-label="Language">
+          <button type="button" data-lang="ar">عربي</button><button type="button" data-lang="en">EN</button>
         </div>
+        <button type="button" class="icon-btn" data-theme-toggle data-i18n-title="theme"><i data-icon="moon"></i></button>
       </div>
     </header>
+    <p class="page-sub" id="pageSub"></p>
 
-    <main>
-      <!-- ============ OVERVIEW ============ -->
-      <section id="view-overview">
-        <div class="headaction">
-          <button id="ctaInspect" class="btn gold" type="button">+ فحص جديد</button>
-          <select id="siteFilter" style="width:auto;padding:11px 14px" aria-label="Site"></select>
+    <main id="content">
+      <!-- ================= OVERVIEW ================= -->
+      <section id="view-overview" class="view">
+        <div class="toolbar">
+          <a class="btn btn-accent" href="#/inspect"><i data-icon="plus"></i><span data-i18n="ctaNew"></span></a>
+          <a class="btn btn-ghost" href="#/live"><i data-icon="camera"></i><span data-i18n="navLive"></span></a>
+          <div class="spacer"></div>
+          <label class="select-wrap"><i data-icon="pin"></i><select id="siteFilter" data-i18n-title="siteFilter"></select></label>
         </div>
-        <div id="seedNotice" class="notice hidden"></div>
-        <div class="stats" id="kpis">
-          <div class="stat"><div class="k"><span class="dot" style="background:var(--navy)"></span><span id="kTotal">عمليات الفحص</span></div><div class="v" id="vTotal">–</div><div class="d" id="dTotal"></div></div>
-          <div class="stat"><div class="k"><span class="dot" style="background:var(--gold)"></span><span id="kFindings">إجمالي الملاحظات</span></div><div class="v" id="vFindings">–</div><div class="d" id="dFindings"></div></div>
-          <div class="stat"><div class="k"><span class="dot" style="background:var(--high)"></span><span id="kHigh">عالية الخطورة</span></div><div class="v" id="vHigh" style="color:var(--high)">–</div><div class="d" id="dHigh"></div></div>
-          <div class="stat"><div class="k"><span class="dot" style="background:#C07F10"></span><span id="kMed">متوسطة الخطورة</span></div><div class="v" id="vMed" style="color:#8A5A00">–</div><div class="d" id="dMed"></div></div>
+        <div class="notice hidden" id="seedNotice"><i data-icon="info"></i><span data-i18n="seedNote"></span></div>
+        <div class="kpis">
+          <div class="kpi"><div class="kpi-icon tone-brand"><i data-icon="folder"></i></div><div><span class="kpi-k" data-i18n="aTotal"></span><b class="kpi-v" id="vTotal">–</b><small data-i18n="dTotal"></small></div></div>
+          <div class="kpi"><div class="kpi-icon tone-accent"><i data-icon="eye"></i></div><div><span class="kpi-k" data-i18n="aFindings"></span><b class="kpi-v" id="vFindings">–</b><small id="dFindings"></small></div></div>
+          <div class="kpi"><div class="kpi-icon tone-high"><i data-icon="alert"></i></div><div><span class="kpi-k" data-i18n="aHigh"></span><b class="kpi-v c-high" id="vHigh">–</b><small data-i18n="dHigh"></small></div></div>
+          <a class="kpi" href="#/cases"><div class="kpi-icon tone-info"><i data-icon="clipboard"></i></div><div><span class="kpi-k" data-i18n="aOpen"></span><b class="kpi-v" id="vOpen">–</b><small id="dOpen"></small></div></a>
+          <a class="kpi" href="#/cases?status=overdue"><div class="kpi-icon tone-med"><i data-icon="clock"></i></div><div><span class="kpi-k" data-i18n="aOverdue"></span><b class="kpi-v c-med" id="vOverdue">–</b><small data-i18n="dOverdue"></small></div></a>
         </div>
-        <div class="grid2 even">
-          <div class="card" style="margin-bottom:18px">
-            <div class="panelhead"><h2 id="tSevMix">توزيع الخطورة</h2><span class="tag" id="sevTotal"></span></div>
-            <div class="sevbar" id="sevBar"></div>
-            <div class="legend" id="sevLegend"></div>
-            <div class="sevrows" id="sevRows"></div>
+        <div class="grid g-21">
+          <div class="card">
+            <div class="card-head"><h2 data-i18n="trendT"></h2><span class="tag" id="trendTotal"></span></div>
+            <div id="trendChart" class="chart"></div>
           </div>
-          <div class="card" style="margin-bottom:18px">
-            <div class="panelhead"><h2 id="tTopHazards">أكثر المخاطر تكرارًا</h2></div>
-            <table>
-              <thead><tr><th id="thHazard">الخطر</th><th id="thCount">التكرار</th></tr></thead>
-              <tbody id="hazardRows"></tbody>
-            </table>
+          <div class="card">
+            <div class="card-head"><h2 data-i18n="sevMix"></h2><span class="tag" id="sevTotal"></span></div>
+            <div class="donut-wrap"><div id="sevDonut"></div><div class="legend" id="sevLegend"></div></div>
           </div>
         </div>
-        <div class="grid2 even">
-          <div class="card" style="margin-bottom:18px">
-            <div class="panelhead"><h2 id="tRecent">أحدث الفحوصات</h2></div>
-            <table>
-              <thead><tr><th id="thId">رقم الفحص</th><th id="thDate">التاريخ</th><th id="thFindings">الملاحظات</th><th id="thHigh">عالية الخطورة</th></tr></thead>
-              <tbody id="recentRows"></tbody>
-            </table>
+        <div class="grid g-11">
+          <div class="card">
+            <div class="card-head"><h2 data-i18n="topHazards"></h2></div>
+            <div id="hazardBars" class="hbars"></div>
           </div>
-          <div class="card" style="margin-bottom:18px">
-            <div class="panelhead"><h2 id="tPipe">من الجولة الميدانية إلى الإغلاق الموثّق</h2></div>
-            <p class="hint" id="tPipeHint">كل فحص يمر بالحلقة نفسها — والملاحظة لا تُغلق أبدًا إلا باعتماد بشري.</p>
-            <div class="pipe" id="pipeSteps"></div>
+          <div class="card">
+            <div class="card-head"><h2 data-i18n="agingT"></h2><a class="link" href="#/cases" data-i18n="viewAll"></a></div>
+            <div id="agingList" class="list"></div>
           </div>
         </div>
-        <div class="grid2 even">
-          <div class="card" style="margin-bottom:18px">
-            <div class="panelhead"><h2 id="tTrend">النشاط اليومي</h2><span class="tag" id="trendTotal"></span></div>
-            <div id="trendChart"></div>
+        <div class="grid g-11">
+          <div class="card">
+            <div class="card-head"><h2 data-i18n="recent"></h2><a class="link" href="#/inspections" data-i18n="viewAll"></a></div>
+            <div id="recentList" class="list"></div>
           </div>
-          <div class="card" style="margin-bottom:18px">
-            <div class="panelhead"><h2 id="tAging">حالات تحتاج متابعة</h2><span class="tag" id="agingCount"></span></div>
-            <table>
-              <thead><tr><th id="thCase">الحالة</th><th id="thCaseSev">الخطورة</th><th id="thAge">العمر</th></tr></thead>
-              <tbody id="agingRows"></tbody>
-            </table>
+          <div class="card">
+            <div class="card-head"><h2 data-i18n="pipeT"></h2></div>
+            <p class="muted small" data-i18n="pipeHint"></p>
+            <ol class="loop" id="loopSteps"></ol>
           </div>
         </div>
       </section>
 
-      <!-- ============ NEW INSPECTION ============ -->
-      <section id="view-inspect" class="hidden">
-        <div class="grid2">
-          <form id="inspForm" class="card" style="margin-bottom:18px">
-            <div class="panelhead"><h2 id="tNewInspect">فحص جديد</h2><span class="tag" id="tNewHint">النتيجة تقرير كامل في نحو 30 ثانية.</span></div>
-            <label for="files" id="tFiles">صور / فيديو من الموقع</label>
-            <label class="drop" for="files">
-              <div class="d1" id="dropTitle">اسحب الملفات هنا أو اضغط للاختيار</div>
-              <div class="d2" id="dropSub">صور أو فيديو — MP4 / MOV / JPG / PNG</div>
-              <input id="files" type="file" accept="image/*,video/*" multiple>
-            </label>
-            <div id="fileNames" class="meta" style="margin-top:8px"></div>
-            <label for="notes" id="tNotes">ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)</label>
-            <textarea id="notes"></textarea>
-            <div class="btnrow" style="margin-top:10px">
-              <button id="micBtn" class="btn ghost small" type="button">تسجيل ملاحظة صوتية</button>
-              <span id="micStatus" class="meta" style="align-self:center"></span>
+      <!-- ================= NEW INSPECTION ================= -->
+      <section id="view-inspect" class="view hidden">
+        <div class="grid g-21">
+          <form class="card" id="inspForm">
+            <div class="card-head"><h2 data-i18n="newInspect"></h2><span class="tag" data-i18n="newHint"></span></div>
+            <div class="drop" id="dropZone" tabindex="0" role="button">
+              <input id="files" type="file" accept="image/*,video/*" multiple hidden>
+              <div class="drop-icon"><i data-icon="upload"></i></div>
+              <b data-i18n="dropTitle"></b>
+              <small data-i18n="dropSub"></small>
             </div>
-            <label for="ctx" id="tCtx">سياق الموقع (اختياري)</label>
-            <input id="ctx" type="text">
-            <div class="btnrow">
-              <button id="runBtn" class="btn gold" type="submit">إنشاء التقرير</button>
-              <span id="status" class="meta" style="align-self:center"></span>
+            <div class="thumbs" id="thumbs"></div>
+            <label class="field"><span data-i18n="notes"></span>
+              <textarea id="notes" rows="4" maxlength="5000" data-i18n-ph="notesPh"></textarea></label>
+            <div class="row gap">
+              <button id="micBtn" class="btn btn-ghost btn-sm" type="button"><i data-icon="mic"></i><span id="micLabel" data-i18n="micRec"></span></button>
+              <span id="micStatus" class="muted small"></span>
+              <span class="spacer"></span>
+              <span class="muted small" id="notesCount">0 / 5000</span>
+            </div>
+            <label class="field"><span data-i18n="ctx"></span>
+              <input id="ctx" type="text" list="siteList" data-i18n-ph="ctxPh"></label>
+            <datalist id="siteList"></datalist>
+            <div class="row gap mt">
+              <button id="runBtn" class="btn btn-accent btn-lg" type="submit"><i data-icon="sparkles"></i><span data-i18n="run"></span></button>
+              <button id="clearBtn" class="btn btn-ghost" type="button" data-i18n="clear"></button>
             </div>
           </form>
-          <div>
-            <div class="card guide" style="margin-bottom:18px">
-              <h3 id="tGuide">ماذا يفحص بصير؟</h3>
-              <ul id="tGuideList">
-                <li>معدات الوقاية الشخصية: خوذة، سترة عاكسة، قفازات، نظارات.</li>
-                <li>مخاطر الحركة: مسارات الرافعات، الحواف العلوية، الحواجز.</li>
-                <li>مخاطر الماكينات: واقيات، مخارج طوارئ، علامات أرضية.</li>
-              </ul>
-              <p class="meta" id="tGuideNote">التقرير يستند إلى ما يظهر في الإطار فقط.</p>
+          <div class="stack">
+            <div class="card">
+              <div class="card-head"><h2 data-i18n="guideT"></h2></div>
+              <ul class="checks" id="guideList"></ul>
+              <p class="muted small" data-i18n="guideNote"></p>
             </div>
-            <div class="card" style="margin-bottom:18px">
-              <div class="panelhead"><h2 id="tHow">كيف يعمل الفحص؟</h2></div>
-              <div class="steps3" id="howSteps">
-                <div><b>01</b><span>الدليل</span></div>
-                <div><b>02</b><span>الفهم</span></div>
-                <div><b>03</b><span>التقرير</span></div>
-              </div>
+            <div class="card">
+              <div class="card-head"><h2 data-i18n="howT"></h2></div>
+              <ol class="steps" id="howSteps"></ol>
             </div>
+          </div>
+        </div>
+        <div class="analyzing hidden" id="analyzing" role="status" aria-live="polite">
+          <div class="analyzing-card">
+            <div class="scanner"><span class="logomark"></span></div>
+            <h3 data-i18n="running"></h3>
+            <ol class="progress-steps" id="progressSteps"></ol>
           </div>
         </div>
       </section>
 
-      <!-- ============ LIVE CAMERA ============ -->
-      <section id="view-live" class="hidden">
-        <div class="livestats">
-          <div class="stat"><div class="k"><span class="dot" style="background:var(--low)"></span><span id="kLiveState">الحالة</span></div><div class="v" id="vLiveState" style="font-size:22px">–</div><div class="d" id="dLiveState"></div></div>
-          <div class="stat"><div class="k"><span class="dot" style="background:var(--navy)"></span><span id="kLiveFrames">إطارات مستلمة</span></div><div class="v" id="vLiveFrames">0</div><div class="d" id="dLiveFrames"></div></div>
-          <div class="stat"><div class="k"><span class="dot" style="background:var(--high)"></span><span id="kLiveAlerts">تنبيهات</span></div><div class="v" id="vLiveAlerts" style="color:var(--high)">0</div><div class="d" id="dLiveAlerts"></div></div>
-        </div>
-        <div class="grid2 even">
-          <div class="card" style="margin-bottom:18px">
-            <div class="panelhead"><h2 id="tLive">وضع الكاميرا المباشرة</h2></div>
-            <p class="hint" id="tLiveHint">كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها.</p>
-            <div class="btnrow" style="margin-top:0">
-              <button id="liveStart" class="btn" type="button">بدء جلسة مباشرة</button>
-              <button id="liveCam" class="btn ghost" type="button">استخدام الكاميرا</button>
-            </div>
-            <div class="btnrow hidden" id="resumeRow" style="margin-top:8px">
-              <select id="resumeSel" style="max-width:260px"></select>
-              <button id="resumeBtn" class="btn ghost" type="button">استئناف</button>
-            </div>
-            <video id="camPreview" class="hidden" muted playsinline></video>
-            <p class="meta hidden" id="camNote" style="margin-top:8px"></p>
-            <div id="liveBody" class="hidden" style="margin-top:18px">
-              <label for="liveFiles" id="tLiveFrame">إطار من الكاميرا</label>
-              <p class="meta" id="tLiveAlt" style="margin:0 0 6px">أو أرسل إطارًا من ملف.</p>
-              <input id="liveFiles" type="file" accept="image/*,video/*">
-              <div class="btnrow">
-                <button id="liveSend" class="btn" type="button">إرسال الإطار</button>
-                <button id="liveFinish" class="btn dark" type="button">إنهاء الجلسة وإنتاج التقرير</button>
-              </div>
-              <p class="meta" id="liveStatus" style="margin-top:10px"></p>
-            </div>
-          </div>
-          <div class="card" style="margin-bottom:18px">
-            <div class="panelhead"><h2 id="tAlerts">التنبيهات المباشرة</h2><span class="tag" id="alertsCount"></span></div>
-            <div id="liveAlerts"><p class="meta" id="noAlerts">لا تنبيهات بعد — ابدأ جلسة وأرسل إطارًا.</p></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============ REPORT ============ -->
-      <section id="view-report" class="hidden">
-        <div id="reportEmpty" class="card">
-          <h2 id="tNoReport">لا يوجد تقرير بعد</h2>
-          <p class="hint" id="tNoReportHint">شغّل فحصًا جديدًا أو أنهِ جلسة كاميرا مباشرة، وسيظهر التقرير هنا.</p>
-          <button id="goInspect" class="btn" type="button">فحص جديد</button>
-        </div>
-        <div id="reportContent" class="hidden">
+      <!-- ================= LIVE CAMERA ================= -->
+      <section id="view-live" class="view hidden">
+        <div class="grid g-21">
           <div class="card">
-            <div class="rhead">
-              <div>
-                <h2 id="tReport">تقرير الفحص</h2>
-                <p class="meta" id="rMeta" style="margin:4px 0 0"></p>
-              </div>
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                <span id="pipeBadge" class="badge vision"></span>
-                <button id="printBtn" class="btn ghost small" type="button">طباعة التقرير</button>
-                <button id="pdfBtn" class="btn ghost small" type="button">تنزيل PDF</button>
-                <button id="waBtn" class="btn ghost small" type="button">مشاركة واتساب</button>
-                <select id="actorSel" class="btn ghost small" style="width:auto" title="acting"></select>
+            <div class="stage" id="stage">
+              <video id="camPreview" muted playsinline class="hidden"></video>
+              <div class="stage-empty" id="stageEmpty"><i data-icon="camera"></i><span data-i18n="stageIdle"></span></div>
+              <div class="stage-hud">
+                <span class="live-pill hidden" id="livePill"><span class="pulse"></span>LIVE <span id="liveClock">00:00</span></span>
+                <span class="stage-count" id="stageCount"></span>
               </div>
             </div>
-            <h3 id="tSummary" style="margin:16px 0 0">الملخص</h3>
-            <div class="summary" id="rSummary"></div>
-            <div class="panelhead" style="margin:18px 0 4px"><h3 id="tEvidence" style="margin:0">الأدلة المرفقة</h3><span class="tag" id="evStamp"></span></div>
-            <div id="rEvidence" style="display:flex;gap:12px;flex-wrap:wrap"></div>
-            <div class="panelhead" style="margin:18px 0 4px"><h3 id="tFindings" style="margin:0">الملاحظات</h3><span class="tag" id="findingsCount"></span></div>
-            <div id="rFindings"></div>
-            <div class="chat">
-              <h3 id="tChat" style="margin-top:0">اسأل بصير عن هذا الفحص</h3>
+            <div class="live-stats">
+              <div><small data-i18n="kLiveState"></small><b id="vLiveState"></b></div>
+              <div><small data-i18n="liveFrames"></small><b id="vLiveFrames">0</b></div>
+              <div><small data-i18n="liveAlertsT"></small><b id="vLiveAlerts" class="c-high">0</b></div>
+            </div>
+            <div class="row gap wrap mt">
+              <button id="liveStart" class="btn btn-primary" type="button"><i data-icon="play"></i><span data-i18n="liveStart"></span></button>
+              <button id="liveCam" class="btn btn-ghost" type="button"><i data-icon="camera"></i><span id="liveCamLabel" data-i18n="liveCamT"></span></button>
+              <button id="liveFileBtn" class="btn btn-ghost hidden" type="button"><i data-icon="image"></i><span data-i18n="liveSendFile"></span></button>
+              <input id="liveFiles" type="file" accept="image/*,video/*" hidden>
+              <span class="spacer"></span>
+              <button id="liveFinish" class="btn btn-accent hidden" type="button"><i data-icon="check"></i><span data-i18n="liveFinish"></span></button>
+            </div>
+            <div class="row gap wrap mt hidden" id="resumeRow">
+              <span class="muted small" data-i18n="resumeHint"></span>
+              <select id="resumeSel"></select>
+              <button id="resumeBtn" class="btn btn-ghost btn-sm" type="button" data-i18n="resume"></button>
+            </div>
+            <label class="field"><span data-i18n="liveCtx"></span><input id="liveCtx" type="text" list="siteList" data-i18n-ph="ctxPh"></label>
+            <p class="muted small" id="liveStatus" data-i18n="liveHint"></p>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2 data-i18n="alertsT"></h2><span class="tag" id="alertsCount"></span></div>
+            <div id="liveAlerts" class="alerts"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= INSPECTIONS (history) ================= -->
+      <section id="view-inspections" class="view hidden">
+        <div class="card">
+          <div class="toolbar in-card">
+            <label class="input-icon"><i data-icon="search"></i><input id="histQ" type="search" data-i18n-ph="histSearchPh"></label>
+            <label class="select-wrap"><i data-icon="pin"></i><select id="histSite"></select></label>
+            <label class="select-wrap"><i data-icon="filter"></i><select id="histSev"></select></label>
+            <span class="spacer"></span>
+            <button class="btn btn-ghost btn-sm" type="button" id="histCsv"><i data-icon="download"></i><span data-i18n="csvBtn"></span></button>
+          </div>
+          <div class="table-wrap">
+            <table class="table clickable">
+              <thead><tr><th data-i18n="colId"></th><th data-i18n="colDate"></th><th data-i18n="thSite"></th><th data-i18n="colSource"></th><th data-i18n="colFindings"></th><th data-i18n="colCases"></th><th></th></tr></thead>
+              <tbody id="histRows"></tbody>
+            </table>
+          </div>
+          <div class="empty hidden" id="histEmpty"><i data-icon="folder"></i><b data-i18n="histEmpty"></b><a class="btn btn-accent btn-sm" href="#/inspect" data-i18n="ctaNew"></a></div>
+        </div>
+      </section>
+
+      <!-- ================= REPORT ================= -->
+      <section id="view-report" class="view hidden">
+        <div class="empty card" id="reportEmpty">
+          <i data-icon="file"></i><b data-i18n="noReport"></b><p class="muted" data-i18n="noReportHint"></p>
+          <div class="row gap center"><a class="btn btn-accent" href="#/inspect" data-i18n="ctaNew"></a><a class="btn btn-ghost" href="#/inspections" data-i18n="navInspections"></a></div>
+        </div>
+        <div id="reportContent" class="report hidden">
+          <div class="report-main">
+            <div class="card report-hero">
+              <div class="report-top">
+                <div>
+                  <div class="row gap wrap"><span class="badge" id="pipeBadge"></span><span class="badge badge-soft" id="srcBadge"></span></div>
+                  <h2 class="report-title"><span data-i18n="report"></span> <span class="mono" id="rId"></span></h2>
+                  <p class="muted small" id="rMeta"></p>
+                </div>
+                <div class="row gap wrap report-actions">
+                  <button id="pdfBtn" class="btn btn-primary btn-sm" type="button"><i data-icon="download"></i><span data-i18n="pdfRep"></span></button>
+                  <button id="printBtn" class="btn btn-ghost btn-sm" type="button"><i data-icon="printer"></i><span data-i18n="printRep"></span></button>
+                  <button id="waBtn" class="btn btn-ghost btn-sm" type="button"><i data-icon="share"></i><span data-i18n="shareWa"></span></button>
+                  <button id="copyLinkBtn" class="btn btn-ghost btn-sm" type="button"><i data-icon="link"></i><span data-i18n="copyLink"></span></button>
+                </div>
+              </div>
+              <div class="sev-strip" id="sevStrip"></div>
+              <div class="summary"><i data-icon="sparkles"></i><p id="rSummary"></p></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h2 data-i18n="tEvidence"></h2><span class="tag" id="evStamp"></span></div>
+              <div class="gallery" id="rEvidence"></div>
+            </div>
+            <div class="card-head plain"><h2 data-i18n="findings"></h2><span class="tag" id="findingsCount"></span></div>
+            <div id="rFindings" class="findings"></div>
+          </div>
+          <aside class="report-side">
+            <div class="card chat-card">
+              <div class="card-head"><h2><i data-icon="message"></i> <span data-i18n="chat"></span></h2></div>
+              <p class="muted small" data-i18n="chatHint"></p>
+              <div class="chips" id="chatChips"></div>
               <div class="chatlog" id="chatLog"></div>
-              <div class="chatrow">
-                <input id="chatInput" type="text">
-                <button id="chatSend" type="button">إرسال</button>
-              </div>
+              <form class="chat-input" id="chatForm">
+                <input id="chatInput" type="text" maxlength="2000" data-i18n-ph="chatPh" autocomplete="off">
+                <button type="submit" class="icon-btn icon-btn-primary" data-i18n-title="send"><i data-icon="send"></i></button>
+              </form>
             </div>
-          </div>
+          </aside>
         </div>
       </section>
 
-      <!-- ============ LOGIN ============ -->
-      <section id="view-login" class="hidden">
-        <div class="loginwrap">
-        <div class="logincard">
-          <div class="loginbrand">
-            <div class="logomark" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="#0A2540" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="#C9A94E"/></svg></div>
-            <div><b>Baseer · بصير</b><span>FIELD INSPECTION CONSOLE</span></div>
-          </div>
-          <h2 id="tLogin">تسجيل الدخول</h2>
-          <p class="hint" id="tLoginHint">حسابك الشخصي — كل إجراء يُسجَّل باسمك.</p>
-          <div class="loginrow"><span id="loginMode" class="badge mock">تجريبي</span></div>
-          <div class="loginfield"><label for="loginUser" id="tLoginUser">اسم المستخدم</label>
-            <input id="loginUser" type="text" autocomplete="username"></div>
-          <div class="loginfield"><label for="loginPass" id="tLoginPass">كلمة المرور</label>
-            <input id="loginPass" type="password" autocomplete="current-password"></div>
-          <p class="meta hidden" id="loginErr" style="color:var(--high)"></p>
-          <button id="loginBtn" class="btn gold" type="button" style="width:100%">دخول</button>
-          <div class="loginlang"><div class="langtoggle" role="group" aria-label="Language">
-            <button id="btnArL" class="active" type="button">عربي</button>
-            <button id="btnEnL" type="button">EN</button>
-          </div></div>
-        </div>
-        </div>
-      </section>
-
-      <!-- ============ USERS (ADMIN) ============ -->
-      <section id="view-users" class="hidden">
+      <!-- ================= CASES ================= -->
+      <section id="view-cases" class="view hidden">
         <div class="card">
-          <div class="panelhead">
-            <div>
-              <h2 id="tUsers">المستخدمون</h2>
-              <p class="hint" id="tUsersHint" style="margin:4px 0 0">حسابات المفتشين وأدوارهم — الإدارة فقط.</p>
-            </div>
+          <div class="toolbar in-card">
+            <div class="tabs" id="caseTabs" role="tablist"></div>
+            <span class="spacer"></span>
+            <label class="select-wrap"><i data-icon="pin"></i><select id="caseSite"></select></label>
+            <button class="btn btn-ghost btn-sm" type="button" id="casesCsv"><i data-icon="download"></i><span data-i18n="csvBtn"></span></button>
           </div>
-          <table>
-            <thead><tr><th id="thUName">المستخدم</th><th id="thURole">الدور</th><th id="thUCreated">أُنشئ</th><th></th></tr></thead>
-            <tbody id="userRows"></tbody>
-          </table>
-          <h3 id="tNewUser" style="margin-top:18px">حساب جديد</h3>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end">
-            <div><label for="nuName" id="tNuName">الاسم</label><input id="nuName" type="text" style="width:160px"></div>
-            <div><label for="nuPass" id="tNuPass">كلمة المرور</label><input id="nuPass" type="password" style="width:160px"></div>
-            <div><label for="nuRole" id="tNuRole">الدور</label><select id="nuRole" style="width:170px"></select></div>
-            <button id="nuBtn" class="btn gold" type="button">إضافة</button>
+          <div class="table-wrap">
+            <table class="table clickable">
+              <thead><tr><th data-i18n="colCase"></th><th data-i18n="colCaseSev"></th><th data-i18n="colStatus"></th><th data-i18n="colAssignee"></th><th data-i18n="colDue"></th><th data-i18n="thSite"></th></tr></thead>
+              <tbody id="caseRows"></tbody>
+            </table>
           </div>
-          <p class="meta hidden" id="nuErr" style="color:var(--high)"></p>
-          <h3 id="tMyPass" style="margin-top:18px">كلمتي</h3>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end">
-            <div><label for="pwOld" id="tPwOld">الحالية</label><input id="pwOld" type="password" style="width:160px"></div>
-            <div><label for="pwNew" id="tPwNew">الجديدة (8+)</label><input id="pwNew" type="password" style="width:160px"></div>
-            <button id="pwBtn" class="btn ghost" type="button">تغيير</button>
-          </div>
-          <p class="meta hidden" id="pwMsg"></p>
+          <div class="empty hidden" id="casesEmpty"><i data-icon="check-shield"></i><b data-i18n="casesEmpty"></b></div>
         </div>
       </section>
 
-      <!-- ============ AUDIT LOG ============ -->
-      <section id="view-audit" class="hidden">
+      <!-- ================= AUDIT ================= -->
+      <section id="view-audit" class="view hidden">
         <div class="card">
-          <div class="panelhead">
-            <div>
-              <h2 id="tAudit">سجل التدقيق</h2>
-              <p class="hint" id="tAuditHint" style="margin:4px 0 0">كل إجراء على الحالات — إسنادًا وتحققًا واعتمادًا — مسجل هنا ولا يُحذف.</p>
-            </div>
-            <button id="csvBtn" class="btn ghost small" type="button">تنزيل CSV</button>
+          <div class="toolbar in-card">
+            <label class="input-icon"><i data-icon="search"></i><input id="auditQ" type="search" data-i18n-ph="auditSearchPh"></label>
+            <label class="select-wrap"><i data-icon="filter"></i><select id="auditAction"></select></label>
+            <span class="spacer"></span>
+            <button id="csvBtn" class="btn btn-ghost btn-sm" type="button"><i data-icon="download"></i><span data-i18n="csvBtn"></span></button>
           </div>
-          <table>
-            <thead><tr><th id="thTime">الوقت</th><th id="thAuditId">الفحص</th><th id="thSite">الموقع</th><th id="thFindingN">ملاحظة #</th><th id="thAction">الإجراء</th><th id="thActor">الفاعل</th><th id="thDetail">التفاصيل</th></tr></thead>
-            <tbody id="auditRows"></tbody>
-          </table>
-          <p class="meta hidden" id="auditEmpty">لا إجراءات مسجلة بعد.</p>
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th data-i18n="thTime"></th><th data-i18n="thAuditId"></th><th data-i18n="thSite"></th><th data-i18n="thFindingN"></th><th data-i18n="thAction"></th><th data-i18n="thActor"></th><th data-i18n="thDetail"></th></tr></thead>
+              <tbody id="auditRows"></tbody>
+            </table>
+          </div>
+          <div class="empty hidden" id="auditEmpty"><i data-icon="history"></i><b data-i18n="auditEmpty"></b></div>
+        </div>
+      </section>
+
+      <!-- ================= USERS (admin) ================= -->
+      <section id="view-users" class="view hidden">
+        <div class="grid g-21">
+          <div class="card">
+            <div class="card-head"><h2 data-i18n="tUsers"></h2><span class="tag" id="usersCount"></span></div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th data-i18n="thUName"></th><th data-i18n="thURole"></th><th data-i18n="thUCreated"></th><th></th></tr></thead>
+                <tbody id="userRows"></tbody>
+              </table>
+            </div>
+          </div>
+          <form class="card" id="newUserForm">
+            <div class="card-head"><h2 data-i18n="tNewUser"></h2></div>
+            <label class="field"><span data-i18n="tNuName"></span><input id="nuName" type="text" required autocomplete="off"></label>
+            <label class="field"><span data-i18n="tNuPass"></span><input id="nuPass" type="password" minlength="8" required autocomplete="new-password"></label>
+            <label class="field"><span data-i18n="tNuRole"></span><select id="nuRole"></select></label>
+            <p class="form-error hidden" id="nuErr" role="alert"></p>
+            <button class="btn btn-accent btn-block mt" type="submit"><i data-icon="plus"></i><span data-i18n="nuAdd"></span></button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ================= ACCOUNT ================= -->
+      <section id="view-account" class="view hidden">
+        <div class="grid g-11">
+          <div class="card">
+            <div class="profile">
+              <span class="avatar avatar-lg" id="accAvatar"></span>
+              <div><h2 id="accName"></h2><span class="badge badge-soft" id="accRole"></span></div>
+            </div>
+            <div class="prefs">
+              <div class="pref"><div><b data-i18n="prefLang"></b><small class="muted" data-i18n="prefLangHint"></small></div>
+                <div class="seg" role="group"><button type="button" data-lang="ar">عربي</button><button type="button" data-lang="en">EN</button></div></div>
+              <div class="pref"><div><b data-i18n="prefTheme"></b><small class="muted" data-i18n="prefThemeHint"></small></div>
+                <div class="seg" role="group"><button type="button" data-set-theme="light" data-i18n="light"></button><button type="button" data-set-theme="dark" data-i18n="dark"></button></div></div>
+            </div>
+            <p class="muted small mt" id="aboutLine"></p>
+          </div>
+          <form class="card" id="pwForm">
+            <div class="card-head"><h2 data-i18n="tMyPass"></h2></div>
+            <label class="field"><span data-i18n="tPwOld"></span><input id="pwOld" type="password" required autocomplete="current-password"></label>
+            <label class="field"><span data-i18n="tPwNew"></span><input id="pwNew" type="password" minlength="8" required autocomplete="new-password"></label>
+            <button class="btn btn-primary mt" type="submit" data-i18n="pwChange"></button>
+          </form>
         </div>
       </section>
     </main>
   </div>
 </div>
-<script>
-const S = {
-  ar: { dir:"rtl", lang:"ar",
-    crumb:"بصير / العمليات",
-    navLabel:"لوحة التحكم", navOverview:"نظرة عامة", navInspect:"فحص جديد", navLive:"كاميرا مباشرة", navReport:"تقرير الفحص", navAudit:"سجل التدقيق",
-    foot:"بصير يحوّل مقطع فيديو قصيرًا من الموقع — أو بث كاميرا مباشرة — وملاحظة صوتية بالعربية إلى فحص سلامة موثّق بالأدلة، ثم يتابع الإجراءات التصحيحية حتى يعتمد إنسانٌ إغلاقها.",
-    fine:"صُنع بواسطة Veebase.",
-    sideMock:"وضع تجريبي", sideLive:"وضع مباشر",
-    ctaNew:"+ فحص جديد",
-    pT:{overview:"نظرة السلامة العامة", inspect:"فحص جديد", live:"وضع الكاميرا المباشرة", report:"تقرير الفحص", audit:"سجل التدقيق", login:"تسجيل الدخول", users:"المستخدمون"},
-    pS:{overview:"ارفع صورًا أو مقطع فيديو قصير من موقع العمل، وسيحوّله بصير إلى تقرير فحص منظم. مدعوم بنماذج Meta — الرؤية والاستدلال.",
-        inspect:"صور أو فيديو مع ملاحظة المفتش — والنتيجة تقرير كامل في نحو 30 ثانية.",
-        live:"إطارات تصل تباعًا، ومخالفات تُرصد لحظة ظهورها، وتقرير كامل عند إنهاء الجلسة.",
-        report:"تقرير مبني على الأدلة — كل ملاحظة مرتبطة بإطارها، ولا تُغلق إلا باعتماد بشري.",
-        audit:"كل إجراء على الحالات — إسنادًا وتحققًا واعتمادًا — مسجل ومحمي من الحذف.",
-        login:"سجّل الدخول بحسابك للوصول إلى وحدة التحكم.",
-        users:"حسابات المفتشين وأدوارهم — الإدارة فقط."},
-    files:"صور / فيديو من الموقع", notes:"ملاحظات المفتش (صوتية مفرّغة أو مكتوبة)",
-    notesPh:"مثال: لاحظت عاملًا عند الحافة العلوية، والرافعة تعمل قرب منطقة المشاة...",
-    micRec:"تسجيل ملاحظة صوتية", micStop:"إيقاف التسجيل", micListening:"يستمع… تحدث الآن.",
-    micDone:"أُضيفت النسخة إلى الملاحظات.", micErr:"تعذّر النسخ الصوتي — اكتب الملاحظة بدلًا من ذلك.",
-    ctx:"سياق الموقع (اختياري)", ctxPh:"مثال: ورشة تصنيع — فحص سلامة أسبوعي",
-    run:"إنشاء التقرير", running:"جارٍ التحليل...", done:"تم إنشاء التقرير.", error:"حدث خطأ أثناء إنشاء التقرير.",
-    report:"تقرير الفحص", summary:"الملخص", findings:"الملاحظات",
-    findingsN:(n)=>`${n} ملاحظات`,
-    meta:(r)=>`رقم الفحص: ${r.inspection_id} · الإطارات المعالجة: ${r.frames_processed} · الوضع: ${r.mode}` + (r.source === "live-camera" ? " · كاميرا مباشرة" : ""),
-    action:"الإجراء المطلوب:", evidence:(i)=>`الإطار رقم ${i+1}`,
-    srcSeg:"النموذج البصري", srcInsp:"ملاحظة المفتش", srcBoth:"النموذج + ملاحظة المفتش",
-    sev:{high:"عالية", medium:"متوسطة", low:"منخفضة"},
-    aTotal:"عمليات الفحص", aFindings:"إجمالي الملاحظات", aHigh:"عالية الخطورة", aMed:"متوسطة الخطورة",
-    dTotal:"فحوصات مسجلة", dFindings:"عبر كل الفحوصات", dHigh:"تتطلب تدخلًا فوريًا", dMed:"قيد المراجعة",
-    sevMix:"توزيع الخطورة", sevTotal:(n)=>`المجموع: ${n}`, topHazards:"أكثر المخاطر تكرارًا", recent:"أحدث الفحوصات",
-    colHazard:"الخطر", colCount:"التكرار", colId:"رقم الفحص", colDate:"التاريخ", colFindings:"الملاحظات", colHigh:"عالية الخطورة",
-    times:"مرة", seedNote:"تتضمن هذه الأرقام بيانات تجريبية للعرض، وتُستبدل تلقائيًا مع تراكم الفحوصات الحقيقية.",
-    trendT:"النشاط اليومي", trendN:(n)=>`${n} فحصًا في ١٤ يومًا`, agingT:"حالات تحتاج متابعة", agingN:(n)=>`${n} حالة مفتوحة`,
-    colCase:"الحالة", colCaseSev:"الخطورة", colAge:"العمر", ageDays:(n)=>`منذ ${n} يوم`,
-    noData:"لا بيانات بعد.", notePh:"أضف ملاحظة للسجل…", noteAdd:"إضافة ملاحظة",
-    pipeT:"من الجولة الميدانية إلى الإغلاق الموثّق", pipeHint:"كل فحص يمر بالحلقة نفسها — والملاحظة لا تُغلق أبدًا إلا باعتماد بشري.",
-    pipe:["رصد","فهم","شرح","إجراء","تحقق","تعلّم"],
-    chat:"اسأل بصير عن هذا الفحص", chatPh:"مثال: لماذا الملاحظة الأولى عالية الخطورة؟ أو: صِغ إشعارًا للمقاول",
-    tEvidence:"الأدلة المرفقة", evLive:"جلسة كاميرا مباشرة", evFrames:(n)=>`${n} إطارات`,
-    send:"إرسال", chatErr:"تعذّر الإجابة الآن.",
-    liveT:"وضع الكاميرا المباشرة",
-    liveHint:"كاميرا متصلة بالنظام: تصل الإطارات، فيرصد بصير المخالفات لحظة ظهورها، وينتج التقرير الكامل عند إنهاء الجلسة. التحليل قريب من الزمن الحقيقي — إطار كل بضع ثوانٍ، لا إطارًا إطارًا.",
-    liveStart:"بدء جلسة مباشرة", liveFrame:"إطار من الكاميرا", liveSend:"إرسال الإطار",
-    liveFinish:"إنهاء الجلسة وإنتاج التقرير", liveOn:"الجلسة مباشرة الآن", liveIdle:"خاملة",
-    liveCamT:"استخدام الكاميرا", camStop:"إيقاف الكاميرا", camOn:"الكاميرا تعمل — لقطة كل ٣ ثوانٍ.",
-    camProg:(n)=>`الكاميرا تعمل — أُرسلت ${n} لقطة حتى الآن.`,
-    camDenied:"تعذّرت الكاميرا — أرسل إطارًا من ملف بدلًا من ذلك.", camAlt:"أو أرسل إطارًا من ملف.",
-    liveFrames:"إطارات مستلمة", liveAlertsT:"تنبيهات",
-    dLiveState:"بانتظار بدء الجلسة", dLiveFrames:"إطارات محللة", dLiveAlerts:"مخالفات مرصودة",
-    alertsT:"التنبيهات المباشرة", alertsN:(n)=>`${n} تنبيهات`, noAlerts:"لا تنبيهات بعد — ابدأ جلسة وأرسل إطارًا.",
-    caseT:"حالة إجراء تصحيحي", caseOpen:"مفتوحة", caseAssigned:"مُسندة", caseClosed:"مغلقة",
-    assign:"إسناد", verify:"تحقق", approve:"اعتماد الإغلاق", assignTo:"إسناد إلى...",
-    verPhoto:"إرفاق صورة إعادة الفحص",
-    roles:["مشرف السلامة","مدير الموقع","المقاول"], to:"إلى",
-    newInspect:"فحص جديد", newHint:"النتيجة تقرير كامل في نحو 30 ثانية.",
-    dropTitle:"اسحب الملفات هنا أو اضغط للاختيار", dropSub:"صور أو فيديو — MP4 / MOV / JPG / PNG",
-    guideT:"ماذا يفحص بصير؟", guideList:["معدات الوقاية الشخصية: خوذة، سترة عاكسة، قفازات، نظارات.","مخاطر الحركة: مسارات الرافعات، الحواف العلوية، الحواجز.","مخاطر الماكينات: واقيات، مخارج طوارئ، علامات أرضية."],
-    guideNote:"التقرير يستند إلى ما يظهر في الإطار فقط — وما لا يمكن تحديده يُسجَّل كذلك، ولا يُرفع مستوى الخطورة أبدًا عند الشك.",
-    howT:"كيف يعمل الفحص؟", how:["الدليل","الفهم","التقرير"],
-    noReport:"لا يوجد تقرير بعد", noReportHint:"شغّل فحصًا جديدًا أو أنهِ جلسة كاميرا مباشرة، وسيظهر التقرير هنا.",
-    modeLive:"مباشر", modeMock:"تجريبي",
-    pipeBadgeMock:"بيانات تجريبية", pipeBadgeLiveCam:"كاميرا مباشرة", pipeBadgeVision:"رؤية Muse", pipeBadgeSam:"SAM 3.1",
-    printRep:"طباعة التقرير", pdfRep:"تنزيل PDF", shareWa:"مشاركة واتساب",
-    tAudit:"سجل التدقيق", tAuditHint:"كل إجراء على الحالات — إسنادًا وتحققًا واعتمادًا — مسجل هنا ولا يُحذف.",
-    csvBtn:"تنزيل CSV", thTime:"الوقت", thAuditId:"الفحص", thSite:"الموقع", thFindingN:"ملاحظة #",
-    thAction:"الإجراء", thActor:"الفاعل", thDetail:"التفاصيل", auditEmpty:"لا إجراءات مسجلة بعد.",
-    siteAll:"كل المواقع", actAs:"أتصرف بصفة", loginT:"تسجيل الدخول",
-    loginHint:"حسابك الشخصي — كل إجراء يُسجَّل باسمك.", loginUser:"اسم المستخدم",
-    loginPass:"كلمة المرور", loginGo:"دخول",
-    loginErr:"تعذّر الدخول — تحقق من الاسم وكلمة المرور.", logout:"خروج",
-    navUsers:"المستخدمون", tUsers:"المستخدمون", tUsersHint:"حسابات المفتشين وأدوارهم — الإدارة فقط.",
-    thUName:"المستخدم", thURole:"الدور", thUCreated:"أُنشئ",
-    tNewUser:"حساب جديد", tNuName:"الاسم", tNuPass:"كلمة المرور", tNuRole:"الدور", nuAdd:"إضافة",
-    nuErr:"تعذّر إنشاء الحساب.", tMyPass:"كلمتي", tPwOld:"الحالية", tPwNew:"الجديدة (8+)",
-    pwChange:"تغيير", pwOk:"تم تغيير كلمة المرور.", pwErr:"تعذّر التغيير — تحقق من الحالية.",
-    resume:"استئناف",
-    actAssign:"إسناد", actVerify:"تحقق", actApprove:"اعتماد الإغلاق", actVerifyEv:"تحقق بدليل",
-    detUncertain:"تعذّر التحديد",
-    pick:(f,k)=>f[k+"_ar"]||f[k+"_en"], sum:(r)=>r.summary_ar },
-  en: { dir:"ltr", lang:"en",
-    crumb:"BASEER / OPERATIONS",
-    navLabel:"CONSOLE", navOverview:"Overview", navInspect:"New inspection", navLive:"Live camera", navReport:"Inspection report", navAudit:"Audit log",
-    foot:"Baseer turns a short site video — or a live camera feed — and an Arabic voice note into an evidence-grounded safety inspection, then tracks corrective actions until a human verifies the resolution.",
-    fine:"Built by Veebase.",
-    sideMock:"Demo mode", sideLive:"Live mode",
-    ctaNew:"+ New inspection",
-    pT:{overview:"Safety overview", inspect:"New inspection", live:"Live camera mode", report:"Inspection report", audit:"Audit log", login:"Sign in", users:"Users"},
-    pS:{overview:"Upload photos or a short video from the worksite and Baseer turns them into a structured inspection report. Powered by Meta models — vision and reasoning.",
-        inspect:"Photos or video plus the inspector's note — a full report in about 30 seconds.",
-        live:"Frames arrive in sequence, violations are flagged the moment they appear, and finishing the session produces the full report.",
-        report:"An evidence-grounded report — every finding tied to its frame, never closed without human approval.",
-        audit:"Every case action — assign, verify, approve — recorded and protected from deletion.",
-        login:"Sign in with your account to reach the console.",
-        users:"Inspector accounts and roles — admin only."},
-    files:"Site photos / video", notes:"Inspector notes (transcribed voice or written)",
-    notesPh:"Example: I noticed a worker near the upper edge, and the forklift operates close to the pedestrian area...",
-    micRec:"Record voice note", micStop:"Stop recording", micListening:"Listening… speak now.",
-    micDone:"Transcript added to notes.", micErr:"Voice transcription unavailable — type the note instead.",
-    ctx:"Site context (optional)", ctxPh:"Example: Manufacturing workshop — weekly safety inspection",
-    run:"Generate report", running:"Analyzing...", done:"Report generated.", error:"Something went wrong while generating the report.",
-    report:"Inspection Report", summary:"Summary", findings:"Findings",
-    findingsN:(n)=>`${n} findings`,
-    meta:(r)=>`Inspection ID: ${r.inspection_id} · Frames processed: ${r.frames_processed} · Mode: ${r.mode}` + (r.source === "live-camera" ? " · live camera" : ""),
-    action:"Corrective action:", evidence:(i)=>`Frame ${i+1}`,
-    srcSeg:"Visual model", srcInsp:"Inspector note", srcBoth:"Model + inspector note",
-    sev:{high:"High", medium:"Medium", low:"Low"},
-    aTotal:"Inspections", aFindings:"Total findings", aHigh:"High severity", aMed:"Medium severity",
-    dTotal:"Recorded inspections", dFindings:"Across all inspections", dHigh:"Need immediate action", dMed:"Under review",
-    sevMix:"Severity mix", sevTotal:(n)=>`Total: ${n}`, topHazards:"Most frequent hazards", recent:"Recent inspections",
-    colHazard:"Hazard", colCount:"Count", colId:"Inspection ID", colDate:"Date", colFindings:"Findings", colHigh:"High severity",
-    times:"times", seedNote:"These figures include demo seed data; real inspections replace it automatically as they accumulate.",
-    trendT:"Daily activity", trendN:(n)=>`${n} inspections in 14 days`, agingT:"Cases needing follow-up", agingN:(n)=>`${n} open cases`,
-    colCase:"Case", colCaseSev:"Severity", colAge:"Age", ageDays:(n)=>`${n}d ago`,
-    noData:"No data yet.", notePh:"Add a log note…", noteAdd:"Add note",
-    pipeT:"From walkthrough to verified closure", pipeHint:"Every inspection runs the same loop — and a finding is never closed without human approval.",
-    pipe:["Observe","Understand","Explain","Act","Verify","Learn"],
-    chat:"Ask Baseer about this inspection", chatPh:"Example: Why is finding 1 high severity? Or: draft a notice to the contractor",
-    tEvidence:"Attached evidence", evLive:"Live camera session", evFrames:(n)=>`${n} frames`,
-    send:"Send", chatErr:"Couldn't answer just now.",
-    liveT:"Live camera mode",
-    liveHint:"A camera connected to the system: frames arrive, Baseer flags violations the moment they appear, and finishing the session produces the full report. Analysis is sampled near-real-time — a frame every few seconds, not frame-by-frame.",
-    liveStart:"Start live session", liveFrame:"Camera frame", liveSend:"Send frame",
-    liveFinish:"Finish session & generate report", liveOn:"Session is live", liveIdle:"Idle",
-    liveCamT:"Use camera", camStop:"Stop camera", camOn:"Camera on — a snapshot every 3 seconds.",
-    camProg:(n)=>`Camera on — ${n} snapshots sent so far.`,
-    camDenied:"Camera unavailable — send a frame from a file instead.", camAlt:"Or send a frame from a file.",
-    liveFrames:"Frames received", liveAlertsT:"Alerts",
-    dLiveState:"Waiting for a session", dLiveFrames:"Frames analyzed", dLiveAlerts:"Violations flagged",
-    alertsT:"Live alerts", alertsN:(n)=>`${n} alerts`, noAlerts:"No alerts yet — start a session and send a frame.",
-    caseT:"Corrective-action case", caseOpen:"Open", caseAssigned:"Assigned", caseClosed:"Closed",
-    assign:"Assign", verify:"Verify", approve:"Approve closure", assignTo:"Assign to...",
-    verPhoto:"Attach re-inspection photo",
-    roles:["Safety Supervisor","Site Manager","Contractor"], to:"to",
-    newInspect:"New inspection", newHint:"A full report in about 30 seconds.",
-    dropTitle:"Drop files here or click to choose", dropSub:"Photos or video — MP4 / MOV / JPG / PNG",
-    guideT:"What does Baseer check?", guideList:["PPE: helmet, hi-vis vest, gloves, eye protection.","Movement hazards: forklift paths, upper edges, guard rails.","Machine hazards: guards, emergency exits, floor markings."],
-    guideNote:"The report rests only on what is visible in the frame — what cannot be determined is recorded as such, and uncertainty never raises severity.",
-    howT:"How does an inspection work?", how:["Evidence","Understanding","Report"],
-    noReport:"No report yet", noReportHint:"Run a new inspection or finish a live camera session, and the report will appear here.",
-    modeLive:"LIVE", modeMock:"MOCK",
-    pipeBadgeMock:"Demo data", pipeBadgeLiveCam:"Live camera", pipeBadgeVision:"Muse vision", pipeBadgeSam:"SAM 3.1",
-    printRep:"Print report", pdfRep:"Download PDF", shareWa:"Share via WhatsApp",
-    tAudit:"Audit log", tAuditHint:"Every case action — assignment, verification, approval — is recorded here and never deleted.",
-    csvBtn:"Download CSV", thTime:"Time", thAuditId:"Inspection", thSite:"Site", thFindingN:"Finding #",
-    thAction:"Action", thActor:"Actor", thDetail:"Detail", auditEmpty:"No recorded actions yet.",
-    siteAll:"All sites", actAs:"Acting as", loginT:"Sign in",
-    loginHint:"Your personal account — every action is recorded under your name.", loginUser:"Username",
-    loginPass:"Password", loginGo:"Sign in",
-    loginErr:"Sign-in failed — check your username and password.", logout:"Sign out",
-    navUsers:"Users", tUsers:"Users", tUsersHint:"Inspector accounts and roles — admin only.",
-    thUName:"User", thURole:"Role", thUCreated:"Created",
-    tNewUser:"New account", tNuName:"Name", tNuPass:"Password", tNuRole:"Role", nuAdd:"Add",
-    nuErr:"Could not create the account.", tMyPass:"My password", tPwOld:"Current", tPwNew:"New (8+)",
-    pwChange:"Change", pwOk:"Password changed.", pwErr:"Change failed — check the current one.",
-    resume:"Resume",
-    actAssign:"Assign", actVerify:"Verify", actApprove:"Approve closure", actVerifyEv:"Verify with evidence",
-    detUncertain:"Unable to determine",
-    pick:(f,k)=>f[k+"_en"]||f[k+"_ar"], sum:(r)=>r.summary_en }
-};
-let lang = "ar", lastReport = null, currentView = "overview", serverMode = "mock";
-let currentSite = "", actor = "";
-let liveState = {active:false, frames:0, alerts:0};
-const $ = (id) => document.getElementById(id);
-let session = null;
-try { session = JSON.parse(localStorage.getItem("baseer_session") || "null"); } catch (e) { session = null; }
-const _fetch = window.fetch.bind(window);
-window.fetch = (url, opts = {}) => {
-  if (typeof url === "string" && !url.includes("/auth/login") && session && session.token) {
-    opts = Object.assign({}, opts);
-    opts.headers = Object.assign({}, opts.headers, {Authorization: "Bearer " + session.token});
-  }
-  return _fetch(url, opts).then((res) => {
-    if (res.status === 401 && session && typeof url === "string" && !url.includes("/auth/")) {
-      doLogout();
-    }
-    return res;
-  });
-};
-function sessionActor() {
-  return session ? `${session.username} (${session.role})` : actor;
-}
-async function doLogin() {
-  const s = S[lang], err = $("loginErr");
-  err.classList.add("hidden");
-  try {
-    const res = await _fetch("/auth/login", {method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({username: $("loginUser").value.trim(), password: $("loginPass").value})});
-    if (!res.ok) {
-      err.textContent = s.loginErr; err.classList.remove("hidden"); return;
-    }
-    session = await res.json();
-    localStorage.setItem("baseer_session", JSON.stringify(session));
-    $("loginPass").value = "";
-    paintUser();
-    showView("overview");
-    loadAnalytics();
-  } catch (e) { err.textContent = s.loginErr; err.classList.remove("hidden"); }
-}
-function doLogout() {
-  session = null;
-  try { localStorage.removeItem("baseer_session"); } catch (e) {}
-  paintUser();
-  showView("login");
-}
-function paintUser() {
-  // Auth gate: without a session the shell stays hidden — login is the only view.
-  document.body.classList.toggle("gated", !session);
-  $("navUser").textContent = session ? `${session.username} · ${session.role}` : "—";
-  if (session) { actor = sessionActor(); }
-  if (typeof paintActorSel === "function" && $("actorSel")) paintActorSel();
-  $("navUsers").classList.toggle("hidden", !(session && session.role === "Admin"));
-}
-async function loadUsers() {
-  const tb = $("userRows");
-  try {
-    const u = await (await fetch("/auth/users")).json();
-    tb.innerHTML = u.users.map(x =>
-      `<tr><td style="font-weight:700">${esc(x.username)}</td><td>${esc(x.role)}</td>` +
-      `<td class="meta">${esc((x.created_at || "").slice(0, 16).replace("T", " "))}</td>` +
-      `<td>${x.username === (session && session.username) ? "" :
-        `<button type="button" class="btn ghost small" onclick="deleteUser('${esc(x.username)}')">✕</button>`}</td></tr>`).join("");
-  } catch (e) { /* layer only */ }
-}
-async function deleteUser(name) {
-  await fetch("/auth/users/" + encodeURIComponent(name), {method: "DELETE"});
-  loadUsers();
-}
-function showView(name) {
-  if (!session) name = "login";
-  currentView = name;
-  const s = S[lang];
-  for (const v of ["overview","inspect","live","report","audit","login","users"]) $("view-" + v).classList.toggle("hidden", v !== name);
-  if (name === "users" && !(session && session.role === "Admin")) name = "overview";
-  for (const k of ["navOverview","navInspect","navLive","navReport","navAudit","navUsers"])
-    $(k).classList.toggle("active", k.toLowerCase().includes(name));
-  $("pageTitle").textContent = s.pT[name];
-  $("pageSub").textContent = s.pS[name];
-  if (name === "audit") loadAudit();
-  if (name === "users") loadUsers();
-  if (name === "live" && typeof liveSessionId !== "undefined" && !liveSessionId) paintResumeRow();
-}
-function paintSideMode() {
-  const s = S[lang];
-  $("sideModeT").textContent = serverMode === "live" ? s.sideLive : s.sideMock;
-}
-function applyLang() {
-  const s = S[lang];
-  document.documentElement.lang = s.lang; document.documentElement.dir = s.dir;
-  $("btnAr").classList.toggle("active", lang === "ar");
-  $("btnEn").classList.toggle("active", lang === "en");
-  if ($("btnArL")) $("btnArL").classList.toggle("active", lang === "ar");
-  if ($("btnEnL")) $("btnEnL").classList.toggle("active", lang === "en");
-  $("crumb").textContent = s.crumb;
-  $("navLabel").textContent = s.navLabel;
-  $("navOverviewT").textContent = s.navOverview; $("navInspectT").textContent = s.navInspect;
-  $("navLiveT").textContent = s.navLive; $("navReportT").textContent = s.navReport; $("navAuditT").textContent = s.navAudit;
-  $("sideFoot").textContent = s.foot; $("sideFine").textContent = s.fine;
-  paintSideMode();
-  $("ctaInspect").textContent = s.ctaNew;
-  $("pageTitle").textContent = s.pT[currentView]; $("pageSub").textContent = s.pS[currentView];
-  $("kTotal").textContent = s.aTotal; $("kFindings").textContent = s.aFindings;
-  $("kHigh").textContent = s.aHigh; $("kMed").textContent = s.aMed;
-  $("dTotal").textContent = s.dTotal; $("dFindings").textContent = s.dFindings;
-  $("dHigh").textContent = s.dHigh; $("dMed").textContent = s.dMed;
-  $("tSevMix").textContent = s.sevMix; $("tTopHazards").textContent = s.topHazards; $("tRecent").textContent = s.recent;
-  $("thHazard").textContent = s.colHazard; $("thCount").textContent = s.colCount;
-  $("thId").textContent = s.colId; $("thDate").textContent = s.colDate; $("thFindings").textContent = s.colFindings; $("thHigh").textContent = s.colHigh;
-  $("tTrend").textContent = s.trendT; $("tAging").textContent = s.agingT;
-  $("thCase").textContent = s.colCase; $("thCaseSev").textContent = s.colCaseSev; $("thAge").textContent = s.colAge;
-  $("tPipe").textContent = s.pipeT; $("tPipeHint").textContent = s.pipeHint;
-  $("pipeSteps").innerHTML = s.pipe.map((p, i) => `<div class="step"><b>0${i+1}</b><span>${p}</span></div>`).join("");
-  $("tNewInspect").textContent = s.newInspect; $("tNewHint").textContent = s.newHint;
-  $("tFiles").textContent = s.files; $("dropTitle").textContent = s.dropTitle; $("dropSub").textContent = s.dropSub;
-  $("tNotes").textContent = s.notes; $("notes").placeholder = s.notesPh;
-  $("tCtx").textContent = s.ctx; $("ctx").placeholder = s.ctxPh;
-  $("runBtn").textContent = s.run;
-  $("micBtn").textContent = micRecActive() ? s.micStop : s.micRec;
-  $("tGuide").textContent = s.guideT;
-  $("tGuideList").innerHTML = s.guideList.map(g => `<li>${g}</li>`).join("");
-  $("tGuideNote").textContent = s.guideNote;
-  $("tHow").textContent = s.howT;
-  $("howSteps").innerHTML = s.how.map((h, i) => `<div><b>0${i+1}</b><span>${h}</span></div>`).join("");
-  $("tLive").textContent = s.liveT; $("tLiveHint").textContent = s.liveHint;
-  $("liveStart").textContent = s.liveStart; $("tLiveFrame").textContent = s.liveFrame;
-  $("liveSend").textContent = s.liveSend; $("liveFinish").textContent = s.liveFinish;
-  if (typeof paintCamBtn === "function") paintCamBtn(); else $("liveCam").textContent = s.liveCamT;
-  $("tLiveAlt").textContent = s.camAlt;
-  paintLiveStats();
-  $("tAlerts").textContent = s.alertsT;
-  if (!$("liveAlerts").querySelector(".alert")) $("noAlerts") && ($("liveAlerts").innerHTML = `<p class="meta" id="noAlerts">${s.noAlerts}</p>`);
-  $("tNoReport").textContent = s.noReport; $("tNoReportHint").textContent = s.noReportHint; $("goInspect").textContent = s.newInspect;
-  $("tReport").textContent = s.report; $("tSummary").textContent = s.summary; $("tFindings").textContent = s.findings;
-  $("tChat").textContent = s.chat; $("chatInput").placeholder = s.chatPh; $("chatSend").textContent = s.send;
-  $("tEvidence").textContent = s.tEvidence;
-  $("printBtn").textContent = s.printRep;
-  $("pdfBtn").textContent = s.pdfRep;
-  $("waBtn").textContent = s.shareWa;
-  $("tAudit").textContent = s.tAudit; $("tAuditHint").textContent = s.tAuditHint;
-  $("csvBtn").textContent = s.csvBtn;
-  $("thTime").textContent = s.thTime; $("thAuditId").textContent = s.thAuditId; $("thSite").textContent = s.thSite;
-  $("thFindingN").textContent = s.thFindingN; $("thAction").textContent = s.thAction;
-  $("thActor").textContent = s.thActor; $("thDetail").textContent = s.thDetail;
-  $("auditEmpty").textContent = s.auditEmpty;
-  $("tLogin").textContent = s.loginT; $("tLoginHint").textContent = s.loginHint;
-  $("tLoginUser").textContent = s.loginUser; $("tLoginPass").textContent = s.loginPass;
-  $("loginBtn").textContent = s.loginGo; $("navLogoutT").textContent = s.logout;
-  $("navUsersT").textContent = s.navUsers;
-  $("tUsers").textContent = s.tUsers; $("tUsersHint").textContent = s.tUsersHint;
-  $("thUName").textContent = s.thUName; $("thURole").textContent = s.thURole; $("thUCreated").textContent = s.thUCreated;
-  $("tNewUser").textContent = s.tNewUser; $("tNuName").textContent = s.tNuName;
-  $("tNuPass").textContent = s.tNuPass; $("tNuRole").textContent = s.tNuRole; $("nuBtn").textContent = s.nuAdd;
-  $("tMyPass").textContent = s.tMyPass; $("tPwOld").textContent = s.tPwOld;
-  $("tPwNew").textContent = s.tPwNew; $("pwBtn").textContent = s.pwChange;
-  $("resumeBtn").textContent = s.resume;
-  $("nuRole").innerHTML = ["Safety Supervisor","Site Manager","Contractor"].map(r => `<option>${r}</option>`).join("");
-  paintUser();
-  paintActorSel(); paintSiteFilter();
-  if (currentView === "audit") loadAudit();
-  loadAnalytics();
-  if (lastReport) renderReport(lastReport);
-}
-function paintLiveStats() {
-  const s = S[lang];
-  $("kLiveState").textContent = s.liveIdle && !liveState.active ? s.liveIdle : s.liveOn;
-  $("vLiveState").textContent = liveState.active ? s.liveOn : s.liveIdle;
-  $("dLiveState").textContent = s.dLiveState;
-  $("kLiveFrames").textContent = s.liveFrames;
-  $("vLiveFrames").textContent = liveState.frames;
-  $("dLiveFrames").textContent = s.dLiveFrames;
-  $("kLiveAlerts").textContent = s.liveAlertsT;
-  $("vLiveAlerts").textContent = liveState.alerts;
-  $("dLiveAlerts").textContent = s.dLiveAlerts;
-  $("alertsCount").textContent = s.alertsN(liveState.alerts);
-}
-function pipeBadge(r) {
-  // Honest pipeline badges: mock output is always "Demo data" (never SAM
-  // or live); live output names its segmenter. The live-camera origin of
-  // a report stays visible in the report meta line beside the badge.
-  const s = S[lang];
-  if (r.mode !== "live") return {cls:"demo", text:s.pipeBadgeMock};
-  if (r.segmentation_source === "sam") return {cls:"sam", text:s.pipeBadgeSam};
-  return {cls:"vision", text:s.pipeBadgeVision};
-}
-function esc(t) {
-  return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-function fmtSize(n) {
-  if (n > 1048576) return (n / 1048576).toFixed(1) + " MB";
-  return Math.max(1, Math.round(n / 1024)) + " KB";
-}
-function fmtTime(ts) {
-  try {
-    return new Date(ts).toLocaleString(lang === "ar" ? "ar" : "en",
-      {dateStyle: "medium", timeStyle: "short"});
-  } catch (e) { return ""; }
-}
-function filesToMedia(fileList, ts) {
-  return [...fileList].map(f => ({
-    name: f.name, kind: (f.type || "").startsWith("video") ? "video" : "image",
-    size: f.size, ts, url: URL.createObjectURL(f),
-  }));
-}
-function dropReportMedia() {
-  if (lastReport && lastReport._media) {
-    for (const m of lastReport._media) {
-      try { URL.revokeObjectURL(m.url); } catch (e) {}
-    }
-  }
-}
-function renderEvidence() {
-  const s = S[lang], box = $("rEvidence");
-  box.innerHTML = "";
-  const media = (lastReport && lastReport._media) || [];
-  $("evStamp").textContent = lastReport && lastReport._ts ? fmtTime(lastReport._ts) : "";
-  if (!media.length && !(lastReport && lastReport._live)) return;
-  if (lastReport && lastReport._live) {
-    const d = document.createElement("div");
-    d.className = "evcard";
-    d.innerHTML = `<div class="evi"><b>${s.evLive}</b>${s.evFrames(lastReport._live.frames)} · ${fmtTime(lastReport._ts)}</div>`;
-    box.appendChild(d);
-  }
-  for (const m of media) {
-    const d = document.createElement("div");
-    d.className = "evcard";
-    const visual = m.kind === "video"
-      ? `<video src="${m.url}" controls preload="metadata"></video>`
-      : `<img src="${m.url}" alt="">`;
-    d.innerHTML = `${visual}<div class="evi"><b>${esc(m.name)}</b>${fmtSize(m.size)} · ${fmtTime(m.ts)}</div>`;
-    box.appendChild(d);
-  }
-}
-function srcLabel(f) {
-  const s = S[lang];
-  if (f.source === "inspector") return s.srcInsp;
-  if (f.source === "both") return s.srcBoth;
-  return s.srcSeg;
-}
-function railCls(sev) { return sev === "high" ? "high" : sev === "medium" ? "med" : "low"; }
-function caseRowHTML(f, i) {
-  const s = S[lang], c = f.case || {status:"open", assignee:"", verification:null};
-  const label = c.status === "closed" ? s.caseClosed : c.status === "assigned" ? s.caseAssigned : s.caseOpen;
-  const chipCls = c.status === "closed" ? "closed" : c.status === "assigned" ? "assigned" : "open";
-  const dis = c.status === "closed" ? "disabled" : "";
-  const canApprove = c.verification && c.verification.suggested_resolved && c.status !== "closed";
-  const roles = s.roles.map(r => `<option ${c.assignee===r?"selected":""}>${r}</option>`).join("");
-  const vtxt = c.verification ? ((lang === "ar" ? c.verification.note_ar : c.verification.note_en) || c.verification.note || "") : "";
-  const vnote = vtxt ? `<div class="vnote">${vtxt}</div>` : "";
-  const asg = c.assignee ? `<span class="meta">${s.to} ${c.assignee}</span>` : "";
-  const notes = (c.notes || []).map(n =>
-    `<div class="vnote"><b>${noteBadge(n)}</b><br>${esc(n.text)}</div>`).join("");
-  return `<div class="caserow">
-    <span class="ct">${s.caseT}</span>
-    <span class="tchip ${chipCls}">${label}</span> ${asg}
-    <select id="asg-${i}" ${dis}><option value="">${s.assignTo}</option>${roles}</select>
-    <button type="button" onclick="caseAction(${i},'assign')" ${dis}>${s.assign}</button>
-    <button type="button" onclick="caseAction(${i},'verify')" ${dis}>${s.verify}</button>
-    <button type="button" onclick="document.getElementById('ver-${i}').click()" ${dis}>${s.verPhoto}</button>
-    <input type="file" id="ver-${i}" accept="image/*,video/*" class="hidden" onchange="verifyWithEvidence(${i})">
-    <button type="button" onclick="caseAction(${i},'approve')" ${canApprove ? "" : "disabled"}>${s.approve}</button>
-    ${vnote}${notes}
-    <div class="notefrm"><textarea id="note-${i}" rows="1" maxlength="2000" placeholder="${s.notePh}"></textarea>
-    <button type="button" onclick="addNote(lastReport.inspection_id,${i},'note-${i}')">${s.noteAdd}</button></div></div>`;
-}
-async function caseAction(i, action) {
-  if (!lastReport) return;
-  const body = {action, actor};
-  if (action === "assign") {
-    const sel = $("asg-" + i);
-    body.assignee = sel ? sel.value : "";
-    if (!body.assignee) return;
-  }
-  try {
-    const res = await fetch(`/inspections/${lastReport.inspection_id}/findings/${i}/case`, {
-      method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body) });
-    if (!res.ok) { const e = await res.json(); alert(e.detail || "error"); return; }
-    lastReport.findings[i] = await res.json();
-    renderReport(lastReport);
-  } catch (e) { /* layer only — never break the report */ }
-}
-function noteBadge(n) {
-  return `${esc(n.actor || "")} · ${fmtTime(n.ts)}`;
-}
-async function addNote(inspId, idx, taId) {
-  const ta = $(taId);
-  const text = (ta.value || "").trim();
-  if (!text) return;
-  ta.disabled = true;
-  try {
-    const r = await fetch(`/inspections/${inspId}/findings/${idx}/case/notes`,
-      {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({text})});
-    if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.detail || "error"); return; }
-    const data = await r.json();
-    if (lastReport && lastReport.findings[idx])
-      lastReport.findings[idx] = data;
-    renderReport(lastReport);
-  } catch (e) { /* layer only — never break the report */ }
-  finally { ta.disabled = false; }
-}
-function renderReport(r) {
-  const s = S[lang];
-  $("rMeta").textContent = s.meta(r);
-  const b = pipeBadge(r);
-  const badge = $("pipeBadge");
-  badge.className = "badge " + b.cls; badge.textContent = b.text;
-  $("rSummary").textContent = s.sum(r);
-  renderEvidence();
-  $("findingsCount").textContent = s.findingsN(r.findings.length);
-  const shots = (r._media || []).filter(m => m.kind === "image");
-  $("rFindings").innerHTML = r.findings.map((f, i) => `
-    <div class="finding">
-      <div class="rail ${railCls(f.severity)}"></div>
-      <div class="fbody">
-        <span class="chip ${f.severity}">${s.sev[f.severity] || f.severity}</span>
-        <h4>${s.pick(f,"title")}</h4>
-        ${shots[f.frame_index] ? `<img class="fthumb" src="${shots[f.frame_index].url}" alt="">` : ""}
-        <p class="detail">${s.pick(f,"detail")}</p>
-        <div class="actionBox"><b>${s.action}</b> ${s.pick(f,"action")}</div>
-        <div class="fmeta"><span>${s.evidence(f.frame_index)}</span><span>${srcLabel(f)}</span>
-        ${f.determination === "uncertain" ? `<span class="badge uncertain">${s.detUncertain}</span>` : ""}</div>
-      </div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<dialog class="modal" id="modal">
+  <form method="dialog" class="modal-card" id="modalForm">
+    <h3 id="modalTitle"></h3>
+    <p class="muted" id="modalBody"></p>
+    <input id="modalInput" class="hidden" type="password" autocomplete="new-password">
+    <div class="row gap end mt">
+      <button class="btn btn-ghost" type="button" id="modalCancel"></button>
+      <button class="btn btn-primary" value="ok" id="modalOk"></button>
     </div>
-    ${caseRowHTML(f, i)}`).join("");
-  $("reportEmpty").classList.add("hidden");
-  $("reportContent").classList.remove("hidden");
-}
-let chatHistory = [];
-async function loadAnalytics() {
-  try {
-    const q = currentSite ? "?site=" + encodeURIComponent(currentSite) : "";
-    const a = await (await fetch("/analytics" + q)).json();
-    const s = S[lang];
-    $("seedNotice").classList.toggle("hidden", !a.demo_seed_included);
-    $("seedNotice").textContent = s.seedNote;
-    $("vTotal").textContent = a.total_inspections;
-    $("vFindings").textContent = a.total_findings;
-    $("vHigh").textContent = a.by_severity.high;
-    $("vMed").textContent = a.by_severity.medium;
-    $("sevTotal").textContent = s.sevTotal(a.total_findings);
-    const tot = Math.max(1, a.total_findings);
-    const pct = (n) => (100 * n / tot).toFixed(1) + "%";
-    $("sevBar").innerHTML =
-      `<div style="width:${pct(a.by_severity.high)};background:var(--high)"></div>` +
-      `<div style="width:${pct(a.by_severity.medium)};background:#C07F10"></div>` +
-      `<div style="width:${pct(a.by_severity.low)};background:var(--low)"></div>`;
-    $("sevLegend").innerHTML =
-      `<span><i style="background:var(--high)"></i>${s.sev.high} ${a.by_severity.high}</span>` +
-      `<span><i style="background:#C07F10"></i>${s.sev.medium} ${a.by_severity.medium}</span>` +
-      `<span><i style="background:var(--low)"></i>${s.sev.low} ${a.by_severity.low}</span>`;
-    const row = (color, label, n) =>
-      `<div class="sr"><span class="who"><span class="dot" style="background:${color}"></span>${label}</span><b>${n}</b></div>`;
-    $("sevRows").innerHTML =
-      row("var(--high)", s.sev.high, a.by_severity.high) +
-      row("#C07F10", s.sev.medium, a.by_severity.medium) +
-      row("var(--low)", s.sev.low, a.by_severity.low);
-    $("hazardRows").innerHTML = a.top_hazards.map(h =>
-      `<tr><td>${lang==="ar"?h.title_ar:h.title_en}</td><td class="meta">${h.count} ${s.times}</td></tr>`).join("");
-    $("recentRows").innerHTML = (a.recent || []).map(r =>
-      `<tr><td style="font-weight:700">${r.inspection_id}</td><td class="meta">${(r.created_at||"").slice(0,16).replace("T"," ")}</td><td>${r.findings}</td><td style="color:var(--high);font-weight:700">${r.high}</td></tr>`).join("");
-    const days = (a.trend || []).slice(-14);
-    const mx = Math.max(1, ...days.map(d => d.findings));
-    $("trendTotal").textContent = s.trendN(days.reduce((n, d) => n + d.inspections, 0));
-    $("trendChart").innerHTML = days.length ? `<div style="display:flex;align-items:flex-end;gap:4px;height:120px">` +
-      days.map(d => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0" title="${d.day}: ${d.findings}">` +
-        `<div style="width:100%;background:var(--gold);border-radius:3px 3px 0 0;height:${Math.max(3, 100 * d.findings / mx)}px"></div>` +
-        `<span class="meta" style="font-size:10px">${d.day.slice(5)}</span></div>`).join("") + `</div>`
-      : `<p class="meta">${s.noData}</p>`;
-    const oc = a.open_cases || [];
-    $("agingCount").textContent = s.agingN(oc.length);
-    $("agingRows").innerHTML = oc.slice(0, 8).map(c =>
-      `<tr><td>${lang === "ar" ? c.title_ar : c.title_en}<br><span class="meta">${esc(c.inspection_id)}${c.assignee ? " · " + esc(c.assignee) : ""}</span></td>` +
-      `<td><span class="chip ${c.severity}">${s.sev[c.severity] || c.severity}</span></td>` +
-      `<td class="meta">${s.ageDays(c.age_days)}</td></tr>`).join("") ||
-      `<tr><td colspan="3" class="meta">${s.noData}</td></tr>`;
-  } catch (e) { /* analytics is a layer; never block the core flow */ }
-  paintSiteFilter();
-}
-async function paintSiteFilter() {
-  const s = S[lang], sel = $("siteFilter");
-  if (!sel) return;
-  let sites = [];
-  try { sites = (await (await fetch("/sites")).json()).sites || []; } catch (e) { /* keep options */ }
-  if (!sites.length && !sel.options.length) return;
-  if (!sites.length) return;
-  sel.title = s.siteAll;
-  sel.innerHTML = `<option value="">${s.siteAll}</option>` + sites.map(o =>
-    `<option value="${esc(o.site)}"${o.site === currentSite ? " selected" : ""}>${esc(o.site)} (${o.inspections})</option>`).join("");
-  if ([...sel.options].some(o => o.value === currentSite)) sel.value = currentSite;
-}
-function paintActorSel() {
-  const s = S[lang], sel = $("actorSel");
-  if (!sel) return;
-  sel.title = s.actAs;
-  if (session) {
-    sel.innerHTML = `<option selected>${esc(session.username)} (${esc(session.role)})</option>`;
-    actor = sessionActor();
-    return;
-  }
-  const keep = s.roles.includes(actor) ? actor : s.roles[0];
-  sel.innerHTML = s.roles.map(r => `<option${r === keep ? " selected" : ""}>${r}</option>`).join("");
-  actor = sel.value;
-}
-function auditActionLabel(a) {
-  const s = S[lang];
-  if (a === "assign") return s.actAssign;
-  if (a === "verify") return s.actVerify;
-  if (a === "approve") return s.actApprove;
-  if (a === "verify_evidence") return s.actVerifyEv;
-  return a;
-}
-async function loadAudit() {
-  const s = S[lang], tb = $("auditRows");
-  try {
-    const a = await (await fetch("/audit")).json();
-    $("auditEmpty").classList.toggle("hidden", a.entries.length > 0);
-    tb.innerHTML = a.entries.map(e =>
-      `<tr><td class="meta">${esc((e.ts || e.timestamp || "").slice(0, 16).replace("T", " "))}</td>` +
-      `<td style="font-weight:700">${esc(e.inspection_id || "")}</td>` +
-      `<td class="meta">${esc(e.site || "")}</td><td>${e.finding_index}</td>` +
-      `<td>${auditActionLabel(e.action)}</td><td>${esc(e.actor || "")}</td>` +
-      `<td class="meta">${esc(e.detail || "")}</td></tr>`).join("");
-  } catch (e) { /* layer only — never break the console */ }
-}
-async function loadHealth() {
-  try {
-    const h = await (await fetch("/health")).json();
-    const s = S[lang], badge = $("modeBadge");
-    serverMode = h.mode === "live" ? "live" : "mock";
-    badge.classList.remove("hidden");
-    if (h.mode === "live") { badge.className = "badge live"; badge.textContent = s.modeLive; }
-    else { badge.className = "badge mock"; badge.textContent = s.modeMock; }
-    const lm = $("loginMode");
-    if (lm) { lm.className = badge.className; lm.textContent = badge.textContent; }
-    paintSideMode();
-  } catch (e) { /* badge stays hidden without a server */ }
-}
-function addMsg(role, text) {
-  const log = $("chatLog");
-  const div = document.createElement("div");
-  div.className = "msg " + (role === "user" ? "user" : "bot");
-  div.textContent = text;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-}
-async function sendChat() {
-  const input = $("chatInput");
-  const q = input.value.trim();
-  if (!q || !lastReport) return;
-  addMsg("user", q); input.value = "";
-  try {
-    const res = await fetch(`/inspections/${lastReport.inspection_id}/chat`, {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({question: q, history: chatHistory}) });
-    const data = await res.json();
-    addMsg("assistant", data.answer);
-    chatHistory.push({role: "user", content: q}, {role: "assistant", content: data.answer});
-  } catch (e) { addMsg("assistant", S[lang].chatErr); }
-}
-let liveSessionId = null;
-function paintAlertsList(alerts) {
-  const s = S[lang];
-  const box = $("liveAlerts");
-  box.innerHTML = "";
-  if (!alerts.length) { box.innerHTML = `<p class="meta" id="noAlerts">${s.noAlerts}</p>`; return; }
-  for (const a of alerts) {
-    const div = document.createElement("div");
-    div.className = "alert";
-    div.textContent = (lang === "ar" ? a.message_ar : a.message_en) + " · " + s.evidence(a.frame_index);
-    box.appendChild(div);
-  }
-}
-let liveAlerts = [];
-async function ensureLiveSession() {
-  if (liveSessionId) return liveSessionId;
-  const res = await fetch("/live/sessions", { method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({site_context: $("ctx").value}) });
-  const data = await res.json();
-  liveSessionId = data.session_id;
-  liveState = {active:true, frames:0, alerts:0};
-  liveAlerts = [];
-  paintLiveStats();
-  paintAlertsList(liveAlerts);
-  $("liveBody").classList.remove("hidden");
-  $("liveStart").disabled = true;
-  $("liveStatus").textContent = S[lang].liveOn + " · " + liveSessionId;
-  return liveSessionId;
-}
-$("liveStart").addEventListener("click", ensureLiveSession);
-async function paintResumeRow() {
-  const row = $("resumeRow");
-  if (liveSessionId || !session) { row.classList.add("hidden"); return; }
-  try {
-    const l = await (await fetch("/live/sessions")).json();
-    const opts = l.sessions || [];
-    if (!opts.length) { row.classList.add("hidden"); return; }
-    row.classList.remove("hidden");
-    $("resumeSel").innerHTML = opts.map(s =>
-      `<option value="${esc(s.session_id)}">${esc(s.session_id.slice(0, 8))} · ${esc(s.site_context || "")} · ${s.frames_received}f</option>`).join("");
-  } catch (e) { row.classList.add("hidden"); }
-}
-$("resumeBtn").addEventListener("click", async ()=>{
-  const id = $("resumeSel").value;
-  if (!id) return;
-  liveSessionId = id;
-  liveAlerts = [];
-  paintLiveStats();
-  paintAlertsList(liveAlerts);
-  $("liveBody").classList.remove("hidden");
-  $("liveStart").disabled = true;
-  $("liveStatus").textContent = S[lang].liveOn + " · " + id;
-  $("resumeRow").classList.add("hidden");
-});
-async function updateLiveResult(data) {
-  liveState.frames = data.frames_received;
-  liveState.alerts = data.alerts_total;
-  for (const a of data.new_alerts) liveAlerts.push(a);
-  paintLiveStats();
-  paintAlertsList(liveAlerts);
-  if (camStream) {
-    $("camNote").textContent = S[lang].camProg(data.frames_received);
-    $("camNote").classList.remove("hidden");
-  }
-  $("liveStatus").textContent =
-    `${S[lang].liveOn} · ${data.frames_received} ${S[lang].liveFrames} · ${data.segments_total} segments`;
-}
-$("liveSend").addEventListener("click", async () => {
-  if (!liveSessionId) return;
-  const fd = new FormData();
-  for (const f of $("liveFiles").files) fd.append("files", f);
-  const res = await fetch(`/live/sessions/${liveSessionId}/frames`, { method: "POST", body: fd });
-  updateLiveResult(await res.json());
-});
-let camStream = null, camTimer = null;
-function paintCamBtn() {
-  const s = S[lang];
-  $("liveCam").textContent = camStream ? s.camStop : s.liveCamT;
-  $("liveCam").disabled = false;
-}
-function stopCamera() {
-  if (camTimer) { clearInterval(camTimer); camTimer = null; }
-  if (camStream) { try { camStream.getTracks().forEach(t => t.stop()); } catch (e) {} camStream = null; }
-  try { $("camPreview").srcObject = null; } catch (e) {}
-  $("camPreview").classList.add("hidden");
-  $("camNote").classList.add("hidden");
-  paintCamBtn();
-}
-function captureSnapshot() {
-  const v = $("camPreview");
-  if (!v.videoWidth || !liveSessionId) return;
-  const c = document.createElement("canvas");
-  c.width = v.videoWidth; c.height = v.videoHeight;
-  c.getContext("2d").drawImage(v, 0, 0);
-  c.toBlob(async (blob) => {
-    if (!blob || !liveSessionId) return;
-    const fd = new FormData();
-    fd.append("files", blob, "camera-frame.jpg");
-    const res = await fetch(`/live/sessions/${liveSessionId}/frames`, { method: "POST", body: fd });
-    updateLiveResult(await res.json());
-  }, "image/jpeg", 0.85);
-}
-$("liveCam").addEventListener("click", async () => {
-  const s = S[lang];
-  // Toggle: the camera is on or off purely by the user's selection.
-  if (camStream || camTimer) { stopCamera(); return; }
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    $("camNote").textContent = s.camDenied; $("camNote").classList.remove("hidden"); return;
-  }
-  try {
-    await ensureLiveSession();
-    camStream = await navigator.mediaDevices.getUserMedia({video:true});
-    const v = $("camPreview");
-    v.srcObject = camStream;
-    await v.play();
-    v.classList.remove("hidden");
-    $("camNote").textContent = s.camOn; $("camNote").classList.remove("hidden");
-    paintCamBtn();
-    camTimer = setInterval(captureSnapshot, 3000);
-  } catch (e) {
-    stopCamera();
-    $("camNote").textContent = s.camDenied; $("camNote").classList.remove("hidden");
-  }
-});
-$("liveFinish").addEventListener("click", async () => {
-  if (!liveSessionId) return;
-  stopCamera();
-  const res = await fetch(`/live/sessions/${liveSessionId}/finish`, { method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({notes: $("notes").value}) });
-  lastReport = await res.json();
-  dropReportMedia();
-  lastReport._media = [];
-  lastReport._live = {frames: lastReport.frames_processed || 0};
-  lastReport._ts = Date.now();
-  liveSessionId = null;
-  liveState = {active:false, frames:lastReport.frames_processed || 0, alerts:liveState.alerts};
-  paintLiveStats();
-  $("liveStart").disabled = false;
-  $("liveBody").classList.add("hidden");
-  chatHistory = []; $("chatLog").innerHTML = "";
-  renderReport(lastReport);
-  loadAnalytics();
-  showView("report");
-});
-async function verifyWithEvidence(i) {
-  if (!lastReport) return;
-  const input = $("ver-" + i);
-  if (!input || !input.files.length) return;
-  const fd = new FormData();
-  for (const f of input.files) fd.append("files", f);
-  fd.append("actor", actor);
-  try {
-    const res = await fetch(`/inspections/${lastReport.inspection_id}/findings/${i}/verify-evidence`, {
-      method: "POST", body: fd });
-    if (!res.ok) { const e = await res.json(); alert(e.detail || "error"); return; }
-    lastReport.findings[i] = await res.json();
-    renderReport(lastReport);
-  } catch (e) { /* layer only — never break the report */ }
-}
-let micRec = null, micWS = null;
-function micRecActive() { return micRec !== null; }
-$("micBtn").addEventListener("click", async () => {
-  const s = S[lang];
-  if (micRec) { micRec.stop(); return; }
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    $("micStatus").textContent = s.micErr; return;
-  }
-  let stream;
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({audio:true});
-  } catch (e) {
-    $("micStatus").textContent = s.micErr; return;
-  }
-  const proto = location.protocol === "https:" ? "wss:" : "ws:";
-  micWS = new WebSocket(proto + "//" + location.host + "/voice/transcribe?token=" + encodeURIComponent(session ? session.token : ""));
-  micWS.onmessage = (ev) => {
-    try {
-      const m = JSON.parse(ev.data);
-      if (m.type === "final" && m.text) {
-        const box = $("notes");
-        box.value = (box.value ? box.value + " " : "") + m.text;
-        $("micStatus").textContent = s.micDone;
-      } else if (m.type === "partial" && m.text) {
-        $("micStatus").textContent = m.text;
-      } else if (m.type === "error") {
-        $("micStatus").textContent = s.micErr;
-      }
-    } catch (e) { /* ignore non-JSON frames */ }
-  };
-  const micFail = () => {
-    $("micStatus").textContent = s.micErr;
-    $("micBtn").textContent = s.micRec;
-    micRec = null;
-  };
-  micWS.onclose = () => { $("micBtn").textContent = s.micRec; micRec = null; };
-  micWS.onerror = micFail;
-  micWS.onopen = () => {
-    micRec = new MediaRecorder(stream);
-    micRec.ondataavailable = (e) => {
-      if (e.data.size && micWS.readyState === 1) micWS.send(e.data);
-    };
-    micRec.onstop = () => {
-      stream.getTracks().forEach(t => t.stop());
-      try { micWS.close(); } catch (e) {}
-      micRec = null;
-      $("micBtn").textContent = s.micRec;
-    };
-    micRec.start(500);
-    $("micBtn").textContent = s.micStop;
-    $("micStatus").textContent = s.micListening;
-  };
-});
-$("chatSend").addEventListener("click", sendChat);
-$("chatInput").addEventListener("keydown", (e)=>{ if (e.key === "Enter") { e.preventDefault(); sendChat(); } });
-$("btnAr").addEventListener("click", ()=>{ lang="ar"; applyLang(); });
-$("btnEn").addEventListener("click", ()=>{ lang="en"; applyLang(); });
-$("btnArL").addEventListener("click", ()=>{ lang="ar"; applyLang(); });
-$("btnEnL").addEventListener("click", ()=>{ lang="en"; applyLang(); });
-$("navOverview").addEventListener("click", ()=>showView("overview"));
-$("navInspect").addEventListener("click", ()=>showView("inspect"));
-$("navLive").addEventListener("click", ()=>showView("live"));
-$("navReport").addEventListener("click", ()=>showView("report"));
-$("navAudit").addEventListener("click", ()=>showView("audit"));
-$("siteFilter").addEventListener("change", (e)=>{ currentSite = e.target.value; loadAnalytics(); });
-$("actorSel").addEventListener("change", (e)=>{ actor = e.target.value; });
-$("loginBtn").addEventListener("click", doLogin);
-$("loginPass").addEventListener("keydown", (e)=>{ if (e.key === "Enter") { e.preventDefault(); doLogin(); } });
-$("navLogout").addEventListener("click", doLogout);
-$("navUsers").addEventListener("click", ()=>showView("users"));
-$("nuBtn").addEventListener("click", async ()=>{
-  const s = S[lang], err = $("nuErr");
-  err.classList.add("hidden");
-  const res = await fetch("/auth/users", {method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({username: $("nuName").value.trim(),
-      password: $("nuPass").value, role: $("nuRole").value})});
-  if (!res.ok) { err.textContent = s.nuErr; err.classList.remove("hidden"); return; }
-  $("nuName").value = ""; $("nuPass").value = "";
-  loadUsers();
-});
-$("pwBtn").addEventListener("click", async ()=>{
-  const s = S[lang], msg = $("pwMsg");
-  msg.classList.add("hidden");
-  const res = await fetch("/auth/password", {method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({old_password: $("pwOld").value, new_password: $("pwNew").value})});
-  msg.textContent = res.ok ? s.pwOk : s.pwErr;
-  msg.style.color = res.ok ? "var(--low)" : "var(--high)";
-  msg.classList.remove("hidden");
-  $("pwOld").value = ""; $("pwNew").value = "";
-});
-$("csvBtn").addEventListener("click", async ()=>{
-  try {
-    const res = await fetch("/audit?format=csv");
-    const blob = await res.blob();
-    const u = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = u; a.download = "baseer-audit.csv"; a.click();
-    URL.revokeObjectURL(u);
-  } catch (e) { /* layer only */ }
-});
-$("ctaInspect").addEventListener("click", ()=>showView("inspect"));
-$("goInspect").addEventListener("click", ()=>showView("inspect"));
-$("printBtn").addEventListener("click", ()=>window.print());
-$("pdfBtn").addEventListener("click", async ()=>{
-  if (!lastReport) return;
-  try {
-    const res = await fetch(`/inspections/${lastReport.inspection_id}/report.pdf`);
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `baseer-${lastReport.inspection_id}.pdf`;
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
-  } catch (e) { /* layer only */ }
-});
-$("waBtn").addEventListener("click", ()=>{
-  if (!lastReport) return;
-  const s = S[lang];
-  const lines = [s.sum(lastReport), ""];
-  lastReport.findings.forEach((f, i) => {
-    lines.push(`${i+1}. [${s.sev[f.severity] || f.severity}] ${s.pick(f,"title")}`);
-    lines.push(`${s.action} ${s.pick(f,"action")}`);
-  });
-  window.open("https://wa.me/?text=" + encodeURIComponent(lines.join("\n")), "_blank");
-});
-function paintFileNames() {
-  $("fileNames").textContent =
-    [...$("files").files].map(f => `${f.name} (${fmtSize(f.size)})`).join(" · ");
-}
-$("files").addEventListener("change", paintFileNames);
-const dropZone = document.querySelector(".drop");
-if (dropZone) {
-  ["dragenter", "dragover"].forEach(ev => dropZone.addEventListener(ev, (e) => {
-    e.preventDefault();
-    dropZone.style.borderColor = "var(--gold)";
-  }));
-  ["dragleave", "drop"].forEach(ev => dropZone.addEventListener(ev, (e) => {
-    e.preventDefault();
-    dropZone.style.borderColor = "";
-  }));
-  dropZone.addEventListener("drop", (e) => {
-    if (!e.dataTransfer || !e.dataTransfer.files.length) return;
-    const dt = new DataTransfer();
-    for (const f of $("files").files) dt.items.add(f);
-    for (const f of e.dataTransfer.files) dt.items.add(f);
-    $("files").files = dt.files;
-    paintFileNames();
-  });
-}
-$("inspForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const s = S[lang], btn = $("runBtn"), status = $("status");
-  btn.disabled = true; status.textContent = s.running;
-  const fd = new FormData();
-  for (const f of $("files").files) fd.append("files", f);
-  fd.append("notes", $("notes").value);
-  fd.append("site_context", $("ctx").value);
-  try {
-    const res = await fetch("/inspections", { method: "POST", body: fd });
-    if (!res.ok) { const e = await res.json().catch(() => ({})); status.textContent = e.detail || s.error; return; }
-    dropReportMedia();
-    const nowTs = Date.now();
-    lastReport = await res.json();
-    lastReport._media = filesToMedia($("files").files, nowTs);
-    lastReport._ts = nowTs;
-    chatHistory = []; $("chatLog").innerHTML = "";
-    renderReport(lastReport);
-    loadAnalytics();
-    status.textContent = s.done;
-    showView("report");
-  } catch (err) { status.textContent = s.error; }
-  finally { btn.disabled = false; }
-});
-const q = new URLSearchParams(location.search);
-if (q.get("lang") === "en") lang = "en";
-paintLiveStats();
-applyLang();
-loadHealth();
-if (session && session.token) {
-  _fetch("/auth/me", {}).then((r) => {
-    if (!r.ok) { doLogout(); return; }
-    r.json().then((me) => {
-      session.username = me.username; session.role = me.role;
-      try { localStorage.setItem("baseer_session", JSON.stringify(session)); } catch (e) {}
-      paintUser();
-      showView("overview");
-      loadAnalytics();
-    });
-  }).catch(() => {});
-} else {
-  showView("login");
-}
-</script>
+  </form>
+</dialog>
+<div class="lightbox hidden" id="lightbox"><button type="button" class="icon-btn" id="lightboxClose" aria-label="Close"><i data-icon="x"></i></button><img id="lightboxImg" alt=""></div>
+
+<script src="/static/app.js"></script>
 </body>
 </html>
-

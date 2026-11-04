@@ -38,7 +38,7 @@ from __future__ import annotations
 import base64
 import os
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 import httpx
 
@@ -242,7 +242,7 @@ def reason_findings(segments: list[Segment], inspector_notes: str,
     Returns (findings, summary_ar, summary_en).
     """
     if MODE != "live":
-        return _mock_findings(segments)
+        return _mock_findings(segments, site_context)
     if not API_KEY:
         raise RuntimeError("live mode requires MODEL_API_KEY (create one at dev.meta.ai)")
     if MUSE_MODEL.endswith("-contributor"):
@@ -283,7 +283,7 @@ def reason_from_frames(frames: list[bytes], inspector_notes: str,
     frame index so findings can cite frame_index correctly.
     """
     if MODE != "live":
-        return _mock_findings([])
+        return _mock_findings([], site_context)
     if not frames:
         raise RuntimeError("vision reasoning needs at least one frame")
     if not API_KEY:
@@ -442,7 +442,94 @@ def _mock_segments(n_frames: int) -> list[Segment]:
     return out
 
 
-def _mock_findings(segments: list[Segment]) -> tuple[list[Finding], str, str]:
+# Site-keyed mock scenes so a demo across sites reads like different
+# walkthroughs. Any context without a construction/farm keyword (including
+# "factory" and empty) gets the original factory scene, unchanged.
+_MOCK_SCENES: dict[str, tuple[list[Finding], str, str]] = {
+    "construction": (
+        [
+            Finding(
+                title_ar="عامل على السقالة دون حزام أمان",
+                title_en="Worker on scaffolding without a safety harness",
+                severity="high",
+                detail_ar="يظهر عامل على منصة السقالة العلوية دون حزام أمان مثبت بنقطة تثبيت، على ارتفاع يتجاوز طابقين.",
+                detail_en="A worker stands on the upper scaffold platform, more than two storeys up, with no harness tied off to an anchor point.",
+                action_ar="إيقاف العمل على الارتفاع حتى يُزوَّد العامل بحزام أمان كامل ونقطة تثبيت معتمدة.",
+                action_en="Stop work at height until the worker has a full-body harness tied off to an approved anchor.",
+                frame_index=0, source="both",
+            ),
+            Finding(
+                title_ar="غياب لوح الحافة على منصة السقالة",
+                title_en="Missing toe board on scaffold platform",
+                severity="medium",
+                detail_ar="منصة السقالة بلا لوح حافة، ما يسمح بسقوط الأدوات والمواد على العاملين في الأسفل.",
+                detail_en="The scaffold platform has no toe board, so tools and materials can fall onto workers below.",
+                action_ar="تركيب ألواح الحافة على كل المنصات العاملة وتطويق المنطقة أسفل السقالة.",
+                action_en="Fit toe boards on every working platform and cordon off the area below the scaffold.",
+                frame_index=0, source="segments",
+            ),
+            Finding(
+                title_ar="مواد مكدسة قرب حافة البلاطة",
+                title_en="Materials stacked near the slab edge",
+                severity="low",
+                detail_ar="حديد تسليح مكدس على بعد أقل من متر من حافة البلاطة المفتوحة.",
+                detail_en="Rebar is stacked less than a metre from the open slab edge.",
+                action_ar="نقل المواد إلى مسافة مترين على الأقل من الحافة وتحديد منطقة تخزين.",
+                action_en="Move materials at least two metres back from the edge and mark a storage zone.",
+                frame_index=0, source="segments",
+            ),
+        ],
+        "رُصدت ملاحظة عالية الخطورة (عامل على السقالة دون حزام أمان)، وملاحظة متوسطة (غياب لوح الحافة)، "
+        "وملاحظة منخفضة تتعلق بتخزين المواد قرب الحافة. يجب إيقاف العمل على الارتفاع حتى تُعالج الملاحظة العالية.",
+        "One high-severity issue (a worker on scaffolding without a harness), one medium "
+        "(missing toe board) and one low (materials stacked near the slab edge). Stop work at "
+        "height until the high-severity item is resolved.",
+    ),
+    "farm": (
+        [
+            Finding(
+                title_ar="عامل يرش المبيدات دون كمامة واقية",
+                title_en="Worker spraying pesticide without a respirator",
+                severity="high",
+                detail_ar="عامل يرش المبيدات داخل البيت المحمي دون كمامة أو نظارات واقية.",
+                detail_en="A worker sprays pesticide inside the greenhouse with no respirator or goggles.",
+                action_ar="إيقاف الرش فورًا وتزويد العامل بكمامة بفلتر كيميائي ونظارات واقية.",
+                action_en="Stop spraying immediately and issue a chemical-cartridge respirator and goggles.",
+                frame_index=0, source="both",
+            ),
+            Finding(
+                title_ar="جرار يعمل قرب العمال دون مراقب",
+                title_en="Tractor operating close to workers without a spotter",
+                severity="medium",
+                detail_ar="جرار يتحرك بين صفوف العمل على مسافة قريبة من عمال الحصاد دون مراقب أرضي.",
+                detail_en="A tractor moves between rows close to harvest workers with no ground spotter.",
+                action_ar="تعيين مراقب أرضي وتحديد مسافة أمان لا تقل عن خمسة أمتار.",
+                action_en="Assign a ground spotter and enforce a minimum five-metre safety distance.",
+                frame_index=0, source="segments",
+            ),
+        ],
+        "رُصدت ملاحظة عالية الخطورة (رش مبيدات دون كمامة) وملاحظة متوسطة (جرار قرب العمال دون مراقب). "
+        "يجب إيقاف الرش حتى تُوفَّر معدات الوقاية.",
+        "One high-severity issue (pesticide spraying without a respirator) and one medium "
+        "(tractor near workers without a spotter). Stop spraying until protective equipment is issued.",
+    ),
+}
+
+
+def _mock_scene(site_context: str) -> str:
+    ctx = (site_context or "").lower()
+    if any(k in ctx for k in ("construction", "scaffold", "building", "إنشاء", "بناء")):
+        return "construction"
+    if any(k in ctx for k in ("farm", "greenhouse", "agri", "مزرعة", "زراع")):
+        return "farm"
+    return "factory"
+
+
+def _mock_findings(segments: list[Segment], site_context: str = "") -> tuple[list[Finding], str, str]:
+    scene = _mock_scene(site_context)
+    if scene in _MOCK_SCENES:
+        findings, summary_ar, summary_en = _MOCK_SCENES[scene]
+        return [Finding(**asdict(f)) for f in findings], summary_ar, summary_en
     findings = [
         Finding(
             title_ar="عامل بدون خوذة حماية",
@@ -487,28 +574,66 @@ def _mock_findings(segments: list[Segment]) -> tuple[list[Finding], str, str]:
     return findings, summary_ar, summary_en
 
 
+_AR_DIGITS = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
+_SEV_AR = {"high": "عالية", "medium": "متوسطة", "low": "منخفضة"}
+_ORDINALS = {"first": 1, "second": 2, "third": 3, "الأولى": 1, "الثانية": 2, "الثالثة": 3}
+
+
 def _mock_chat(report: dict, question: str) -> str:
-    """Keyword-grounded sample answers over the mock report (AR + EN)."""
+    """Grounded sample answers built from the report's own findings (AR + EN):
+    a named or numbered finding is explained, a notice is drafted, a summary
+    is returned — never anything the report does not contain."""
     q = question or ""
-    arabic = any("؀" <= ch <= "ۿ" for ch in q)
+    arabic = any("\u0600" <= ch <= "\u06FF" for ch in q)
     ql = q.lower()
     findings = report.get("findings", [])
-    def f(i):  # 1-based finding shortcut
-        return findings[i - 1] if len(findings) >= i else None
-    if any(k in ql for k in ("helmet", "خوذة", "خوذه")) and f(1):
-        return ("الملاحظة ١ (إطار الدليل ١) عالية الخطورة لأن العامل يعمل دون خوذة بينما تتحرك رافعة شوكية في نفس المنطقة — أي اصطدام أو سقوط جسم قد يكون قاتلًا. الإجراء المطلوب: إيقاف العمل فورًا حتى تُسلَّم معدات الحماية."
-                if arabic else
-                "Finding 1 (evidence frame 1) is high severity because the worker has no helmet while a forklift moves through the same area — any collision or falling object could be fatal. The corrective action is to stop work immediately until protective equipment is issued.")
-    if any(k in ql for k in ("rail", "guard", "حاجز", "edge", "حافة")) and f(2):
-        return ("الملاحظة ٢ (إطار الدليل ١): الحافة العلوية بلا حاجز حماية، وخطر السقوط من ارتفاع هو أكثر أسباب الوفيات شيوعًا في مواقع الإنشاء. الحل على مرحلتين: حاجز مؤقت اليوم، ودائم قبل نهاية الأسبوع."
-                if arabic else
-                "Finding 2 (evidence frame 1): the upper edge has no guard rail, and falls from height are the most common cause of death on construction sites. The fix is staged — a temporary rail today, a permanent one before the end of the week.")
-    if any(k in ql for k in ("notice", "contractor", "خطاب", "مقاول", "draft", "صياغة")):
-        return ("مسودة إشعار للمقاول:\n\nالموضوع: إجراءات تصحيحية مطلوبة — تقرير فحص BSR\n\nبناءً على فحص اليوم، المطلوب معالجة ما يلي: (١) عامل بدون خوذة حماية — إيقاف فوري للعمل في المنطقة حتى الامتثال؛ (٢) غياب حاجز حماية عند الحافة — حاجز مؤقت اليوم ودائم قبل نهاية الأسبوع؛ (٣) مسار رافعة غير محدد — رسم مسارات منفصلة للمشاة والرافعات. الأدلة: إطارات التقرير المرفقة. سيُعاد الفحص للتحقق من الإغلاق."
-                if arabic else
-                "Draft notice to the contractor:\n\nSubject: Required corrective actions — inspection report\n\nFollowing today's inspection, please address: (1) worker without a safety helmet — immediate stop of work in the area until compliant; (2) missing guard rail at the edge — temporary rail today, permanent before end of week; (3) unmarked forklift path — paint separated pedestrian and forklift routes. Evidence: the attached report frames. A re-inspection will verify closure.")
-    if any(k in ql for k in ("summar", "ملخص", "brief", "manager", "مدير")):
+
+    def n_ar(n: int) -> str:
+        return str(n).translate(_AR_DIGITS)
+
+    if any(k in ql for k in ("notice", "contractor", "draft", "خطاب", "مقاول", "إشعار", "اشعار", "صياغة", "صغ")):
+        if arabic:
+            items = "؛ ".join(f"({n_ar(i + 1)}) {f.get('title_ar', '')} — {f.get('action_ar', '').rstrip('.')}"
+                             for i, f in enumerate(findings))
+            return ("مسودة إشعار للمقاول:\n\nالموضوع: إجراءات تصحيحية مطلوبة — تقرير الفحص "
+                    f"{report.get('inspection_id', '')}\n\nبناءً على فحص اليوم، المطلوب معالجة ما يلي: {items}. "
+                    "الأدلة: إطارات التقرير المرفقة. سيُعاد الفحص للتحقق من الإغلاق.")
+        items = "; ".join(f"({i + 1}) {f.get('title_en', '').lower()} — {f.get('action_en', '').rstrip('.')}"
+                          for i, f in enumerate(findings))
+        return ("Draft notice to the contractor:\n\nSubject: Required corrective actions — inspection "
+                f"{report.get('inspection_id', '')}\n\nFollowing today's inspection, please address: {items}. "
+                "Evidence: the attached report frames. A re-inspection will verify closure.")
+    if any(k in ql for k in ("summar", "brief", "manager", "ملخص", "لخّص", "لخص", "مدير")):
         return (report.get("summary_ar") if arabic else report.get("summary_en")) or ""
-    return ("أستطيع الإجابة من أدلة هذا الفحص فقط: ثلاث ملاحظات — ملاحظتان عاليتا الخطورة (عامل بدون خوذة، وغياب حاجز حماية) وواحدة متوسطة (مسار رافعة غير محدد). اسألني عن أي ملاحظة، أو اطلب صياغة إشعار للمقاول."
-            if arabic else
-            "I can answer from this inspection's evidence only: three findings — two high severity (worker without a helmet, missing guard rail) and one medium (unmarked forklift path). Ask me about any finding, or ask for a draft notice to the contractor.")
+
+    target = None
+    for word, n in _ORDINALS.items():
+        if word in ql and n <= len(findings):
+            target = n - 1
+    for i in range(len(findings)):
+        if any(p in ql for p in (f"finding {i + 1}", f"#{i + 1}", f"الملاحظة {i + 1}", f"الملاحظة {n_ar(i + 1)}")):
+            target = i
+    if target is None:
+        best = 0
+        for i, f in enumerate(findings):
+            words = [w for w in (f.get("title_en", "").lower().split() + f.get("title_ar", "").split()) if len(w) > 3]
+            hits = sum(1 for w in words if w in ql or w in q)
+            if hits > best:
+                best, target = hits, i
+    if target is not None:
+        f = findings[target]
+        frame = f.get("frame_index", 0) + 1
+        if arabic:
+            return (f"الملاحظة {n_ar(target + 1)} (إطار الدليل {n_ar(frame)}): «{f.get('title_ar', '')}» — "
+                    f"خطورتها {_SEV_AR.get(f.get('severity'), '')} لأن {f.get('detail_ar', '')}\n\n"
+                    f"الإجراء المطلوب: {f.get('action_ar', '')}")
+        return (f"Finding {target + 1} (evidence frame {frame}), \"{f.get('title_en', '')}\", is "
+                f"{f.get('severity', '')} severity: {f.get('detail_en', '')}\n\n"
+                f"Corrective action: {f.get('action_en', '')}")
+    if arabic:
+        listing = "، ".join(f"{f.get('title_ar', '')} ({_SEV_AR.get(f.get('severity'), '')})" for f in findings)
+        return (f"أستطيع الإجابة من أدلة هذا الفحص فقط: {n_ar(len(findings))} ملاحظات — {listing}. "
+                "اسألني عن أي ملاحظة، أو اطلب صياغة إشعار للمقاول.")
+    listing = ", ".join(f"{f.get('title_en', '').lower()} ({f.get('severity', '')})" for f in findings)
+    return (f"I can answer from this inspection's evidence only: {len(findings)} findings — {listing}. "
+            "Ask me about any finding, or ask for a draft notice to the contractor.")

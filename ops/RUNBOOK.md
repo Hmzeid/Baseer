@@ -1,4 +1,4 @@
-# Baseer production runbook (on-site Mac)
+# Baseer by Veebase — production runbook (on-site Mac)
 
 ## First boot
 1. `cd ~/Ai/Baseer && git pull`
@@ -16,8 +16,10 @@
 ## Daily operation
 - Console: `http://127.0.0.1:8001` (mock data) — for live inspections run
   the same service with `BASEER_MODE=live` (edit the plist, reload).
-- Every case action is stamped `username (role)` in the audit log;
-  the acting-as selector shows the signed-in identity.
+- Every case action is stamped `username (role)` in the audit log
+  (the signed-in identity, shown in the sidebar user chip).
+- Overdue corrective actions (high 1 day, medium 7, low 30 after the
+  inspection) appear on the Overview and in Cases → Overdue.
 - Back up nightly: `sh ops/backup.sh` (SQLite snapshot + evidence copies
   under `backups/`). Copy `backups/` off the machine weekly.
 
@@ -30,9 +32,10 @@
   `cd backend && BASEER_MODE=mock ../.venv/bin/python mock_suite.py`.
 
 ## Key rotation / staff changes
-- Deactivate a user: delete the row from `users` in `data/baseer.db`
-  (tokens are stateless and expire after 12h, so removal takes effect on
-  next sign-in at the latest).
+- Add, re-role, reset the password of, or delete a user from the
+  console's **Users** page (Admin). Tokens are stateless and expire after
+  12h, so a deletion takes effect at the next sign-in at the latest; a
+  role change applies to the very next request.
 - Rotate the Meta key: edit `.env`, `launchctl kickstart -k` the service.
 
 ## YOLO stream watcher (real-life camera path)
@@ -65,3 +68,6 @@
   off the machine weekly).
 - The fixed 24-scene eval set and mock fixtures are dev/test tools only
   and are never presented as live results (badges stay honest).
+
+---
+*Baseer is a Veebase product. © 2026 Veebase.*
