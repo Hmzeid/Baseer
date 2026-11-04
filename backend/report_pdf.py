@@ -18,7 +18,7 @@ from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.pdfbase.pdfmetrics import registerFont
+from reportlab.pdfbase.pdfmetrics import registerFont, stringWidth
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (Image, PageBreak, Paragraph, SimpleDocTemplate,
                                 Spacer, Table, TableStyle)
@@ -41,7 +41,10 @@ SRC_AR = {"segments": "النموذج البصري", "inspector": "ملاحظة 
 _GEEZA = "/System/Library/Fonts/GeezaPro.ttc"
 
 
-_LATIN_RUN = re.compile(r"[A-Za-z0-9]+(?:[ .,:_/\-][A-Za-z0-9]+)*")
+# Latin/digit runs, plus the punctuation the Arabic face has no glyph for
+# (middle dot, dashes, colon, brackets, plus, percent, quotes, &, <, >):
+# all render in Helvetica, else they show as tofu boxes.
+_LATIN_RUN = re.compile(r"[A-Za-z0-9]+(?:[ .,:_/\-][A-Za-z0-9]+)*|[·—–:•()+%\[\]!?;&<>\"']+")
 
 
 def ar(text: object) -> str:
@@ -49,11 +52,41 @@ def ar(text: object) -> str:
 
     The Arabic face carries no Latin glyphs, so Latin/digit runs (kept
     intact by bidi as single runs) are wrapped in Helvetica. Applied to the
-    visual-order string, the wrapping never disturbs ordering.
+    visual-order string, the wrapping never disturbs ordering. Each piece is
+    escaped after splitting, so "&" or "<" in user text can never break the
+    paragraph markup.
     """
-    vis = get_display(arabic_reshaper.reshape(html.escape(str(text or ""))))
-    return _LATIN_RUN.sub(
-        lambda m: f'<font name="Helvetica">{m.group(0)}</font>', vis)
+    vis = get_display(arabic_reshaper.reshape(str(text or "")))
+    out, pos = [], 0
+    for m in _LATIN_RUN.finditer(vis):
+        out.append(html.escape(vis[pos:m.start()]))
+        out.append(f'<font name="Helvetica">{html.escape(m.group(0))}</font>')
+        pos = m.end()
+    out.append(html.escape(vis[pos:]))
+    return "".join(out)
+
+
+BODY_W = 16.4 * cm  # A4 minus the 2 cm margins, with a little slack
+
+
+def arp(text: object, style: ParagraphStyle, width: float = BODY_W) -> str:
+    """Multi-line Arabic paragraph: wrap in reading order, then bidi each line.
+
+    Reordering a whole paragraph before reportlab wraps it puts the lines in
+    reverse (the sentence starts on the last line). Measuring the shaped words
+    against the paragraph width and reordering line by line keeps them top-down.
+    """
+    lines, cur = [], ""
+    for word in str(text or "").split():
+        cand = f"{cur} {word}".strip()
+        if cur and stringWidth(arabic_reshaper.reshape(cand), style.fontName, style.fontSize) > width:
+            lines.append(cur)
+            cur = word
+        else:
+            cur = cand
+    if cur:
+        lines.append(cur)
+    return "<br/>".join(ar(line) for line in lines)
 
 
 def _fonts() -> tuple[str, str]:
@@ -138,7 +171,7 @@ def build_pdf(report: dict, audit_entries: list[dict],
         when_s = report.get("created_at", "")
 
     story.append(Paragraph(ar("تقرير فحص سلامة ميداني"), st["title"]))
-    story.append(Paragraph(ar("Baseer · بصير — Field Inspection Report"),
+    story.append(Paragraph(ar("Baseer · بصير by Veebase — Field Inspection Report"),
                            st["subtitle"]))
     story.append(Spacer(1, 0.4 * cm))
     story.append(_meta_table(st, [
@@ -152,7 +185,7 @@ def build_pdf(report: dict, audit_entries: list[dict],
     ]))
 
     story.append(Paragraph(ar("الملخص التنفيذي"), st["h2"]))
-    story.append(Paragraph(ar(report.get("summary_ar", "")), st["body"]))
+    story.append(Paragraph(arp(report.get("summary_ar", ""), st["body"]), st["body"]))
 
     story.append(Paragraph(ar("الملاحظات"), st["h2"]))
     if not findings:
@@ -166,7 +199,7 @@ def build_pdf(report: dict, audit_entries: list[dict],
         head_t = Table(
             [[Paragraph(ar(f"ملاحظة {i} — {f.get('title_ar', '')}"),
                         st["finding"]), sev_para]],
-            colWidths=[12.5 * cm, 3 * cm])
+            colWidths=[12.0 * cm, 3.5 * cm])
         head_t.setStyle(TableStyle([
             ("BACKGROUND", (1, 0), (1, 0), SEV_TINTS.get(sev, LINE)),
             ("ROUNDEDCORNERS", [3, 3, 3, 3]),
@@ -180,10 +213,10 @@ def build_pdf(report: dict, audit_entries: list[dict],
         story.append(head_t)
         if f.get("title_en"):
             story.append(Paragraph(ar(f["title_en"]), st["muted"]))
-        story.append(Paragraph(ar(f.get("detail_ar", "")), st["body"]))
+        story.append(Paragraph(arp(f.get("detail_ar", ""), st["body"]), st["body"]))
         if f.get("action_ar"):
             story.append(Paragraph(
-                ar("الإجراء المطلوب: ") + ar(f["action_ar"]), st["body"]))
+                arp("الإجراء المطلوب: " + f["action_ar"], st["body"]), st["body"]))
         meta = []
         if f.get("source"):
             meta.append(SRC_AR.get(f["source"], f["source"]))
@@ -201,11 +234,11 @@ def build_pdf(report: dict, audit_entries: list[dict],
                 vline = ("يُقترح: تمت الإزالة — بانتظار الاعتماد البشري"
                          if cv.get("suggested_resolved")
                          else "يُقترح: لم تُزَل — تتطلب معالجة")
-                story.append(Paragraph(ar("التحقق: ") + ar(vline), st["body"]))
+                story.append(Paragraph(arp("التحقق: " + vline, st["body"]), st["body"]))
             cline = (f"الحالة: {STATUS_AR.get(case.get('status', 'open'), '')}"
                      + (f" · المكلَّف: {case['assignee']}"
                         if case.get("assignee") else ""))
-            story.append(Paragraph(ar(cline), st["muted"]))
+            story.append(Paragraph(arp(cline, st["muted"]), st["muted"]))
             for n in (case.get("notes") or []):
                 story.append(Paragraph(
                     ar(f"ملاحظة [{n.get('actor', '')}]: {n.get('text', '')}"),
@@ -265,6 +298,7 @@ def build_pdf(report: dict, audit_entries: list[dict],
             A4[0] - 2 * cm, 1.2 * cm,
             get_display(arabic_reshaper.reshape("أُنتج بواسطة بصير")))
         canvas.setFont("Helvetica", 8)
+        canvas.drawCentredString(A4[0] / 2, 1.2 * cm, "Baseer by Veebase")
         canvas.drawString(2 * cm, 1.2 * cm,
                           f"{report.get('inspection_id', '')} - {gen} - p{doc.page}")
         canvas.restoreState()
@@ -272,6 +306,7 @@ def build_pdf(report: dict, audit_entries: list[dict],
     buf = io.BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4, rightMargin=2 * cm,
                             leftMargin=2 * cm, topMargin=2.2 * cm,
-                            bottomMargin=2 * cm, title="Baseer inspection")
+                            bottomMargin=2 * cm, title="Baseer inspection", author="Baseer by Veebase",
+                            creator="Baseer by Veebase")
     doc.build(story, onFirstPage=footer, onLaterPages=footer)
     return buf.getvalue()

@@ -10,3 +10,18 @@ demo/photos/
 data/
 # Local backup snapshots (see ops/backup.sh).
 backups/
+# HyperFrames working files (snapshots, caches, scratch renders).
+video/.hyperframes/
+video/renders/
+video/node_modules/
+video/.media/
+video/audio_meta.json
+video/bgm_status.json
+video/assets/bgm/*.log
+# Video binaries are rebuilt from video/tools (see video/README.md), never committed.
+docs/media/*.mp4
+video/assets/shots/
+video/assets/bgm/
+video/assets/voice/
+video/assets/*.mp4
+video/assets/photo-scaffold.jpg

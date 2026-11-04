@@ -1,0 +1,77 @@
+<template>
+  <style>
+    #root { position:absolute; inset:0; overflow:hidden; background:#F3F5F8; font-family:Inter, sans-serif; }
+    #root .cam { position:absolute; left:0; top:0; width:1920px; height:1080px; transform-origin:0 0; }
+    #root .shot { position:absolute; left:0; top:0; width:1920px; height:1080px; background-size:1920px 1080px; background-repeat:no-repeat; }
+    #root .cursor { position:absolute; left:0; top:0; width:30px; height:30px; z-index:40; }
+    #root .cursor svg { width:30px; height:30px; transform-origin:4px 3px; filter:drop-shadow(0 3px 5px rgba(0,0,0,.35)); }
+    #root .cap { position:absolute; left:0; right:0; bottom:110px; margin:0 auto; width:fit-content; max-width:1400px;
+      background:rgba(10,37,64,.96); color:#fff; font-weight:700; font-size:40px; line-height:1.25; letter-spacing:-.01em;
+      padding:20px 36px; border-radius:16px; box-shadow:0 18px 50px rgba(10,37,64,.28); z-index:50; text-align:center; }
+    #root .cap.left { left:110px; right:auto; margin:0; bottom:140px; max-width:780px; text-align:left; }
+    #root .cap .w { display:inline-block; }
+    #root .cap .acc { color:#E0C26A; }
+
+  </style>
+  <div id="root" data-composition-id="records" data-width="1920" data-height="1080">
+
+    <div class="cam"><div class="shot" id="records-c13b-overview" style="background-image:url(assets/shots/c13b-overview.jpg);z-index:1;"></div><div class="shot" id="records-c14-cases" style="background-image:url(assets/shots/c14-cases.jpg);z-index:2;opacity:0;"></div><div class="shot" id="records-c15-audit" style="background-image:url(assets/shots/c15-audit.jpg);z-index:3;opacity:0;"></div>
+      <div class="cursor" id="records-cur"><svg viewBox="0 0 24 24"><path d="M4 3l15 8.5-6.6 1.6L9.6 20z" fill="#fff" stroke="#0A2540" stroke-width="1.6" stroke-linejoin="round"/></svg></div></div>
+    <div class="cap" id="records-c1">Deadlines follow severity: <b class="acc">one day</b> for high</div>
+    <div class="cap" id="records-c2"><b class="acc">Overdue</b> cases rise to the top</div>
+    <div class="cap" id="records-c3">Every action is signed, timed and <b class="acc">kept</b></div>
+
+  </div>
+  <script>
+    const W = 1920, H = 1080, S = "#records";
+    const tl = gsap.timeline({ paused: true });
+    // Split caption text into word spans (accent <b class="acc"> kept as one word).
+    document.querySelectorAll(S + " .cap").forEach((cap) => {
+      const out = [];
+      cap.childNodes.forEach((n) => {
+        if (n.nodeType === 3) n.textContent.split(/\s+/).filter(Boolean).forEach((w) => out.push(`<span class="w">${w}</span>`));
+        else { n.classList.add("w"); out.push(n.outerHTML); }
+      });
+      cap.innerHTML = out.join(" ");
+    });
+    // Camera: frame box [x,y,w,h] (UI px) at scale s, box centre at (fx*W, fy*H), clamped to the shot.
+    function cam(box, s, t, d = 1.2, fx = 0.5, fy = 0.44, ease = "power2.inOut") {
+      const cx = box[0] + box[2] / 2, cy = box[1] + box[3] / 2;
+      const x = Math.min(0, Math.max(W - W * s, W * fx - s * cx));
+      const y = Math.min(0, Math.max(H - H * s, H * fy - s * cy));
+      if (d === 0) tl.set(S + " .cam", { x, y, scale: s }, t);
+      else tl.to(S + " .cam", { x, y, scale: s, duration: d, ease }, t);
+    }
+    // Blur swap: the next screen sharpens in over the current one.
+    function swap(sel, t) {
+      tl.fromTo(sel, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.22, ease: "power2.out" }, t);
+    }
+    function cap(sel, tin, tout) {
+      tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "power2.out" }, tin);
+      tl.fromTo(sel + " .w", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.13, stagger: 0.07, ease: "power2.out" }, tin + 0.05);
+      if (tout !== undefined) tl.to(sel, { opacity: 0, filter: "blur(6px)", duration: 0.22, ease: "power3.in" }, tout);
+    }
+    // Cursor tip to point (UI px); click dips the arrow.
+    function move(pt, t, d = 0.8) { tl.to(S + " .cursor", { x: pt[0], y: pt[1], duration: d, ease: "power2.inOut" }, t); }
+    function click(t) {
+      tl.to(S + " .cursor svg", { scale: 0.82, duration: 0.08, ease: "power2.in" }, t);
+      tl.to(S + " .cursor svg", { scale: 1, duration: 0.14, ease: "power2.out" }, t + 0.08);
+    }
+    const mid = (b) => [b[0] + b[2] / 2 - 4, b[1] + b[3] / 2 - 3];
+
+    tl.fromTo(S + " .cam", { filter: "blur(10px)" }, { filter: "blur(0px)", duration: 0.3, ease: "power2.out" }, 0);
+    tl.set(S + " .cursor", { x: 1000, y: 700 }, 0);
+    cam([382, 150, 1416, 600], 1.22, 0.3, 1.2, 0.5, 0.44);
+    cap(S + " #records-c1", 0.5, 3.6);
+    move(mid([1240, 242, 272, 108]), 1.6, 1.0);
+    click(3.2);
+    swap(S + " #records-c14-cases", 3.5);
+    tl.to(S + " .cursor", { opacity: 0, duration: 0.2 }, 3.6);
+    cam([405, 130, 1370, 560], 1.25, 3.5, 1.0, 0.5, 0.44);
+    cap(S + " #records-c2", 4.0, 7.2);
+    swap(S + " #records-c15-audit", 7.4);
+    cap(S + " #records-c3", 7.6, 10.8);
+
+    window.__timelines["records"] = tl;
+  </script>
+</template>

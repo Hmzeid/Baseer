@@ -55,6 +55,16 @@ def main() -> int:
     anon = TestClient(app.app)
     r = anon.get("/analytics")
     check("auth required", r.status_code == 401, r.text[:120])
+    h = anon.get("/health")
+    check("health names product", h.json().get("product") == "Baseer by Veebase", h.text[:120])
+    check("security headers", h.headers.get("x-content-type-options") == "nosniff"
+          and h.headers.get("x-frame-options") == "DENY"
+          and "camera=(self)" in h.headers.get("permissions-policy", ""), str(dict(h.headers))[:200])
+    m = anon.get("/static/manifest.webmanifest")
+    check("pwa manifest served", m.status_code == 200
+          and m.headers.get("content-type", "").startswith("application/manifest+json")
+          and "Veebase" in m.json().get("name", ""), m.text[:120])
+    check("index names Veebase", "Veebase" in anon.get("/").text)
     r = anon.post("/auth/login",
                   json={"username": "admin", "password": "wrong"})
     check("login rejects bad password", r.status_code == 401, r.text[:120])
@@ -107,6 +117,10 @@ def main() -> int:
                 files={"files": ("frame.jpg", jpg, "image/jpeg")}).json()
     check("live alerts dedupe", len(f2["new_alerts"]) == 0 and f2["alerts_total"] == 2, str(f2))
     fin = c.post(f"/live/sessions/{sid}/finish", json={"notes": "test"}).json()
+    check("live evidence follows report",
+          bool(fin.get("evidence_files")) and c.get(
+              f"/inspections/{fin['inspection_id']}/evidence/{fin['evidence_files'][0]}").status_code == 200,
+          str(fin.get("evidence_files"))[:120])
     check("live finish report", fin["source"] == "live-camera" and len(fin["findings"]) == 3
           and fin["segmentation_source"] == "mock", str({k: fin.get(k) for k in ("source", "segmentation_source")}))
 
@@ -201,6 +215,10 @@ def main() -> int:
 
     # 4a. structured PDF report (server-rendered, Arabic RTL)
     pdf = c.get(f"/inspections/{iid}/report.pdf")
+    import report_pdf as _rp
+    _m = _rp.ar("Smith & Sons <ok>; done")
+    check("pdf text escaping", "&amp;" in _m and "&lt;" in _m and "&<font" not in _m, _m)
+    check("pdf rtl line order", _rp.arp("كلمة " * 80, _rp._styles("Helvetica", "Helvetica")["body"]).count("<br/>") >= 2)
     check("pdf report 200", pdf.status_code == 200
           and pdf.headers.get("content-type", "").startswith("application/pdf")
           and pdf.content[:5] == b"%PDF-", pdf.text[:120])
@@ -269,6 +287,45 @@ def main() -> int:
           csv.status_code == 200 and csv.text.splitlines()[0].startswith("ts,"),
           csv.text[:80])
 
+    # 6b. history, single report, cross-inspection cases, SLA deadlines
+    hist = c.get("/inspections").json()["inspections"]
+    check("inspections history",
+          len(hist) == 3 and [h["created_at"] for h in hist] == sorted(
+              (h["created_at"] for h in hist), reverse=True)
+          and not any(h["inspection_id"].startswith("seed-") for h in hist),
+          str([h["inspection_id"] for h in hist]))
+    check("history summary row", {"findings", "high", "open_cases", "closed_cases", "site"}
+          <= set(hist[0]), str(sorted(hist[0]))[:200])
+    check("history search", [h["inspection_id"] for h in
+                             c.get("/inspections", params={"q": iid}).json()["inspections"]] == [iid])
+    check("history csv", c.get("/inspections", params={"format": "csv"}).text.startswith("inspection_id,"))
+    one = c.get(f"/inspections/{iid}")
+    check("get inspection", one.status_code == 200 and one.json()["inspection_id"] == iid, one.text[:120])
+    check("get inspection 404", c.get("/inspections/nope").status_code == 404)
+    cases = c.get("/cases").json()["cases"]
+    check("cases list", len(cases) == 9 and all({"due_at", "overdue", "status"} <= set(x) for x in cases),
+          f"{len(cases)} cases")
+    check("cases closed last", [x["status"] == "closed" for x in cases]
+          == sorted(x["status"] == "closed" for x in cases))
+    check("cases status filter",
+          all(x["status"] == "closed" for x in c.get("/cases", params={"status": "closed"}).json()["cases"]))
+    import analytics as _analytics
+    from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+    _old = {"created_at": (_dt.now(_tz.utc) - _td(days=3)).isoformat()}
+    check("sla overdue high",
+          _analytics.case_deadline(_old, {"severity": "high", "case": {"status": "open"}})["overdue"])
+    check("sla not overdue medium",
+          not _analytics.case_deadline(_old, {"severity": "medium", "case": {"status": "open"}})["overdue"])
+    check("sla closed never overdue",
+          not _analytics.case_deadline(_old, {"severity": "high", "case": {"status": "closed"}})["overdue"])
+    an2 = c.get("/analytics").json()
+    check("analytics case totals",
+          an2["cases"]["total"] == 9 and an2["cases"]["closed"] >= 1
+          and 0 < an2["cases"]["closure_rate"] <= 1, str(an2["cases"]))
+    check("audit per inspection",
+          all(e["inspection_id"] == iid for e in
+              c.get("/audit", params={"inspection_id": iid}).json()["entries"]))
+
     # Arabic display labels must not collide: two distinct English
     # findings sharing one Arabic string renders as a duplicated row.
     import analytics as _analytics
@@ -328,6 +385,18 @@ def main() -> int:
     r = anon.post("/auth/login",
                   json={"username": "layla", "password": "new-field-pw-2"})
     check("login with new password", r.status_code == 200, r.text[:120])
+    r = c.patch("/auth/users/layla", json={"role": "Admin"})
+    check("non-admin cannot edit users", r.status_code == 403, r.text[:120])
+    r = admin.patch("/auth/users/layla", json={"role": "Site Manager"})
+    check("admin changes role", r.status_code == 200 and r.json()["role"] == "Site Manager", r.text[:120])
+    check("role change visible to user", c.get("/auth/me").json()["role"] == "Site Manager")
+    r = admin.patch("/auth/users/layla", json={"role": "Wizard"})
+    check("bad role rejected", r.status_code == 400, r.text[:120])
+    r = admin.patch("/auth/users/admin", json={"role": "Contractor"})
+    check("admin keeps own admin role", r.status_code == 400, r.text[:120])
+    r = admin.patch("/auth/users/layla", json={"password": "reset-pw-333"})
+    r2 = anon.post("/auth/login", json={"username": "layla", "password": "reset-pw-333"})
+    check("admin resets password", r.status_code == 200 and r2.status_code == 200, r2.text[:120])
     r = admin.delete("/auth/users/layla")
     check("admin deletes user", r.status_code == 200, r.text[:120])
     r = anon.post("/auth/login",

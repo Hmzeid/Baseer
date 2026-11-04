@@ -1,0 +1,43 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap">
+<style>
+  @font-face { font-family: "Geeza AR"; src: local("Geeza Pro"), local("GeezaPro"), local("GeezaPro-Bold"); }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:1280px; height:720px; overflow:hidden; background:#0A2540; font-family:Inter, sans-serif; }
+  .photo { position:absolute; left:500px; top:0; width:780px; height:720px;
+    background:url(../assets/photo-scaffold.jpg) center 30%/cover no-repeat; }
+  .panel { position:absolute; inset:0 auto 0 0; width:700px;
+    background:linear-gradient(160deg,#0D2E52 0%,#061628 100%);
+    clip-path:polygon(0 0, 100% 0, 78% 100%, 0 100%); }
+  .panel::after { content:""; position:absolute; inset:0; opacity:.08;
+    background-image:linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.7) 1px,transparent 1px);
+    background-size:40px 40px; }
+  .brand { position:absolute; left:56px; top:50px; display:flex; align-items:center; gap:16px; color:#fff; font:800 34px Inter; }
+  .mark { width:64px; height:64px; border-radius:18px; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(0,0,0,.3); }
+  .brand .ar { font-family:"Geeza AR"; font-weight:700; color:#E0C26A; }
+  h1 { position:absolute; left:52px; top:168px; color:#fff; font:900 102px/0.98 Inter; letter-spacing:-.035em; }
+  h1 em { font-style:normal; color:#E0C26A; display:block; }
+  .sub { position:absolute; left:56px; top:420px; color:#fff; font:800 40px/1.2 Inter; letter-spacing:-.01em; }
+  .sub b { color:#E0C26A; }
+  .chip { position:absolute; left:56px; top:500px; display:flex; gap:12px; }
+  .chip span { background:rgba(255,255,255,.12); border:2px solid rgba(255,255,255,.25); color:#fff; font:700 30px Inter; padding:8px 18px; border-radius:12px; }
+  .chip .ar { font-family:"Geeza AR"; font-size:32px; }
+  .card { position:absolute; right:40px; bottom:56px; width:640px; background:#fff; border-radius:18px; overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,.55); transform:rotate(-2deg); }
+  .card img { display:block; width:100%; }
+  .card .bar { background:#FDEDEB; color:#B02A1D; font:800 24px Inter; padding:10px 22px; letter-spacing:.06em; }
+  .badge { position:absolute; right:40px; top:40px; background:#E0C26A; color:#0A2540; font:900 30px Inter; padding:10px 20px;
+    border-radius:12px; letter-spacing:.04em; box-shadow:0 10px 26px rgba(0,0,0,.4); transform:rotate(3deg); }
+</style></head>
+<body>
+  <div class="photo"></div>
+  <div class="panel"></div>
+  <div class="brand"><div class="mark"><svg width="42" height="42" viewBox="0 0 24 24"><path d="M3.2 12S6.5 6.3 12 6.3 20.8 12 20.8 12 17.5 17.7 12 17.7 3.2 12 3.2 12Z" fill="none" stroke="#0A2540" stroke-width="1.9"/><circle cx="12" cy="12" r="3.1" fill="#C9A94E"/></svg></div>
+    <div>Baseer · <span class="ar">بصير</span></div></div>
+  <h1>AI SAFETY<em>INSPECTOR</em></h1>
+  <div class="sub">One photo → <b>full report</b></div>
+  <div class="chip"><span class="ar">بالعربية</span><span>+ English</span></div>
+  <div class="badge">▶ FULL WALKTHROUGH</div>
+  <div class="card"><img src="finding-crop.png" alt=""><div class="bar">CASE OPENED · ASSIGN → VERIFY → CLOSE</div></div>
+</body></html>
