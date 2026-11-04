@@ -69,8 +69,8 @@ Meta Model API values. Tests: `cd backend && ../.venv/bin/python mock_suite.py`.
 - [Architecture](docs/ARCHITECTURE.md): pipeline, data model, security, frontend
 - [Development](docs/DEVELOPMENT.md): dev server, demo seed, tests, conventions
 - [Runbook](ops/RUNBOOK.md): on-site operation, backups, YOLO, TLS
-- Walkthrough video: `docs/media/baseer-walkthrough.mp4` (90 s, narrated; 53 MB, so it is
-  not committed: rebuild it from `video/`, or get it from the release/YouTube upload); YouTube kit with
+- Walkthrough video: `docs/media/baseer-walkthrough.mp4` (2:58, narrated, recorded live on Muse
+  Spark 1.3 — the Meta submission cut; 84 MB, so not committed: rebuild it from `video/`); YouTube kit with
   title, description, chapters and tags: [docs/media/YOUTUBE.md](docs/media/YOUTUBE.md), thumbnail
   `docs/media/youtube-thumbnail.png`; video source project in [video/](video/README.md)
 

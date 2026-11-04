@@ -25,3 +25,6 @@ video/assets/bgm/
 video/assets/voice/
 video/assets/*.mp4
 video/assets/photo-scaffold.jpg
+video/assets/live/*.jpg
+video/assets/live/media/
+video/assets/live/pdf/
