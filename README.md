@@ -291,5 +291,18 @@ Wonder for final reports (higher recall, richer actions); a Spark v1.3
 re-run is still open and would test whether the economy rule lifts its
 F1 0.218 the same way.
 
+## License
+
+The code is released under the [MIT License](LICENSE), © 2026 Veebase.
+
+Third-party material in this repository keeps its own terms:
+- **Site photos and footage** in the screenshots, the preview GIF, the thumbnail and the
+  walkthrough video come from Pexels under the [Pexels License](https://www.pexels.com/license/);
+  the creators are listed in `demo/SOURCES.md` and `docs/media/YOUTUBE.md`.
+- **Click sounds** in `video/assets/sfx/` come from the HyperFrames bundled library (Apache-2.0).
+- **The walkthrough video's music** was generated with MusicGen, whose model weights are licensed
+  CC-BY-NC 4.0 (non-commercial); its narration voice is Kokoro (Apache-2.0).
+- **Meta model outputs** shown in the media (SAM 3.1, Muse) are subject to Meta's Model API terms.
+
 ---
 *Baseer is a Veebase product. © 2026 Veebase.*
