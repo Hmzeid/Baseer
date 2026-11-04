@@ -246,7 +246,7 @@ const S = {
     noReport: "No report open yet", noReportHint: "Run a new inspection, or open a report from the inspection history.",
     report: "Report", pdfRep: "PDF", printRep: "Print", shareWa: "WhatsApp", copyLink: "Copy link", linkCopied: "Report link copied.",
     tEvidence: "Attached evidence", findings: "Findings", findingsN: (n) => `${n} finding${n === 1 ? "" : "s"}`, noFindings: "No findings — nothing requiring action was observed.",
-    meta: (r) => `${fmtTime(r.created_at)} · ${r.frames_processed} frames · Site: ${siteName(r)}`,
+    meta: (r) => `${fmtTime(r.created_at)} · ${r.frames_processed} frame${r.frames_processed === 1 ? "" : "s"} · Site: ${siteName(r)}`,
     stripTotal: "Findings", noEvidence: "No attached files — report based on the inspector's note.",
     more: (n) => `+${n} more`, loadVideo: "Play video",
     action: "Corrective action", frame: (i) => `Frame ${i + 1}`,
