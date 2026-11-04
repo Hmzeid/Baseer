@@ -7,6 +7,7 @@ stretch/roadmap item, not part of the core surface.
 """
 from __future__ import annotations
 
+import mimetypes
 import os
 import secrets
 import time
@@ -29,8 +30,22 @@ import pipeline
 import store
 import voice
 
-app = FastAPI(title="Baseer — Arabic Field Inspection Copilot", version="0.3.0")
+app = FastAPI(title="Baseer by Veebase — Arabic Field Inspection Copilot", version="0.4.0",
+              contact={"name": "Veebase"})
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
+mimetypes.add_type("application/manifest+json", ".webmanifest")
+
+
+@app.middleware("http")
+async def security_headers(request, call_next):
+    """Baseline browser hardening on every response. Camera and microphone
+    stay allowed for this origin only (live camera + voice notes)."""
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "same-origin")
+    response.headers.setdefault("Permissions-Policy", "camera=(self), microphone=(self), geolocation=()")
+    return response
 DATA_DIR = Path(os.getenv("BASEER_DATA_DIR", str(Path(__file__).resolve().parent.parent / "data")))
 
 # Production guard: a single request (photos + video) may not exceed this.
@@ -116,7 +131,8 @@ def require_admin(user: dict = Depends(current_user)) -> dict:
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "mode": meta_client.MODE}
+    return {"status": "ok", "product": "Baseer by Veebase", "mode": meta_client.MODE, "version": app.version,
+            "segmentation": meta_client.SEGMENTATION, "sla_days": analytics.SLA_DAYS}
 
 
 def _save_evidence(inspection_id: str, payload: list[tuple[str, bytes]]) -> list[str]:
@@ -153,6 +169,73 @@ async def create_inspection(
     REPORTS[report.inspection_id] = data
     store.save_report(data)
     return data
+
+
+def _csv_response(rows: list[dict], fields: list[str], filename: str) -> PlainTextResponse:
+    import csv
+    import io
+    buf = io.StringIO()
+    w = csv.DictWriter(buf, fieldnames=fields, extrasaction="ignore")
+    w.writeheader()
+    w.writerows(rows)
+    return PlainTextResponse(buf.getvalue(), media_type="text/csv",
+                             headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
+@app.get("/inspections")
+def list_inspections(q: str = "", site: str = "", severity: str = "",
+                     format: str = "json", user: dict = Depends(current_user)):
+    """Inspection history (real reports only — seeds have no full report),
+    newest first. q matches id, site, summary and finding titles."""
+    needle = q.strip().lower()
+    rows = []
+    for r in REPORTS.values():
+        row = analytics.summarize(r)
+        if site and row["site"] != site:
+            continue
+        if severity in ("high", "medium", "low") and not row[severity]:
+            continue
+        if needle:
+            hay = " ".join([row["inspection_id"], row["site"], row["summary_en"], row["summary_ar"]]
+                           + [f.get("title_en", "") + " " + f.get("title_ar", "")
+                              for f in r.get("findings", [])]).lower()
+            if needle not in hay:
+                continue
+        rows.append(row)
+    rows.sort(key=lambda x: x["created_at"], reverse=True)
+    if format == "csv":
+        return _csv_response(rows, ["inspection_id", "created_at", "site", "source", "mode",
+                                    "segmentation_source", "frames_processed", "findings",
+                                    "high", "medium", "low", "open_cases", "closed_cases",
+                                    "summary_en"], "baseer-inspections.csv")
+    return {"inspections": rows}
+
+
+@app.get("/inspections/{inspection_id}")
+def get_inspection(inspection_id: str, user: dict = Depends(current_user)):
+    report = REPORTS.get(inspection_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="inspection not found")
+    return report
+
+
+@app.get("/cases")
+def get_cases(status: str = "", site: str = "", format: str = "json",
+              user: dict = Depends(current_user)):
+    """Every corrective-action case across inspections, most urgent first.
+    status: open | assigned | closed | overdue (empty = all)."""
+    cases = analytics.list_cases(list(REPORTS.values()))
+    if site:
+        cases = [c for c in cases if c["site"] == site]
+    if status == "overdue":
+        cases = [c for c in cases if c["overdue"]]
+    elif status:
+        cases = [c for c in cases if c["status"] == status]
+    if format == "csv":
+        return _csv_response(cases, ["inspection_id", "finding_index", "site", "title_en",
+                                     "severity", "status", "assignee", "created_at",
+                                     "due_at", "overdue"], "baseer-cases.csv")
+    return {"cases": cases}
 
 
 class ChatRequest(BaseModel):
@@ -368,6 +451,10 @@ def live_finish(session_id: str, req: LiveFinishRequest,
         raise HTTPException(status_code=503, detail=str(exc)[:200])
     _live_dir = DATA_DIR / "evidence" / session_id
     data["evidence_files"] = sorted(p.name for p in _live_dir.glob("*")) if _live_dir.exists() else []
+    if _live_dir.exists():
+        # Evidence is served and PDF-rendered by inspection id; the session
+        # is finished, so its frames move under the report they belong to.
+        _live_dir.rename(DATA_DIR / "evidence" / data["inspection_id"])
     REPORTS[data["inspection_id"]] = data
     store.save_report(data)
     return data
@@ -390,20 +477,17 @@ def list_sites(user: dict = Depends(current_user)):
 
 
 @app.get("/audit")
-def get_audit(format: str = "json", user: dict = Depends(current_user)):
+def get_audit(format: str = "json", inspection_id: str = "",
+              user: dict = Depends(current_user)):
     """Formal audit trail: every case action across live reports, newest
     first. Durable in SQLite (survives restarts); entries are append-only,
     this endpoint only reads. format=csv returns a downloadable CSV."""
     entries = store.read_audit()
+    if inspection_id:
+        entries = [e for e in entries if e.get("inspection_id") == inspection_id]
     if format == "csv":
-        import csv
-        import io
-        buf = io.StringIO()
-        w = csv.DictWriter(buf, fieldnames=["ts", "inspection_id", "site", "finding_index",
-                                            "finding", "action", "actor", "detail"])
-        w.writeheader()
-        w.writerows(entries)
-        return PlainTextResponse(buf.getvalue(), media_type="text/csv")
+        return _csv_response(entries, ["ts", "inspection_id", "site", "finding_index",
+                                       "finding", "action", "actor", "detail"], "baseer-audit.csv")
     return {"entries": entries}
 
 
@@ -493,6 +577,34 @@ def create_user_api(req: UserCreateRequest, admin: dict = Depends(require_admin)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return {"username": req.username.strip(), "role": req.role}
+
+
+class UserUpdateRequest(BaseModel):
+    role: str = ""
+    password: str = ""
+
+
+@app.patch("/auth/users/{username}")
+def update_user_api(username: str, req: UserUpdateRequest,
+                    admin: dict = Depends(require_admin)):
+    """Admin: change a user's role and/or reset their password."""
+    if not auth.get_user(store._conn(), username):
+        raise HTTPException(status_code=404, detail="user not found")
+    if req.role:
+        if req.role not in auth.ROLES:
+            raise HTTPException(status_code=400, detail=f"role must be one of {', '.join(auth.ROLES)}")
+        if username == admin["username"] and req.role != "Admin":
+            raise HTTPException(status_code=400, detail="cannot remove your own admin role")
+        store._conn().execute("UPDATE users SET role = ? WHERE username = ?", (req.role, username))
+    if req.password:
+        if len(req.password) < 8:
+            raise HTTPException(status_code=400, detail="password must be at least 8 characters")
+        pw_hash, salt = auth.hash_password(req.password)
+        store._conn().execute("UPDATE users SET pw_hash = ?, salt = ? WHERE username = ?",
+                              (pw_hash, salt, username))
+    store._conn().commit()
+    row = auth.get_user(store._conn(), username)
+    return {"username": username, "role": row["role"]}
 
 
 @app.delete("/auth/users/{username}")

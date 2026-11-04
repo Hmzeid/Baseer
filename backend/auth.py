@@ -104,7 +104,6 @@ def ensure_admin(conn: sqlite3.Connection) -> tuple[str, str] | None:
         # Never bootstrap an admin account with a publicly known password:
         # fall back to a random one, printed once into the server log.
         password = secrets.token_urlsafe(16)
-        password = secrets.token_urlsafe(16)
         created_default = True
     else:
         created_default = False

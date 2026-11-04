@@ -1,0 +1,32 @@
+# Baseer by Veebase: run the mock-mode suite (no API keys, no network models)
+# on every push and pull request. macOS runner because the Arabic PDF report
+# uses the system Geeza Pro font.
+name: Mock suite
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  mock-suite:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -r backend/requirements.txt
+      - name: Run mock suite
+        working-directory: backend
+        env:
+          BASEER_MODE: mock
+        run: ../.venv/bin/python mock_suite.py
+      - name: Check frontend syntax
+        run: node --check frontend/app.js
