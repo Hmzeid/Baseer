@@ -324,17 +324,18 @@ def reason_from_frames(frames: list[bytes], inspector_notes: str,
 def verify_finding(finding: dict) -> dict:
     """Verify step: would a re-inspection clear this finding?
 
-    Live build (Oct 30): re-run segmentation on the after-footage and check
-    whether the violating segments persist. Mock mode returns the staged
-    demo outcome — the flagship PPE finding resolves; the floor-marking
-    finding deliberately does NOT, so the demo shows an honest mixed result.
+    Live mode never suggests resolution without new evidence: the real check
+    is compare_for_verification on an after-photo/video. Mock mode returns the
+    staged demo outcome — the flagship PPE finding resolves; the
+    floor-marking finding deliberately does NOT, so the demo shows an honest
+    mixed result.
     """
     title = (finding.get("title_en") or "").lower()
     if MODE == "live":
-        # Conservative default until the segment comparison lands: never
-        # auto-suggest resolution without evidence.
-        return {"suggested_resolved": False,
-                "note": "Live verification compares re-inspection segments; pending Oct 30 build."}
+        note_en = "No re-inspection evidence yet: attach an after-photo of the same spot to verify the fix."
+        note_ar = "لا توجد أدلة إعادة فحص بعد: أرفق صورة لاحقة للموقع نفسه للتحقق من الإصلاح."
+        return {"suggested_resolved": False, "note": note_en,
+                "note_en": note_en, "note_ar": note_ar}
     if "forklift path" in title or "markings" in title:
         return {"suggested_resolved": False,
                 "note": "Re-inspection still shows no floor markings on the forklift route."}

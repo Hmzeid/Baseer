@@ -1,7 +1,10 @@
 # YouTube upload kit — Baseer walkthrough
 
-- **Video:** `docs/media/baseer-walkthrough.mp4` (1920×1080, 30 fps, 1:30, H.264 + AAC, −15.6 LUFS)
-- **Thumbnail:** `docs/media/youtube-thumbnail.png` (1280×720 PNG, 0.9 MB; YouTube max 2 MB)
+- **Video:** `docs/media/baseer-walkthrough.mp4` (1920×1080, 30 fps, **2:58**, H.264 + AAC, −15.4 LUFS, 84 MB)
+  — the Meta submission cut, recorded live on Muse Spark 1.3. A 90 s demo-mode cut is kept as
+  `baseer-walkthrough-90s.mp4` for social clips.
+- **Thumbnail:** `docs/media/youtube-thumbnail.png` (1280×720 PNG, 0.8 MB; YouTube max 2 MB), built from the
+  real hero finding
 - **Category:** Science & Technology · **Language:** English (audio), Arabic + English (product)
 - **Made for kids:** No · **Altered or synthetic content:** Yes, because the narration voice is AI-generated (Kokoro)
 
@@ -9,22 +12,28 @@
 
 1. `Baseer by Veebase: AI Safety Inspections in Arabic, from Photo to Closed Case`
 2. `AI Safety Inspector for Construction & Factories in Arabic | Baseer by Veebase`
-3. `بصير Baseer: Arabic AI Field Inspection Copilot (Veebase) | 90-Second Walkthrough`
+3. `بصير Baseer: Arabic AI Field Inspection Copilot (Veebase) | 3-Minute Walkthrough`
 
 ## Description
 
 ```
 Baseer (بصير) by Veebase turns one site photo and an inspector's note into a full safety inspection report, in Arabic and English, then tracks every corrective action until a person approves the closure.
 
-In 90 seconds: upload a photo, get findings with severity, evidence frame and the fix, ask the report questions, assign and verify the corrective action, and see live camera alerts, deadlines and the audit trail.
+In 3 minutes, recorded live on Meta's Muse: a real site photo becomes three high-severity findings in about forty seconds; the evidence chat explains them and drafts the contractor notice; a case is verified with a genuine after-photo (and a wrong one is refused); a live camera on a warehouse floor raises real alerts; then deadlines, the audit trail, the Arabic PDF and the measured benchmark.
 
 ⏱ Chapters
-0:00 One photo and one note
-0:17 The AI report and evidence chat
-0:39 Corrective actions: assign, verify, approve
-0:55 Live camera alerts
-1:05 Deadlines, cases and the audit log
-1:16 Arabic-first and dark mode
+0:00 The problem, and meet Baseer by Veebase
+0:19 Safety overview
+0:29 Running an inspection
+0:39 How Baseer reads a site (SAM 3.1 + Muse)
+0:52 A real report from Muse
+1:06 Evidence chat, in English and Arabic
+1:25 Cases, and a refused after-photo
+1:36 Verified closure, approved by a person
+1:51 Live camera alerts on a warehouse floor
+2:09 Deadlines, history and the audit log
+2:22 Arabic PDF, roles and mobile
+2:39 Measured results
 
 🔎 What Baseer does
 • Photos, a short video or a live camera feed go in; a structured bilingual report comes out
@@ -38,12 +47,12 @@ In 90 seconds: upload a photo, get findings with severity, evidence frame and th
 Meta's SAM 3.1 segments the scene and Muse reasons over the segments together with the inspector's notes; when segmentation is unavailable, Muse reads the frames directly. Every report records which path produced it.
 
 ℹ️ About this recording
-Recorded in Baseer's demo mode: the findings, live alerts and chat answers shown are synthetic sample outputs, not results on these specific photos. Live mode runs the same flow on Meta's models.
+Recorded live: every finding, chat answer, verification and camera alert is real output from Meta's Muse Spark 1.3 (vision path) on openly licensed Pexels media. The before/after pair is two frames of the same Pexels clip. Earlier history items were back-dated a few days so the deadline views have something to show. Benchmark: fixed 24-scene set, prompt v1.3; misses are published in the project README.
 
 🏆 Built by Veebase for the Meta Global AI Developer Hackathon (Startup track, "Build for Your World"), Oct 26 – Nov 4, 2026.
 
 🎞 Credits
-Site photos and footage from Pexels (Pexels License): Niklas Jeromin, Ali, Lisa Fotios, Michael Orshan, Nishant Aneja, Usman AbdulrasheedGambo.
+Site photos and footage from Pexels (Pexels License): Bulat843 (ladder), Gizem Gökce (welder), Usman AbdulrasheedGambo (warehouse forklift), Gustavo Fring (machine hall before/after), Guadalupe Aizaga (scaffold).
 Narration voice: Kokoro (AI-generated). Music: generated locally with MusicGen.
 
 —
@@ -62,6 +71,6 @@ Veebase, Baseer, بصير, AI safety inspection, construction safety, workplace 
 
 - **Music licence:** the MusicGen model weights are licensed CC-BY-NC 4.0 (non-commercial).
   Keep this video unmonetized, or swap the bed for a commercially licensed track before monetizing.
-- **Demo outputs:** the scaffold photo is labelled "mostly compliant" in the evaluation set;
-  the harness finding on it is a demo sample. The description says so; keep that paragraph.
+- **Real outputs:** the 3-minute cut shows real Muse output. The 90 s cut is demo mode
+  (synthetic findings); if you post that one, say so in its description.
 - **Links:** `github.com/Hmzeid/Baseer` is private (404 when signed out). Add it only if you make it public.

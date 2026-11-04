@@ -1,14 +1,16 @@
 # Baseer by Veebase — walkthrough video (HyperFrames)
 
-The 90 s walkthrough at `docs/media/baseer-walkthrough.mp4` is built from this
-project. Everything on screen is the real console, captured from a mock-mode
-instance seeded by `backend/demo_seed.py`. See `SPEC.md` for the shot list and
-`STORYLINES.md` for the two alternative films.
+The **3-minute Meta submission cut** (`docs/media/baseer-walkthrough.mp4`, 2:58) is built
+from this project with **real Meta outputs**: a scratch live-mode instance (Muse Spark 1.3,
+vision path) staged by `tools/live_stage.py` and recorded by `tools/capture_live.cjs`. The
+older 90 s demo-mode cut (`baseer-walkthrough-90s.mp4`) comes from `tools/gen_video_90s.py`.
+`NARRATION.md` holds the script, `SPEC.md` the shot list, `REVIEW.md` the checks.
 
 ```bash
 cd video
 npx hyperframes preview          # edit in the browser preview / HyperFrames desktop app
 npx hyperframes check            # lint, layout, contrast and craft checks
+python3 tools/gen_video3.py     # rewrites index.html + compositions/ (16 scenes, 178.5 s)
 npx hyperframes render --quality looks -o ../docs/media/baseer-walkthrough.mp4
 ```
 

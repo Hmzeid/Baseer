@@ -1,0 +1,85 @@
+<template>
+  <style>
+    @font-face { font-family:"Geeza AR"; src: local("Geeza Pro"), local("GeezaPro"), local("GeezaPro-Bold"); }
+    #root { position:absolute; inset:0; overflow:hidden; background:#F3F5F8; font-family:Inter, sans-serif; color:#0E1726; }
+    #root .cam { position:absolute; left:0; top:0; width:1920px; height:1080px; transform-origin:0 0; }
+    #root .shot { position:absolute; left:0; top:0; width:1920px; height:1080px; background-size:1920px 1080px; background-repeat:no-repeat; }
+    #root .cursor { position:absolute; left:0; top:0; width:30px; height:30px; z-index:40; }
+    #root .cursor svg { width:30px; height:30px; transform-origin:4px 3px; filter:drop-shadow(0 3px 5px rgba(0,0,0,.35)); }
+    #root .cap { position:absolute; left:0; right:0; bottom:104px; margin:0 auto; width:fit-content; max-width:1400px;
+      background:rgba(10,37,64,.96); color:#fff; font-weight:700; font-size:40px; line-height:1.25; letter-spacing:-.01em;
+      padding:20px 36px; border-radius:16px; box-shadow:0 18px 50px rgba(10,37,64,.28); z-index:50; text-align:center; opacity:0; }
+    #root .cap.left { left:110px; right:auto; margin:0; bottom:130px; max-width:760px; text-align:left; }
+    #root .cap.right { right:110px; left:auto; margin:0; bottom:130px; max-width:760px; text-align:left; }
+    #root .cap .w { display:inline-block; }
+    #root .cap .acc { color:#E0C26A; }
+    #root .ar { font-family:"Geeza AR", Inter, sans-serif; }
+    #root .navy { position:absolute; inset:0; background:radial-gradient(900px 500px at 80% 0%, rgba(201,169,78,.24), transparent 60%),
+      radial-gradient(700px 600px at 0% 100%, rgba(47,111,228,.2), transparent 60%), linear-gradient(160deg,#0A2540 0%,#061628 100%); }
+    #root .grid { position:absolute; inset:0; opacity:.07; background-image:linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px); background-size:44px 44px; }
+    #root .mark { position:absolute; width:300px; height:300px; border-radius:86px; background:#fff; box-shadow:0 30px 80px rgba(0,0,0,.35); }
+    #root .mark svg { position:absolute; inset:50px; }
+
+  </style>
+  <div id="root" data-composition-id="oversight" data-width="1920" data-height="1080">
+
+    <div class="cam"><div class="shot" id="oversight-L21" style="background-image:url(assets/live/L21-cases-overdue.jpg);z-index:1;"></div><div class="shot" id="oversight-L22" style="background-image:url(assets/live/L22-history.jpg);z-index:2;opacity:0;"></div><div class="shot" id="oversight-L23" style="background-image:url(assets/live/L23-audit.jpg);z-index:3;opacity:0;"></div></div>
+    <div class="cap" id="oversight-c1">High severity: due in <b class="acc">one day</b></div>
+    <div class="cap" id="oversight-c2">Every inspection, <b class="acc">searchable</b></div>
+    <div class="cap" id="oversight-c3">An <b class="acc">append-only</b> audit log</div>
+
+  </div>
+  <script>
+    const W = 1920, H = 1080, S = "#oversight";
+    const tl = gsap.timeline({ paused: true });
+    document.querySelectorAll(S + " .cap").forEach((cap) => {
+      const out = [];
+      cap.childNodes.forEach((n) => {
+        if (n.nodeType === 3) n.textContent.split(/\s+/).filter(Boolean).forEach((w) => out.push(`<span class="w">${w}</span>`));
+        else { n.classList.add("w"); out.push(n.outerHTML); }
+      });
+      cap.innerHTML = out.join(" ");
+    });
+    function cam(box, s, t, d = 1.2, fx = 0.5, fy = 0.44, ease = "power2.inOut") {
+      const cx = box[0] + box[2] / 2, cy = box[1] + box[3] / 2;
+      const x = Math.min(0, Math.max(W - W * s, W * fx - s * cx));
+      const y = Math.min(0, Math.max(H - H * s, H * fy - s * cy));
+      if (d === 0) tl.set(S + " .cam", { x, y, scale: s }, t);
+      else tl.to(S + " .cam", { x, y, scale: s, duration: d, ease }, t);
+    }
+    function swap(sel, t) {
+      tl.fromTo(sel, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.22, ease: "power2.out" }, t);
+    }
+    function cap(sel, tin, tout) {
+      tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "power2.out" }, tin);
+      tl.fromTo(sel + " .w", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.13, stagger: 0.07, ease: "power2.out" }, tin + 0.05);
+      if (tout !== undefined) tl.to(sel, { opacity: 0, filter: "blur(6px)", duration: 0.22, ease: "power3.in" }, tout);
+    }
+    function move(pt, t, d = 0.8) { tl.to(S + " .cursor", { x: pt[0], y: pt[1], duration: d, ease: "power2.inOut" }, t); }
+    function click(t) {
+      tl.to(S + " .cursor svg", { scale: 0.82, duration: 0.08, ease: "power2.in" }, t);
+      tl.to(S + " .cursor svg", { scale: 1, duration: 0.14, ease: "power2.out" }, t + 0.08);
+    }
+    function enter(sel, t, from = { opacity: 0, y: 40 }, d = 0.7) {
+      const to = { opacity: 1, x: 0, y: 0, scale: 1, duration: d, ease: "expo.out" };
+      if (from.rotation !== undefined) to.rotation = 0;
+      tl.fromTo(sel, from, to, t);
+    }
+    const mid = (b) => [b[0] + b[2] / 2 - 4, b[1] + b[3] / 2 - 3];
+    const blurIn = () => tl.fromTo(S + " .cam", { filter: "blur(10px)" }, { filter: "blur(0px)", duration: 0.3, ease: "power2.out" }, 0);
+
+    blurIn();
+    cam([405, 120, 1370, 300], 1.3, 0.3, 1.2, 0.5, 0.4);
+    cap(S + " #oversight-c1", 0.6, 4.1);
+    swap(S + " #oversight-L22", 4.3);
+    cam([405, 120, 1370, 560], 1.18, 4.3, 0.9, 0.5, 0.44);
+    cap(S + " #oversight-c2", 4.6, 8.1);
+    swap(S + " #oversight-L23", 8.3);
+    cam([405, 120, 1370, 560], 1.25, 8.3, 0.9, 0.5, 0.44);
+    cap(S + " #oversight-c3", 8.6, 12.8);
+    cam([405, 480, 1370, 520], 1.25, 10.0, 1.8, 0.5, 0.44);
+
+    window.__timelines["oversight"] = tl;
+  </script>
+</template>

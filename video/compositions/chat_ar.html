@@ -1,30 +1,36 @@
 <template>
   <style>
-    #root { position:absolute; inset:0; overflow:hidden; background:#F3F5F8; font-family:Inter, sans-serif; }
+    @font-face { font-family:"Geeza AR"; src: local("Geeza Pro"), local("GeezaPro"), local("GeezaPro-Bold"); }
+    #root { position:absolute; inset:0; overflow:hidden; background:#F3F5F8; font-family:Inter, sans-serif; color:#0E1726; }
     #root .cam { position:absolute; left:0; top:0; width:1920px; height:1080px; transform-origin:0 0; }
     #root .shot { position:absolute; left:0; top:0; width:1920px; height:1080px; background-size:1920px 1080px; background-repeat:no-repeat; }
     #root .cursor { position:absolute; left:0; top:0; width:30px; height:30px; z-index:40; }
     #root .cursor svg { width:30px; height:30px; transform-origin:4px 3px; filter:drop-shadow(0 3px 5px rgba(0,0,0,.35)); }
-    #root .cap { position:absolute; left:0; right:0; bottom:110px; margin:0 auto; width:fit-content; max-width:1400px;
+    #root .cap { position:absolute; left:0; right:0; bottom:104px; margin:0 auto; width:fit-content; max-width:1400px;
       background:rgba(10,37,64,.96); color:#fff; font-weight:700; font-size:40px; line-height:1.25; letter-spacing:-.01em;
-      padding:20px 36px; border-radius:16px; box-shadow:0 18px 50px rgba(10,37,64,.28); z-index:50; text-align:center; }
-    #root .cap.left { left:110px; right:auto; margin:0; bottom:140px; max-width:780px; text-align:left; }
+      padding:20px 36px; border-radius:16px; box-shadow:0 18px 50px rgba(10,37,64,.28); z-index:50; text-align:center; opacity:0; }
+    #root .cap.left { left:110px; right:auto; margin:0; bottom:130px; max-width:760px; text-align:left; }
+    #root .cap.right { right:110px; left:auto; margin:0; bottom:130px; max-width:760px; text-align:left; }
     #root .cap .w { display:inline-block; }
     #root .cap .acc { color:#E0C26A; }
+    #root .ar { font-family:"Geeza AR", Inter, sans-serif; }
+    #root .navy { position:absolute; inset:0; background:radial-gradient(900px 500px at 80% 0%, rgba(201,169,78,.24), transparent 60%),
+      radial-gradient(700px 600px at 0% 100%, rgba(47,111,228,.2), transparent 60%), linear-gradient(160deg,#0A2540 0%,#061628 100%); }
+    #root .grid { position:absolute; inset:0; opacity:.07; background-image:linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px); background-size:44px 44px; }
+    #root .mark { position:absolute; width:300px; height:300px; border-radius:86px; background:#fff; box-shadow:0 30px 80px rgba(0,0,0,.35); }
+    #root .mark svg { position:absolute; inset:50px; }
 
   </style>
-  <div id="root" data-composition-id="arabic" data-width="1920" data-height="1080">
+  <div id="root" data-composition-id="chat_ar" data-width="1920" data-height="1080">
 
-    <div class="cam"><div class="shot" id="arabic-c16-report-ar" style="background-image:url(assets/shots/c16-report-ar.jpg);z-index:1;"></div>
-      <div class="shot" id="arabic-dark" style="background-image:url(assets/shots/c17-overview-ar-dark.jpg);z-index:2;clip-path:circle(0px at 51px 46px)"></div></div>
-    <div class="cap" id="arabic-c1"><b class="acc">Arabic-first</b>, right to left, end to end</div>
-    <div class="cap" id="arabic-c2">And a <b class="acc">dark</b> theme for the control room</div>
+    <div class="cam"><div class="shot" id="chat_ar-L12" style="background-image:url(assets/live/L12-chat-ar.jpg);z-index:1;"></div></div>
+    <div class="cap right" id="chat_ar-c1"><b class="acc ar">بالعربية</b> too, right to left</div>
 
   </div>
   <script>
-    const W = 1920, H = 1080, S = "#arabic";
+    const W = 1920, H = 1080, S = "#chat_ar";
     const tl = gsap.timeline({ paused: true });
-    // Split caption text into word spans (accent <b class="acc"> kept as one word).
     document.querySelectorAll(S + " .cap").forEach((cap) => {
       const out = [];
       cap.childNodes.forEach((n) => {
@@ -33,7 +39,6 @@
       });
       cap.innerHTML = out.join(" ");
     });
-    // Camera: frame box [x,y,w,h] (UI px) at scale s, box centre at (fx*W, fy*H), clamped to the shot.
     function cam(box, s, t, d = 1.2, fx = 0.5, fy = 0.44, ease = "power2.inOut") {
       const cx = box[0] + box[2] / 2, cy = box[1] + box[3] / 2;
       const x = Math.min(0, Math.max(W - W * s, W * fx - s * cx));
@@ -41,7 +46,6 @@
       if (d === 0) tl.set(S + " .cam", { x, y, scale: s }, t);
       else tl.to(S + " .cam", { x, y, scale: s, duration: d, ease }, t);
     }
-    // Blur swap: the next screen sharpens in over the current one.
     function swap(sel, t) {
       tl.fromTo(sel, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.22, ease: "power2.out" }, t);
     }
@@ -50,21 +54,25 @@
       tl.fromTo(sel + " .w", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.13, stagger: 0.07, ease: "power2.out" }, tin + 0.05);
       if (tout !== undefined) tl.to(sel, { opacity: 0, filter: "blur(6px)", duration: 0.22, ease: "power3.in" }, tout);
     }
-    // Cursor tip to point (UI px); click dips the arrow.
     function move(pt, t, d = 0.8) { tl.to(S + " .cursor", { x: pt[0], y: pt[1], duration: d, ease: "power2.inOut" }, t); }
     function click(t) {
       tl.to(S + " .cursor svg", { scale: 0.82, duration: 0.08, ease: "power2.in" }, t);
       tl.to(S + " .cursor svg", { scale: 1, duration: 0.14, ease: "power2.out" }, t + 0.08);
     }
+    function enter(sel, t, from = { opacity: 0, y: 40 }, d = 0.7) {
+      const to = { opacity: 1, x: 0, y: 0, scale: 1, duration: d, ease: "expo.out" };
+      if (from.rotation !== undefined) to.rotation = 0;
+      tl.fromTo(sel, from, to, t);
+    }
     const mid = (b) => [b[0] + b[2] / 2 - 4, b[1] + b[3] / 2 - 3];
+    const blurIn = () => tl.fromTo(S + " .cam", { filter: "blur(10px)" }, { filter: "blur(0px)", duration: 0.3, ease: "power2.out" }, 0);
 
-    tl.fromTo(S + " .cam", { filter: "blur(10px)" }, { filter: "blur(0px)", duration: 0.3, ease: "power2.out" }, 0);
-    tl.fromTo(S + " .cam", { scale: 1.0 }, { scale: 1.04, duration: 3.2, ease: "none" }, 0);
-    cap(S + " #arabic-c1", 0.4, 3.2);
-    tl.to(S + " .cam", { scale: 1.0, duration: 0.3, ease: "power2.out" }, 3.2);
-    tl.to(S + " #arabic-dark", { clipPath: "circle(2300px at 51px 46px)", duration: 0.7, ease: "power2.in" }, 3.4);
-    cap(S + " #arabic-c2", 4.2, 6.8);
+    blurIn();
+    cam([122, 121, 380, 727], 1.0, 0, 0);
+    cam([122, 121, 380, 727], 1.3, 0.2, 1.4, 0.3, 0.48);
+    cap(S + " #chat_ar-c1", 0.9, 6.7);
+    cam([122, 420, 380, 400], 1.45, 3.2, 1.8, 0.3, 0.48);
 
-    window.__timelines["arabic"] = tl;
+    window.__timelines["chat_ar"] = tl;
   </script>
 </template>

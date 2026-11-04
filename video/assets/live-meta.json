@@ -1,0 +1,24 @@
+{
+ "hero_seconds": 40.464,
+ "hero": "d4cbfb876846",
+ "hero_findings": [
+  "Worker at exposed upper edge without visible guardrail",
+  "Climbing ladder while carrying bulky roll with hands occupied",
+  "Worker without hard hat below overhead work area"
+ ],
+ "chat": [
+  "Finding 1, frame 1 is rated high because it shows a worker standing directly at an exposed upper edge with no protection visible.\n\nAs described in the report: at the top right of the frame, the legs of a second worker are visible standing on the roof of the blue structure directly at the edge, with ",
+  "Corrective Action Notice to Contractor — Inspection d4cbfb876846:\n\nThree high-severity findings related to work at height were recorded. Finding 1, frame 1 — Worker at exposed upper edge without visible guardrail — requires you to stop work on the roof and edge immediately until an edge guardrail or"
+ ],
+ "verify": "The after frame shows the worker wearing an orange hard hat near the forklift. The violation appears corrected.",
+ "verify_ok": true,
+ "live_alerts": [
+  "No marked pedestrian walkway where forklifts operate",
+  "Pedestrian without hard hat in shared forklift area"
+ ],
+ "live_report": "3b4010fbf45c",
+ "live_findings": [
+  "Pedestrian without hard hat in forklift operating area",
+  "No marked pedestrian walkways where forklifts operate"
+ ]
+}

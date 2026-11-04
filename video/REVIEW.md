@@ -24,3 +24,13 @@ BANNED additions after this pass: none needed.
 - Clicks: 11, one per real cursor click, two alternating takes, peak one frame after the press.
 - Measured (not heard): -15.6 LUFS integrated, true peak -2.9 dB, no clipping; click onsets
   confirmed within 0.1 s of every cursor click. Listen once before publishing.
+
+## v3 — 3-minute Meta submission cut (live outputs)
+- `check`: 0 errors; craft warnings resolved (dead stretches got purposeful camera moves, diagram
+  text raised to 28 px, vision-path note shortened and held long enough). One accepted lint note:
+  `#live-feed` data-start is scene-local.
+- Snapshots at 28 instants across all 16 scenes reviewed; frame 0 shows all three real photos.
+- Every on-screen/narrated claim traced: 3 high findings + 40 s (hero run), refusal text and
+  acceptance text (verify calls), 2 live alerts, benchmark 6/8, 16/24, SAM precision 0.60 (README).
+- Measured (not heard): -15.4 LUFS, true peak -1.7 dB, no clipping; 9/9 clicks within 0.15 s.
+- History dates were back-dated for the deadline views; said so in the YouTube description.
